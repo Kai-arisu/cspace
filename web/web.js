@@ -260,14 +260,14 @@ async function cpLoad(){
     if(r.error)throw r.error;
     var d=r.data;
     W.p=d?{handle:d.handle||"",display_name:d.display_name||"",tagline:d.tagline||"",bio:d.bio||"",accent:d.accent||"#12163A",is_public:!!d.is_public,avatar_url:d.avatar_url||"",links:Array.isArray(d.links)?d.links:[],exists:true}
-      :{handle:suggestHandle(),display_name:(S.profile&&S.profile.name)||"",tagline:"",bio:"",accent:"#12163A",is_public:false,avatar_url:"",links:[],exists:false};
+      :{handle:suggestHandle(),display_name:(S.profile&&S.profile.name)||"",tagline:"",bio:"",accent:"#111111",is_public:false,avatar_url:"",links:[],exists:false};
     W.pLoaded=true;W.pErr="";
-  }catch(e){W.pErr="Couldn't load your profile. "+((e&&e.message)||"");W.pLoaded=true;if(!W.p)W.p={handle:"",display_name:"",tagline:"",bio:"",accent:"#12163A",is_public:false,avatar_url:"",links:[]}}
+  }catch(e){W.pErr="Couldn't load your profile. "+((e&&e.message)||"");W.pLoaded=true;if(!W.p)W.p={handle:"",display_name:"",tagline:"",bio:"",accent:"#111111",is_public:false,avatar_url:"",links:[]}}
   if(S.view==="cp")render();
 }
 function cpLink(){return location.origin+"/u/"+(W.p&&W.p.handle||"")}
 function cpPreviewHTML(){
-  var p=W.p,ac=/^#[0-9a-f]{6}$/i.test(p.accent)?p.accent:"#12163A";
+  var p=W.p,ac=/^#[0-9a-f]{6}$/i.test(p.accent)?p.accent:"#111111";
   return '<div class="cp-pv" style="--pa:'+ac+'">'+(p.avatar_url?'<img class="cp-av" src="'+esc(p.avatar_url)+'" alt="">':'<span class="cp-av cp-ini">'+esc((p.display_name||p.handle||"?").slice(0,1).toUpperCase())+'</span>')+
     '<b>'+esc(p.display_name||p.handle||"Your name")+'</b><span class="cp-h">@'+esc(p.handle||"handle")+'</span>'+(p.tagline?'<span class="cp-tg">'+esc(p.tagline)+'</span>':"")+(p.bio?'<p>'+esc(p.bio)+'</p>':"")+
     (p.links.length?'<div class="cp-ls">'+p.links.filter(function(l){return l.label||l.url}).map(function(l){return '<span>'+esc(l.label||l.url)+'</span>'}).join("")+'</div>':"")+'</div>';

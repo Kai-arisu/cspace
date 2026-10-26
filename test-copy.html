@@ -1024,30 +1024,10 @@ function vmeta(id){return VIEWS.filter(function(v){return v.id===id})[0]}
 function defaults(){
   var sp="s"+uid(), now=Date.now(), d=function(n){return ymd(new Date(now+n*864e5))};
   return {cur:sp,view:"home",
-    spaces:[{id:sp,name:"My first channel"}],
-    notes:[
-      {id:uid(),sp:sp,title:"Start here",pin:true,ts:now,body:"This space keeps one channel or project in one place. The notes, ideas, tasks and moodboard frames you see are examples. Edit them, or delete them and start fresh.\n\nEverything you type is saved automatically."},
-      {id:uid(),sp:sp,title:"Video 12 outline",pin:false,ts:now-36e5*5,body:"Hook (0:00 to 0:15): show the finished result first.\nProblem: why the old way wastes a weekend.\nBuild: three steps, one cut each.\nCall to action: ask for one comment, not three."}
-    ],
-    ideas:[
-      {id:uid(),sp:sp,text:"Behind the scenes of a full week of filming #video",tags:["video"],star:true,task:false,ts:now-36e5*2},
-      {id:uid(),sp:sp,text:"Sticker pack from the best comments #merch",tags:["merch"],star:false,task:false,ts:now-36e5*20},
-      {id:uid(),sp:sp,text:"Short series: one tool, one minute #shorts",tags:["shorts"],star:false,task:false,ts:now-864e5*2}
-    ],
-    tasks:[
-      {id:uid(),sp:sp,title:"Script video 12",col:"m",due:d(2),ts:now},
-      {id:uid(),sp:sp,title:"Design thumbnail",col:"i",due:d(4),ts:now},
-      {id:uid(),sp:sp,title:"Colour grade teaser",col:"r",due:d(1),ts:now},
-      {id:uid(),sp:sp,title:"Publish video 11",col:"s",due:"",ts:now},
-      {id:uid(),sp:sp,title:"Update channel banner",col:"s",due:"",ts:now}
-    ],
-    mood:[
-      {id:uid(),sp:sp,kind:"color",value:"#E0388A",label:"Signal pink"},
-      {id:uid(),sp:sp,kind:"note",value:"Clean frames, lots of negative space, one loud colour per shot.",label:""},
-      {id:uid(),sp:sp,kind:"color",value:"#12163A",label:"Midnight"}
-    ],
+    spaces:[{id:sp,name:"My channel"}],
+    notes:[],ideas:[],tasks:[],mood:[],
     files:[],
-    palette:(function(){var o={};o[sp]=["#E0388A","#12163A","#F3F4FB"];return o})()
+    palette:(function(){var o={};o[sp]=["#111111","#8A8A8A","#F2F2F2"];return o})()
   };
 }
 function sanitize(){
@@ -1081,7 +1061,7 @@ function fix(){
   if(!S.spaces.length)S.spaces=d.spaces;
   if(!S.profile||typeof S.profile!=="object")S.profile={};
   if(!S.edit||typeof S.edit!=="object")S.edit={};
-  if(S.profile.name===undefined)S.profile.name="Abhinav";if(S.profile.role===undefined)S.profile.role="Creator";if(S.profile.avatar===undefined)S.profile.avatar="";
+  if(S.profile.name===undefined)S.profile.name=(function(){var e=String(window.__EMAIL||"").split("@")[0].replace(/[._-]+/g," ").replace(/\d+$/,"").trim();return e?e.replace(/\b\w/g,function(c){return c.toUpperCase()}):""})();if(S.profile.role===undefined)S.profile.role="Creator";if(S.profile.avatar===undefined)S.profile.avatar="";
   if(!S.spaces.some(function(x){return x.id===S.cur}))S.cur=S.spaces[0].id;
   if(!vmeta(S.view))S.view="home";
 }
