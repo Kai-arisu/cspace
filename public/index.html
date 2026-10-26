@@ -1213,7 +1213,19 @@ html.authing body,html.pubpage body{background:var(--bg)}
   .app.rail .brand{justify-content:center;padding:4px}
   .app.rail .brand b,.app.rail .rail-ic{display:none}
   .app.rail .nm,.app.rail .ct,.app.rail .sadd,.app.rail .pcard .pt,.app.rail .pcard .pc,.app.rail .status span{opacity:0;max-width:0;overflow:hidden;margin:0;pointer-events:none;white-space:nowrap}
-  .app.rail .si-row{justify-content:center;gap:0;padding:11px 0}
+  .app.rail .si-row{justify-content:center;gap:0;padding:0;height:42px;width:42px;margin:1px auto;border-radius:16px;position:relative}
+  .app.rail .si-row .ct,.app.rail .si-row .nm{display:none}
+  .app.rail .si-row .tile{width:22px;height:22px;background:none!important;color:inherit;display:grid;place-items:center}
+  .app.rail .si-row .tile svg{width:20px;height:20px}
+  .app.rail .si-row[aria-current="true"]{background:var(--ink);color:var(--on-ink);box-shadow:none}
+  .app.rail .si-row.soon{display:none}
+  .app.rail .si-row .tile,.app.rail .si-row .tile svg,.app.rail .si-row .tile svg *{color:inherit!important;stroke:currentColor}
+  .app.rail .si-row{color:var(--muted)}
+  .app.rail .si-row:hover{color:var(--fg);background:var(--flat)}
+  .app.rail .si-row[data-act="space"],.app.rail .si-row[data-act="space"][aria-current="true"]{background:var(--flat);color:var(--fg)}
+  .app.rail .si-row[data-act="space"] .dot{width:10px;height:10px;box-shadow:0 0 0 4px var(--flat2)}
+  .app.rail .brand{width:46px;height:46px;margin:2px auto 8px;padding:0;border-radius:16px}
+  .app.rail .brand .logo{margin:0}
   .app.rail .si-row .tile{width:auto}
   .app.rail .si-row .dot{margin:0}
   .app.rail .slbl{font-size:0;padding:0;margin:10px 16px;height:1px;background:var(--line);width:auto}
