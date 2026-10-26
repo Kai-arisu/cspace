@@ -41,7 +41,7 @@ function railSet(on,quiet){
   var lg=$("logo");if(lg&&!quiet){lg.classList.remove("pop");void lg.offsetWidth;lg.classList.add("pop")}
   if(!quiet)sound(on?"collapse":"expand");
 }
-function webCrumb(){
+function webCrumb(){var sb=document.getElementById("sharebtn");if(sb){sb.title="Share your public page";sb.setAttribute("aria-label","Share your public page")}
   var v=vmeta(S.view),el=$("crumb");if(!v)return;
   var g="";for(var i=0;i<VIEWS.length;i++){if(VIEWS[i].g)g=VIEWS[i].g;if(VIEWS[i].id===v.id)break}
   if(!el){var top=document.querySelector(".top .search");if(!top)return;el=document.createElement("div");el.id="crumb";el.className="crumb";top.parentNode.insertBefore(el,top)}
@@ -341,6 +341,7 @@ async function cpSave(){
 function webAct(a,b){
   var id=b.dataset.id;
   switch(a){
+    case "sharehelp":S.view="cp";render();return true;
     case "more":sound("tick");moreOpen();return true;
     case "rail":railSet(!document.querySelector(".app").classList.contains("rail"));return true;
     case "snd":sndSet(id==="on");if(id==="on")sound("on");if($("msheet")&&!$("msheet").hidden)moreOpen();else render();return true;
