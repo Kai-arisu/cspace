@@ -4,3 +4,5 @@ node_modules/
 .DS_Store
 f-*.png
 test-copy.html
+desktop/node_modules/
+desktop/dist/
