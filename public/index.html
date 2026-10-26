@@ -1327,6 +1327,70 @@ html.authing body,html.pubpage body{background:var(--bg)}
   .plf{white-space:nowrap;width:auto;background:var(--flat)}
 }
 @media (prefers-reduced-motion:reduce){.app,.side,.logo.pop{transition:none!important;animation:none!important}}
+
+/* ===== whiteboard: full-bleed canvas, floating tools ===== */
+.col-main[data-v="wb"] .hero{display:none}
+.col-main[data-v="wb"] .wrap{max-width:none;padding:0 14px 14px}
+.wbwrap{height:calc(100dvh - 118px);min-height:460px;border-radius:26px;border:1px solid var(--line);background:#F2F2F2;box-shadow:none}
+.wbsvg{background:#F2F2F2}
+.wbui{position:absolute;inset:0;z-index:6;pointer-events:none}
+.wbui>*{pointer-events:auto}
+.wbcard{background:var(--solid,#fff);border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 28px rgba(0,0,0,.10),0 1px 0 var(--edge) inset;display:flex;align-items:center;gap:2px;padding:6px}
+.wbrail{position:absolute;left:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;pointer-events:none}
+.wbrail>*{pointer-events:auto}
+.wbmain,.wbhist{flex-direction:column}
+.wbui .tb{width:44px;min-width:44px;height:44px;border-radius:13px;color:var(--fg);transition:background .15s var(--ease),color .15s,transform .15s var(--ease)}
+.wbui .tb:hover{background:var(--flat)}
+.wbui .tb:active{transform:scale(.94)}
+.wbui .tb svg.i{width:21px;height:21px}
+.wbui .tb[aria-pressed="true"]{background:var(--ink);color:var(--on-ink)}
+.wbui .tbmore svg.i{width:16px;height:16px}
+.wbui .tb[disabled]{opacity:.3}
+.wbhist .tb{color:var(--muted)}
+.wbfly{position:absolute;left:78px;top:50%;margin-top:-150px;flex-direction:column;animation:wbpop .18s var(--ease)}
+.wbfly2{margin-top:-60px;align-items:stretch}
+.wbfly .tb.wide{width:auto;padding:0 14px;justify-content:flex-start;display:flex;gap:8px;align-items:center;font-weight:500;white-space:nowrap}
+.wbfly .sep{height:1px;background:var(--line);margin:4px 6px}
+@keyframes wbpop{from{opacity:0;transform:translateX(-6px) scale(.97)}to{opacity:1;transform:none}}
+.wbstyle{position:absolute;left:78px;top:14px;flex-direction:column;align-items:stretch;gap:8px;padding:10px;width:204px;animation:wbpop .18s var(--ease)}
+.wbcols{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;justify-items:center}
+.wbrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.wbstyle .tb{width:auto;min-width:0;padding:0 14px;height:36px}
+.wbstyle .wsel{flex:1;min-width:0;height:36px;background:var(--flat);border:0;border-radius:12px}
+.wbzoomc{position:absolute;right:14px;bottom:14px;padding:5px 6px;gap:0}
+.wbzoomc .tb{width:38px;min-width:38px;height:38px}
+.wbzoomc .wbz{min-width:52px;font-weight:500}
+.wbempty{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;pointer-events:none}
+.wbempty[hidden]{display:none}
+.wbempty-b{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:6px;width:200px;padding:26px 18px 22px;border:1px solid var(--line);border-radius:30px;background:var(--flat);color:var(--fg);font:500 17px/1.25 var(--f-body);text-align:center;cursor:pointer;transition:transform .2s var(--ease),background .2s}
+.wbempty-b:hover{background:var(--flat2);transform:translateY(-2px)}
+.wbempty-b span{max-width:9ch}
+.wbempty-x{pointer-events:auto;position:absolute;right:-14px;top:-14px;z-index:2;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--solid,#fff);color:var(--muted);display:grid;place-items:center;cursor:pointer}
+.wbempty-x svg.i{width:16px;height:16px}
+.wbmini{left:86px;bottom:14px;width:150px;height:96px;border-radius:16px}
+.wbtl{left:250px;right:150px;bottom:14px}
+.wbchips{left:90px;right:14px;top:14px}
+.wbwrap.dk,.wbwrap.dk .wbsvg{background:#F2F2F2}
+@media (max-width:860px){
+  .col-main[data-v="wb"] .wrap{padding:0 10px 96px}
+  .wbwrap{height:calc(100dvh - 210px);border-radius:22px}
+  .wbrail{top:auto;bottom:70px;left:50%;transform:translateX(-50%);flex-direction:row}
+  .wbmain,.wbhist{flex-direction:row}
+  .wbui .tb{width:40px;min-width:40px;height:40px}
+  .wbfly,.wbfly2{left:50%;top:auto;margin:0;bottom:134px;transform:translateX(-50%);flex-direction:row;flex-wrap:wrap;max-width:92%}
+  .wbstyle{left:10px;top:10px}
+  .wbmini,.wbtl{display:none}
+}
+.col-main[data-v="wb"] .wrap{margin:0;width:100%;max-width:none}
+.col-main[data-v="wb"] .wrap>*{max-width:none}
+.wbwrap.empty .wbchips,.wbwrap.empty .wbtl,.wbwrap.empty .wbmini{display:none}
+.wbempty-b{background:var(--solid,#fff);box-shadow:0 10px 30px rgba(0,0,0,.08)}
+.wbzoomc{bottom:14px}
+.col-main[data-v="wb"] .sheet{padding:0 12px 12px;overflow:hidden}
+.col-main[data-v="wb"] .wrap{padding:0}
+.wbwrap{height:calc(100dvh - 108px)}
+@media (max-width:860px){.col-main[data-v="wb"] .sheet{padding:0 8px 8px}.wbwrap{height:calc(100dvh - 190px)}}
+.wbchips{left:250px}@media (max-width:860px){.wbchips{left:10px;top:auto;bottom:10px}}
 </style></head><body><div id="authgate" hidden></div><div id="pubpage" hidden></div>
 
 <div class="app">
@@ -1680,6 +1744,8 @@ var ICONS={
   redo:'<path d="M15 14l5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/>',
   trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
   minus:'<path d="M5 12h14"/>',
+  chev:'<path d="M7 6l5 5 5-5M7 13l5 5 5-5"/>',
+  shapes:'<rect x="3.5" y="3.5" width="7" height="7" rx="1"/><circle cx="17" cy="7" r="3.5"/><path d="M7 14l3.5 6.5h-7zM14 14h7M17.5 14l3.5 3.5-3.5 3.5"/>',
   fit:'<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
   flag:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
   play:'<path d="M7 4l13 8-13 8z"/>',
@@ -4139,7 +4205,10 @@ function act0(a,b){
     case "ftreset":ftReset();break;
     case "gores":{var rr=$("sres")._r[+b.dataset.i];if(rr){S.cur=rr.sp;S.view=rr.v;if(rr.v==="notes")selNote=rr.id;$("gsearch").value="";touch();render()}break}
     /* whiteboard */
-    case "wbtool":WB.tool=id;WB.connFrom=null;wbCommitEdit();wbToolbar();if(id==="conn")toast("Click one item, then another, to link them");break;
+    case "wbhint":try{localStorage.setItem("cs-wbhint","1")}catch(e){}wbPaint();break;
+    case "wbfirst":WB.tool="sticky";WB.menu="";wbToolbar();toast("Click anywhere on the board to place a sticky note");break;
+    case "wbmenu":WB.menu=WB.menu===id?"":id;wbToolbar();break;
+    case "wbtool":WB.menu="";WB.tool=id;WB.connFrom=null;wbCommitEdit();wbToolbar();if(id==="conn")toast("Click one item, then another, to link them");break;
     case "wbhi":{var hi=findIn(WB.items,WB.sel);if(hi){wbSnap();hi.hi=!hi.hi;wbTouch();wbPaint()}break}
     case "wbfilter":WB.filter=id;wbPaint();break;
     case "wbtl":{var tl=findIn(WB.items,id);if(tl){WB.sel=id;wbCenter(tl);wbPaint()}break}
@@ -4223,8 +4292,8 @@ function upErr(e){
 }
 
 /* ---------- whiteboard ---------- */
-var WB={items:[],sel:null,filter:"all",connFrom:null,ik:"",ck:"",tl:"",mini:null,miniDrag:false,pendImg:null,tool:"select",color:"#12163A",width:3,fill:false,px:40,py:40,z:1,hist:[],redo:[],loadedFor:null,dirty:false,saving:false,timer:null,drag:null,draft:null,edit:null,raf:0};
-var WBCOL=["#12163A","#E0388A","#5B5BF0","#0E9F6E","#F59E0B","#0284C7"];
+var WB={items:[],sel:null,filter:"all",connFrom:null,ik:"",ck:"",tl:"",mini:null,miniDrag:false,pendImg:null,menu:"",tool:"select",color:"#111111",width:3,fill:false,px:40,py:40,z:1,hist:[],redo:[],loadedFor:null,dirty:false,saving:false,timer:null,drag:null,draft:null,edit:null,raf:0};
+var WBCOL=["#111111","#6B6B6B","#E5484D","#F5A524","#30A46C","#0091FF","#8E4EC6"];
 function wbKey(sp){return LS+"-wb-"+sp}
 function r1(n){return Math.round(n*10)/10}
 function clone(o){return JSON.parse(JSON.stringify(o))}
@@ -4423,10 +4492,9 @@ function wbItemSVG(it){
 }
 function wbInspKey(){var it=findIn(WB.items,WB.sel);return it?it.id+":"+(it.hi?1:0):""}
 function wbInspHTML(){
-  var it=findIn(WB.items,WB.sel),h='<div class="grp">';
+  var it=findIn(WB.items,WB.sel),h='';
   if(it&&(it.t==="node"||it.t==="stat"))h+='<button class="tb" data-act="wbhi" aria-pressed="'+!!it.hi+'" title="Fill with this space\'s accent colour">Accent</button>';
   if(it&&(it.t==="node"||it.t==="stat"||it.t==="img"))h+='<input type="date" class="wsel" id="wbdate" value="'+esc(it.date||"")+'" aria-label="Date, shows in the timeline strip" title="Date, shows in the timeline strip">';
-  h+='<button class="btn sm" data-act="wbstart" title="Add an example flow">Starter flow</button></div>';
   return h;
 }
 function wbInspChange(e){
@@ -4526,6 +4594,7 @@ function wbPaint(){
   var tr="translate("+WB.px+" "+WB.py+") scale("+WB.z+")";
   $("wbworld").setAttribute("transform",tr);
   $("wbdots").setAttribute("patternTransform",tr);
+  var ww=$("wbwrap");if(ww)ww.classList.toggle("empty",!WB.items.length);var em=$("wbempty");if(em){var hid=false;try{hid=localStorage.getItem("cs-wbhint")==="1"}catch(e){}em.hidden=hid||WB.items.length>0}
   var u=$("wbundo"),r=$("wbredo"),d=$("wbdelbtn"),zz=$("wbzoom");
   if(u)u.disabled=!WB.hist.length;if(r)r.disabled=!WB.redo.length;if(d)d.disabled=!WB.sel;
   if(zz)zz.textContent=Math.round(WB.z*100)+"%";
@@ -4536,27 +4605,33 @@ function wbErase(e){var d=WB.drag;if(!d)return;var el=document.elementFromPoint(
 function wbSched(){if(WB.raf)return;WB.raf=requestAnimationFrame(function(){WB.raf=0;wbPaint()})}
 
 function wbToolsHTML(){
-  var tools=[["select","cursor","Select and move"],["pen","pen","Pen"],["rect","square","Rectangle"],["ell","circle","Ellipse"],["line","arrow","Arrow"],["sticky","sticky","Sticky note"],["text","text","Text"],["node","pill","Node card: a pill step with a title and detail"],["stat","chart","Stat card with a chart"],["img","image","Image card"],["conn","link","Connect two items with a line"],["erase","eraser","Eraser: click or drag over items"]];
-  var cols=WBCOL.concat((S.palette[S.cur]||[]).map(function(c){return c.toUpperCase()}).filter(function(c){return WBCOL.indexOf(c)<0})).slice(0,10);
-  var h='<div class="grp" role="group" aria-label="Drawing tools">'+tools.map(function(t){
-    return '<button class="tb" data-act="wbtool" data-id="'+t[0]+'" aria-pressed="'+(WB.tool===t[0])+'" aria-label="'+t[2]+'" title="'+t[2]+'">'+I(t[1])+'</button>';
-  }).join("")+'</div>';
-  h+='<div class="grp" role="group" aria-label="Colour">'+cols.map(function(c){
-    return '<button class="cs" data-act="wbcolor" data-id="'+c+'" style="--c:'+c+'" aria-pressed="'+(WB.color.toLowerCase()===c.toLowerCase())+'" aria-label="Colour '+c+'" title="'+c+'"></button>';
-  }).join("")+'</div>';
-  h+='<div class="grp"><select class="wsel" id="wbw" aria-label="Line thickness">'+[[2,"Thin"],[3,"Medium"],[6,"Thick"],[10,"Heavy"]].map(function(o){return '<option value="'+o[0]+'"'+(WB.width===o[0]?" selected":"")+'>'+o[1]+'</option>'}).join("")+'</select>'+
-    '<button class="tb" data-act="wbfill" aria-pressed="'+WB.fill+'" title="Fill shapes with colour">Fill</button></div>';
-  h+='<div class="grp"><button class="tb" id="wbundo" data-act="wbundo" aria-label="Undo" title="Undo">'+I("undo")+'</button><button class="tb" id="wbredo" data-act="wbredo" aria-label="Redo" title="Redo">'+I("redo")+'</button>'+
-    '<button class="tb" id="wbdelbtn" data-act="wbdel" aria-label="Delete selected" title="Delete selected">'+I("trash")+'</button></div>';
-  h+='<div class="grp"><button class="tb" data-act="wbzoom" data-id="out" aria-label="Zoom out">'+I("minus")+'</button><span class="wbz" id="wbzoom">100%</span><button class="tb" data-act="wbzoom" data-id="in" aria-label="Zoom in">'+I("plus")+'</button><button class="tb" data-act="wbzoom" data-id="fit" aria-label="Fit everything" title="Fit everything">'+I("fit")+'</button></div>';
-  h+=wbInspHTML();
-  h+='<div class="grp"><button class="tb" data-act="wbbg" title="Canvas colour: auto, light or dark" aria-label="Change canvas colour">'+I(wbDark()?"moon":"sun")+'</button><button class="btn sm" data-act="wbclear">Clear board</button></div>';
+  var SH=["rect","ell","line","conn"],MORE=["node","stat","img","erase"];
+  var T={select:["cursor","Select and move"],pen:["pen","Pen"],sticky:["sticky","Sticky note"],text:["text","Text"],rect:["square","Rectangle"],ell:["circle","Ellipse"],line:["arrow","Arrow"],conn:["link","Connect two items with a line"],node:["pill","Node card: a title and a detail"],stat:["chart","Stat card with a chart"],img:["image","Image card"],erase:["eraser","Eraser: click or drag over items"]};
+  function tb(id){return '<button class="tb" data-act="wbtool" data-id="'+id+'" aria-pressed="'+(WB.tool===id)+'" aria-label="'+T[id][1]+'" title="'+T[id][1]+'">'+I(T[id][0])+'</button>'}
+  var shapeOn=SH.indexOf(WB.tool)>-1,moreOn=MORE.indexOf(WB.tool)>-1;
+  var shapeIc=shapeOn?T[WB.tool][0]:"shapes";
+  var h='<div class="wbrail"><div class="wbcard wbmain" role="group" aria-label="Drawing tools">'+tb("select")+tb("pen")+tb("sticky")+tb("text")+
+    '<button class="tb" data-act="wbmenu" data-id="shapes" aria-pressed="'+(shapeOn||WB.menu==="shapes")+'" aria-label="Shapes and lines" title="Shapes and lines">'+I(shapeIc)+'</button>'+
+    '<button class="tb tbmore" data-act="wbmenu" data-id="more" aria-pressed="'+(moreOn||WB.menu==="more")+'" aria-label="More tools" title="More tools">'+I("chev")+'</button></div>'+
+    '<div class="wbcard wbhist"><button class="tb" id="wbundo" data-act="wbundo" aria-label="Undo" title="Undo">'+I("undo")+'</button><button class="tb" id="wbredo" data-act="wbredo" aria-label="Redo" title="Redo">'+I("redo")+'</button><button class="tb" id="wbdelbtn" data-act="wbdel" aria-label="Delete selected" title="Delete selected">'+I("trash")+'</button></div></div>';
+  if(WB.menu==="shapes")h+='<div class="wbcard wbfly" style="--ty:0">'+SH.map(tb).join("")+'</div>';
+  if(WB.menu==="more")h+='<div class="wbcard wbfly wbfly2">'+MORE.map(tb).join("")+'<span class="sep"></span><button class="tb wide" data-act="wbstart" title="Add an example flow">Starter flow</button><button class="tb wide" data-act="wbbg" title="Canvas colour: auto, light or dark">'+I(wbDark()?"moon":"sun")+' Canvas</button><button class="tb wide" data-act="wbclear">Clear board</button></div>';
+  var styled=["pen","rect","ell","line","sticky","text","node","stat"].indexOf(WB.tool)>-1||WB.sel;
+  var insp=wbInspHTML();
+  if(styled){
+    var cols=WBCOL.concat((S.palette[S.cur]||[]).map(function(c){return c.toUpperCase()}).filter(function(c){return WBCOL.indexOf(c)<0})).slice(0,10);
+    h+='<div class="wbcard wbstyle" role="group" aria-label="Style"><div class="wbcols">'+cols.map(function(c){
+      return '<button class="cs" data-act="wbcolor" data-id="'+c+'" style="--c:'+c+'" aria-pressed="'+(WB.color.toLowerCase()===c.toLowerCase())+'" aria-label="Colour '+c+'" title="'+c+'"></button>';
+    }).join("")+'</div><div class="wbrow"><select class="wsel" id="wbw" aria-label="Line thickness">'+[[2,"Thin"],[3,"Medium"],[6,"Thick"],[10,"Heavy"]].map(function(o){return '<option value="'+o[0]+'"'+(WB.width===o[0]?" selected":"")+'>'+o[1]+'</option>'}).join("")+'</select>'+
+      '<button class="tb" data-act="wbfill" aria-pressed="'+WB.fill+'" title="Fill shapes with colour">Fill</button></div>'+(insp?'<div class="wbrow">'+insp+'</div>':'')+'</div>';
+  }
+  h+='<div class="wbzoomc wbcard"><button class="tb" data-act="wbzoom" data-id="out" aria-label="Zoom out">'+I("minus")+'</button><span class="wbz" id="wbzoom">100%</span><button class="tb" data-act="wbzoom" data-id="in" aria-label="Zoom in">'+I("plus")+'</button><button class="tb" data-act="wbzoom" data-id="fit" aria-label="Fit everything" title="Fit everything">'+I("fit")+'</button></div>';
   return h;
 }
 function wbToolbar(){var t=$("wbtools");if(t){t.innerHTML=wbToolsHTML();wbPaint()}}
 function vWb(){
   var h=hero("wb","Whiteboard",null,'<span class="muted" style="font-size:13px">Scroll to zoom. Drag empty space to move around.</span>');
-  h+='<div class="wbtools" id="wbtools">'+wbToolsHTML()+'</div><div class="wbwrap" id="wbwrap"><svg id="wbsvg" class="wbsvg" role="img" aria-label="Whiteboard canvas"><defs><pattern id="wbdots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1.2" fill="#C9CDE4"/></pattern></defs><rect width="100%" height="100%" fill="url(#wbdots)"/><g id="wbworld"><g id="wbitems"></g></g></svg><div class="wbchips" id="wbchips"></div><svg id="wbmini" class="wbmini" viewBox="0 0 168 108" role="img" aria-label="Minimap. Click to move the view."></svg><div class="wbtl" id="wbtl"></div></div><input type="file" id="wbfile" accept="image/*" hidden>';
+  h+='<div class="wbwrap" id="wbwrap"><div class="wbui" id="wbtools">'+wbToolsHTML()+'</div><svg id="wbsvg" class="wbsvg" role="img" aria-label="Whiteboard canvas"><defs><pattern id="wbdots" width="54" height="54" patternUnits="userSpaceOnUse"><path d="M18 0V54M36 0V54M0 18H54M0 36H54" fill="none" stroke="#E6E6E6" stroke-width="1"/><path d="M54 0H0V54" fill="none" stroke="#D8D8D8" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(#wbdots)"/><g id="wbworld"><g id="wbitems"></g></g></svg><div class="wbempty" id="wbempty"><button class="wbempty-x" data-act="wbhint" aria-label="Dismiss">'+I("x")+'</button><button class="wbempty-b" data-act="wbfirst"><svg viewBox="0 0 96 96" width="88" height="88" aria-hidden="true"><rect x="52" y="10" width="22" height="22" rx="3" fill="none" stroke="currentColor" stroke-width="3"/><rect x="72" y="36" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="3"/><rect x="14" y="40" width="46" height="46" rx="3" fill="var(--surface)" stroke="currentColor" stroke-width="3"/><path d="M37 52v22M26 63h22" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg><span>Add your first object</span></button></div><div class="wbchips" id="wbchips"></div><svg id="wbmini" class="wbmini" viewBox="0 0 168 108" role="img" aria-label="Minimap. Click to move the view."></svg><div class="wbtl" id="wbtl"></div></div><input type="file" id="wbfile" accept="image/*" hidden>';
   return h;
 }
 function wbMount(){
