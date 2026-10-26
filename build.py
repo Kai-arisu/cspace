@@ -24,7 +24,7 @@ rep('Sign in to sync it to your cloud database.','Sign in again to sync it.')
 rep("""  $("tabbar").innerHTML=VIEWS.map(function(v){
     return '<button data-act="view" data-id="'+v.id+'" aria-current="'+(S.view===v.id)+'" style="--c:'+v.c+'">'+I(v.ic)+'<span>'+v.name+'</span></button>';
   }).join("");""",'  $("tabbar").innerHTML=webTabs();')
-rep('case "profile":profOpenDlg(true);return true;','case "profile":S.view="cp";render();return true;')
+rep('case "profile":profOpenDlg(true);return true;','case "profile":if(window.__WS){toast("Switch back to your own workspace to open your handles");return true}S.view="cp";render();return true;')
 rep('paintTheme();ftPaint();paintProfile();paintBell();\n}','paintTheme();ftPaint();paintProfile();paintBell();webCrumb();\n}')
 # html assembly
 m=re.search(r'</style>',pre);head_end=m.end()

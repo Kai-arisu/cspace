@@ -23,22 +23,23 @@ function mapErr(e){
   if(e&&/quota|storage limit|exceeded the maximum/i.test(msg))code="quota_exceeded";
   return {code:code,message:msg};
 }
-function makeDb(uid){
+function makeDb(uid,owner){
+  owner=owner||uid;
   function snap(d){return {exists:d!==undefined,data:function(){return d},metadata:{hasPendingWrites:false}}}
   function doc(path){
     var ref={
       path:path,
       get:async function(){
-        var r=await SB.from("docs").select("data").eq("path",path).maybeSingle();
+        var r=await SB.from("docs").select("data").eq("user_id",owner).eq("path",path).maybeSingle();
         if(r.error)throw mapErr(r.error);
         return snap(r.data?r.data.data:undefined);
       },
       set:async function(d){
-        var r=await SB.from("docs").upsert({user_id:uid,path:path,data:d,updated_at:new Date().toISOString()},{onConflict:"user_id,path"});
+        var r=await SB.from("docs").upsert({user_id:owner,path:path,data:d,updated_at:new Date().toISOString()},{onConflict:"user_id,path"});
         if(r.error)throw mapErr(r.error);
       },
       delete:async function(){
-        var r=await SB.from("docs").delete().eq("path",path);
+        var r=await SB.from("docs").delete().eq("user_id",owner).eq("path",path);
         if(r.error)throw mapErr(r.error);
       },
       acquire:async function(o){
@@ -59,7 +60,7 @@ function makeDb(uid){
         pull();
         timer=setInterval(function(){if(document.visibilityState!=="hidden")pull()},12000);
         try{
-          ch=SB.channel("docs-"+path+"-"+Math.random().toString(36).slice(2,7)).on("postgres_changes",{event:"*",schema:"public",table:"docs",filter:"user_id=eq."+uid},function(p){
+          ch=SB.channel("docs-"+path+"-"+Math.random().toString(36).slice(2,7)).on("postgres_changes",{event:"*",schema:"public",table:"docs",filter:"user_id=eq."+owner},function(p){
             var row=(p.new&&p.new.path)?p.new:(p.old||{});if(row.path===path)pull();
           }).subscribe();
         }catch(e){}
@@ -75,7 +76,7 @@ function makeDb(uid){
       orderBy:function(f,d){q.order=f;q.dir=d;return o},
       limit:function(n){q.limit=n;return o},
       get:async function(){
-        var r=await SB.from("docs").select("path,data").like("path",path+"/%").limit(500);
+        var r=await SB.from("docs").select("path,data").eq("user_id",owner).like("path",path+"/%").limit(500);
         if(r.error)throw mapErr(r.error);
         var a=(r.data||[]).map(function(x){return x.data}).filter(function(d){return d&&typeof d==="object"});
         if(q.where)a=a.filter(function(d){return d[q.where[0]]===q.where[2]});
@@ -103,8 +104,9 @@ function makeAssets(uid){
     list:async function(){return {assets:[],usage:{}}}
   };
 }
-function makeUser(uid){
-  return {isOwner:async function(){return true},canEdit:async function(){return true},can:async function(){return true},
+function makeUser(uid,role){
+  var ed=role!=="viewer";
+  return {isOwner:async function(){return !role},canEdit:async function(){return ed},can:async function(n){return /write/.test(String(n))?ed:!role},
     id:async function(){return uid},me:async function(){return {id:uid,name:"",email:window.__EMAIL}}};
 }
 
@@ -235,15 +237,28 @@ async function showPublic(handle,mode){
 }
 
 /* ---------- start the app after sign-in ---------- */
-function startApp(session){
+async function pickWorkspace(u){
+  var ws=null;
+  try{ws=JSON.parse(localStorage.getItem("cs-ws-"+u.id)||"null")}catch(e){}
+  if(!ws||!ws.owner)return null;
+  try{
+    var r=await SB.rpc("list_workspaces");
+    var hit=(r.data||[]).filter(function(x){return x.owner_id===ws.owner})[0];
+    if(hit)return {owner:hit.owner_id,role:hit.role,label:hit.owner_email};
+  }catch(e){}
+  try{localStorage.removeItem("cs-ws-"+u.id)}catch(e){}
+  return null;
+}
+async function startApp(session){
   var u=session.user;
   window.__UID=u.id;window.__EMAIL=u.email||"";window.__USER=u;
-  var db=makeDb(u.id),assets=makeAssets(u.id),user=makeUser(u.id);
+  var ws=await pickWorkspace(u);window.__WS=ws;
+  var db=makeDb(u.id,ws&&ws.owner),assets=makeAssets(u.id),user=makeUser(u.id,ws&&ws.role);
   window.claude={use:async function(n){
     if(n==="db")return db;if(n==="assets")return assets;if(n==="user")return user;return null;
   }};
   root.className="";$("authgate").hidden=true;
-  var src=$("appjs").textContent.replace('var LS="creator-space-v1";','var LS="creator-space-v1-'+u.id+'";');
+  var src=$("appjs").textContent.replace('var LS="creator-space-v1";','var LS="creator-space-v1-'+u.id+(ws?'-via-'+ws.owner:'')+'";');
   var s=document.createElement("script");s.textContent=src;document.body.appendChild(s);
 }
 window.__signOut=async function(){try{await SB.auth.signOut()}catch(e){}location.replace("/")};

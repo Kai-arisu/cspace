@@ -5,6 +5,7 @@ ICONS.trend='<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>';
   var i=VIEWS.map(function(v){return v.id}).indexOf("viz");
   VIEWS.splice(i+1,0,{id:"aud",name:"Audience",ic:"trend",c:"var(--c-viz)",desc:"Real numbers from your channels and pages."});
   VIEWS.push({id:"cp",g:"You",name:"Handles",ic:"globe",c:"var(--c-home)",desc:"Where people find you."});
+  if(window.__WS)VIEWS=VIEWS.filter(function(v){return v.id!=="aud"&&v.id!=="cp"});
 })();
 
 /* ---------- sidebar rail, sounds, breadcrumb (website only) ---------- */
@@ -41,7 +42,13 @@ function railSet(on,quiet){
   var lg=$("logo");if(lg&&!quiet){lg.classList.remove("pop");void lg.offsetWidth;lg.classList.add("pop")}
   if(!quiet)sound(on?"collapse":"expand");
 }
-function webCrumb(){var sb=document.getElementById("sharebtn");if(sb){sb.title="Share your public page";sb.setAttribute("aria-label","Share your public page")}
+function wsBar(){
+  if(!window.__WS||$("wsbar"))return;
+  var d=document.createElement("div");d.id="wsbar";d.className="wsbar";
+  d.innerHTML='<span>Viewing <b>'+esc(window.__WS.label||"a shared workspace")+'</b> as '+(window.__WS.role==="editor"?"editor":"viewer")+'</span><button data-act="sh_home">Back to mine</button>';
+  document.body.appendChild(d);
+}
+function webCrumb(){wsBar();var sb=document.getElementById("sharebtn");if(sb){sb.title="Share your public page";sb.setAttribute("aria-label","Share your public page")}
   var v=vmeta(S.view),el=$("crumb");if(!v)return;
   var g="";for(var i=0;i<VIEWS.length;i++){if(VIEWS[i].g)g=VIEWS[i].g;if(VIEWS[i].id===v.id)break}
   if(!el){var top=document.querySelector(".top .search");if(!top)return;el=document.createElement("div");el.id="crumb";el.className="crumb";top.parentNode.insertBefore(el,top)}
@@ -316,7 +323,7 @@ function cpHTML(){
     '<label class="plab">Tagline<input class="in" data-w="p.tagline" maxlength="90" value="'+esc(p.tagline)+'" placeholder="What you make, in one line"></label>'+
     '<label class="plab">About<textarea class="in" data-w="p.bio" rows="4" maxlength="600" placeholder="A few lines about you and your work">'+esc(p.bio)+'</textarea></label>'+
     '<label class="cp-pub"><input type="checkbox" data-act="cp_pub"'+(p.is_public?" checked":"")+'> Make this page public</label>'+
-    '<p id="cpmsg" class="aud-msg" role="status">'+esc(W.pMsg)+'</p></section>'+kitPanel()+'</div>'+
+    '<p id="cpmsg" class="aud-msg" role="status">'+esc(W.pMsg)+'</p></section>'+kitPanel()+(window.__WS?'':shPanel())+'</div>'+
     '<aside class="cp-side"><div class="panel"><h3>Preview</h3><div id="cppv">'+cpPreviewHTML()+'</div></div>'+
     '<div class="panel"><h3>Your link</h3>'+(p.exists&&p.is_public?'<p class="cp-url">'+esc(cpLink())+'</p><div class="drow"><button class="btn pri" data-act="cp_copy">Copy link</button><button class="btn" data-act="cp_open">Open page</button></div>':'<p class="muted" style="margin:0">'+(p.exists?'Your page is private. Turn on "Make this page public" and save to get a link.':'Save to get a link.')+'</p>')+
     '<p class="muted" style="font-size:13px;margin:12px 0 0">Channels you switch on in Audience show here with their latest numbers.</p></div>'+
@@ -348,6 +355,29 @@ function kitPanel(){
     '<div class="drow"><button class="btn" data-act="kit_import">Import from Business tab</button>'+(W.p.exists&&W.p.is_public&&k.on?'<a class="btn" href="/u/'+esc(W.p.handle)+'/kit" target="_blank" rel="noopener noreferrer">Open media kit</a><button class="btn" data-act="kit_copy">Copy link</button>':'')+'</div>'+
     '<p class="muted" style="font-size:13px;margin:0">The kit is shown only when your page is public and this is switched on. Remember to press Save.</p></section>';
 }
+/* ---------- teammates ---------- */
+var SH={loaded:false,loading:false,list:[],ws:[],email:"",role:"editor",msg:""};
+async function shLoad(){
+  if(SH.loading)return;SH.loading=true;
+  try{
+    var a=await WSB.from("shares").select("*").eq("owner_id",window.__UID).order("created_at");
+    var b=await WSB.rpc("list_workspaces");
+    SH.list=a.data||[];SH.ws=b.data||[];SH.msg=a.error?"Couldn't load teammates.":"";
+  }catch(e){SH.msg="Couldn't load teammates."}
+  SH.loaded=true;SH.loading=false;if(S.view==="cp")render();
+}
+function shMsg(t){SH.msg=t||"";var e=$("shmsg");if(e)e.textContent=SH.msg}
+function shPanel(){
+  var h='<section class="panel cp-form"><h3>Teammates</h3><p class="muted" style="margin:-4px 0 6px;font-size:14px">Let someone else work in your Creator Space. They sign in with the email you enter, then open your workspace from this page. They will see all of your spaces. Editors can change things. Viewers can only look.</p>'+
+    '<div class="sh-add"><input class="in" data-w="sh.email" type="email" maxlength="120" placeholder="teammate@email.com" value="'+esc(SH.email)+'" aria-label="Teammate email" autocapitalize="none" spellcheck="false"><select class="wsel" data-w="sh.role" aria-label="Role"><option value="editor"'+(SH.role==="editor"?" selected":"")+'>Editor</option><option value="viewer"'+(SH.role==="viewer"?" selected":"")+'>Viewer</option></select><button class="btn pri" data-act="sh_invite">Invite</button></div>'+
+    '<p id="shmsg" class="aud-msg" role="status">'+esc(SH.msg)+'</p>';
+  if(!SH.loaded){shLoad();h+='<p class="muted">Loading…</p>'}
+  else if(SH.list.length)h+='<div class="sh-list">'+SH.list.map(function(x,i){return '<div class="sh-row"><span class="sh-em">'+esc(x.invitee_email)+'</span><select class="wsel" data-w="sh.r.'+i+'" aria-label="Role for '+esc(x.invitee_email)+'"><option value="editor"'+(x.role==="editor"?" selected":"")+'>Editor</option><option value="viewer"'+(x.role==="viewer"?" selected":"")+'>Viewer</option></select><button class="btn sm" data-act="sh_del" data-id="'+esc(x.id)+'">Remove</button></div>'}).join("")+'</div>';
+  else h+='<p class="muted" style="margin:0">No teammates yet.</p>';
+  if(SH.ws.length)h+='<h3 style="margin-top:18px">Shared with you</h3><div class="sh-list">'+SH.ws.map(function(w){return '<div class="sh-row"><span class="sh-em">'+esc(w.owner_email)+'<small> · '+(w.role==="editor"?"Editor":"Viewer")+'</small></span><button class="btn sm pri" data-act="sh_open" data-id="'+esc(w.owner_id)+'">Open</button><button class="btn sm" data-act="sh_leave" data-id="'+esc(w.owner_id)+'">Leave</button></div>'}).join("")+'</div>';
+  return h+'</section>';
+}
+function shWsKey(){return "cs-ws-"+window.__UID}
 function cpMsg(t){W.pMsg=t||"";var e=$("cpmsg");if(e)e.textContent=W.pMsg}
 function cpPreviewPaint(){var e=$("cppv");if(e)e.innerHTML=cpPreviewHTML();var a=$("cpavprev");if(a&&W.p){a.innerHTML=W.p.avatar_url?'<img src="'+esc(W.p.avatar_url)+'" alt="">':esc((W.p.display_name||"?").slice(0,1).toUpperCase())}}
 function kitClean(k){
@@ -374,7 +404,7 @@ async function cpSave(){
 function webAct(a,b){
   var id=b.dataset.id;
   switch(a){
-    case "sharehelp":S.view="cp";render();return true;
+    case "sharehelp":if(window.__WS){toast("Switch back to your own workspace to share your page");return true}S.view="cp";render();return true;
     case "more":sound("tick");moreOpen();return true;
     case "rail":railSet(!document.querySelector(".app").classList.contains("rail"));return true;
     case "snd":sndSet(id==="on");if(id==="on")sound("on");if($("msheet")&&!$("msheet").hidden)moreOpen();else render();return true;
@@ -396,6 +426,18 @@ function webAct(a,b){
     case "aud_pub":{var on=!!b.checked;WSB.from("connections").update({show_public:on}).eq("id",id).then(function(r){if(r.error){toast("Couldn't change that");audLoad()}else{var c=W.conns.filter(function(x){return x.id===id})[0];if(c)c.show_public=on;toast(on?"Shown on your public page":"Hidden from your public page")}});return true}
     case "aud_del":arm(b,function(){WSB.from("connections").delete().eq("id",id).then(function(r){if(r.error)toast("Couldn't remove it");else{W.conns=W.conns.filter(function(c){return c.id!==id});audPaint();toast("Removed")}})});return true;
     case "cp_save":cpSave();return true;
+    case "sh_invite":{
+      var em=String(SH.email||"").trim().toLowerCase();
+      if(!/^\S+@\S+\.\S+$/.test(em)){shMsg("Enter a valid email address.");return true}
+      if(em===String(window.__EMAIL||"").toLowerCase()){shMsg("That is your own email.");return true}
+      WSB.from("shares").upsert({owner_id:window.__UID,invitee_email:em,role:SH.role},{onConflict:"owner_id,invitee_email"}).then(function(r){
+        if(r.error){shMsg("Couldn't invite. "+r.error.message);return}
+        SH.email="";SH.loaded=false;shMsg("Invited. Ask them to sign in at "+location.origin+" with "+em+".");SH.loaded=false;shLoad();
+      });return true}
+    case "sh_del":WSB.from("shares").delete().eq("id",id).then(function(r){if(r.error)shMsg("Couldn't remove.");else{SH.loaded=false;shLoad()}});return true;
+    case "sh_open":try{localStorage.setItem(shWsKey(),JSON.stringify({owner:id}))}catch(e){}location.reload();return true;
+    case "sh_home":try{localStorage.removeItem(shWsKey())}catch(e){}location.reload();return true;
+    case "sh_leave":WSB.from("shares").delete().eq("owner_id",id).eq("invitee_email",String(window.__EMAIL||"").toLowerCase()).then(function(r){if(r.error)shMsg("Couldn't leave.");else{SH.loaded=false;shLoad()}});return true;
     case "kit_on":W.p.kit.on=!!b.checked;return true;
     case "kit_add":{var kk=W.p.kit;if(id==="b")kk.brands.push({name:"",note:""});else kk[id==="r"?"rates":"stats"].push(["",""]);render();return true}
     case "kit_del":{var kd=id.split("."),kq=W.p.kit;(kd[0]==="b"?kq.brands:(kd[0]==="r"?kq.rates:kq.stats)).splice(+kd[1],1);render();return true}
@@ -423,6 +465,9 @@ function webAct(a,b){
 document.addEventListener("input",function(e){
   var t=e.target,w=t&&t.dataset&&t.dataset.w;if(!w)return;
   if(w.indexOf("h.")===0&&W.p){hdSet(HANDLES[+w.slice(2)],t.value);cpPreviewPaint()}
+  else if(w==="sh.email"){SH.email=t.value}
+  else if(w==="sh.role"){SH.role=t.value}
+  else if(w.indexOf("sh.r.")===0){var sx=SH.list[+w.slice(5)];if(sx){var nr=t.value;WSB.from("shares").update({role:nr}).eq("id",sx.id).then(function(r){if(r.error)shMsg("Couldn't change the role.");else{sx.role=nr;shMsg("Role updated.")}})}}
   else if(w.indexOf("k.")===0&&W.p){var kp=w.split("."),kk=W.p.kit;
     if(kp.length===2)kk[kp[1]]=t.value;
     else if(kp[1]==="b"){if(kk.brands[+kp[2]])kk.brands[+kp[2]][kp[3]]=t.value}
