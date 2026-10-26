@@ -16,8 +16,9 @@ jobs:
         with: { python-version: '3.12' }
       - name: Build must match the committed public/ folder
         run: |
+          pip install pillow >/dev/null
           python3 build.py
-          git diff --exit-code -- public || (echo "public/ is out of date. Run python3 build.py and commit." && exit 1)
+          git diff --exit-code -- public/index.html public/sw.js || (echo "public/ is out of date. Run python3 build.py and commit." && exit 1)
       - name: Install Playwright
         run: |
           npm init -y >/dev/null
