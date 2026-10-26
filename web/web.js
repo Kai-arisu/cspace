@@ -254,15 +254,21 @@ function suggestHandle(){
   var base=((S.profile&&S.profile.name)||(window.__EMAIL||"").split("@")[0]||"creator").toLowerCase().replace(/[^a-z0-9_]/g,"");
   if(base.length<3)base=(base+"creator").slice(0,12);return base.slice(0,24);
 }
+function normKit(k){
+  k=k&&typeof k==="object"?k:{};
+  function pairs(a,n){return (Array.isArray(a)?a:[]).slice(0,n).map(function(x){return [String(x&&x[0]||"").slice(0,40),String(x&&x[1]||"").slice(0,60)]})}
+  return {on:!!k.on,intro:String(k.intro||"").slice(0,600),email:String(k.email||"").slice(0,120),stats:pairs(k.stats,6),rates:pairs(k.rates,8),
+    brands:(Array.isArray(k.brands)?k.brands:[]).slice(0,10).map(function(b){return {name:String(b&&b.name||"").slice(0,60),note:String(b&&b.note||"").slice(0,120)}})};
+}
 async function cpLoad(){
   try{
     var r=await WSB.from("profiles").select("*").maybeSingle();
     if(r.error)throw r.error;
     var d=r.data;
-    W.p=d?{handle:d.handle||"",display_name:d.display_name||"",tagline:d.tagline||"",bio:d.bio||"",accent:d.accent||"#12163A",is_public:!!d.is_public,avatar_url:d.avatar_url||"",links:Array.isArray(d.links)?d.links:[],exists:true}
-      :{handle:suggestHandle(),display_name:(S.profile&&S.profile.name)||"",tagline:"",bio:"",accent:"#111111",is_public:false,avatar_url:"",links:[],exists:false};
+    W.p=d?{handle:d.handle||"",display_name:d.display_name||"",tagline:d.tagline||"",bio:d.bio||"",accent:d.accent||"#12163A",is_public:!!d.is_public,avatar_url:d.avatar_url||"",links:Array.isArray(d.links)?d.links:[],kit:normKit(d.kit),exists:true}
+      :{handle:suggestHandle(),display_name:(S.profile&&S.profile.name)||"",tagline:"",bio:"",accent:"#111111",is_public:false,avatar_url:"",links:[],kit:normKit(),exists:false};
     W.pLoaded=true;W.pErr="";
-  }catch(e){W.pErr="Couldn't load your profile. "+((e&&e.message)||"");W.pLoaded=true;if(!W.p)W.p={handle:"",display_name:"",tagline:"",bio:"",accent:"#111111",is_public:false,avatar_url:"",links:[]}}
+  }catch(e){W.pErr="Couldn't load your profile. "+((e&&e.message)||"");W.pLoaded=true;if(!W.p)W.p={handle:"",display_name:"",tagline:"",bio:"",accent:"#111111",is_public:false,avatar_url:"",links:[],kit:normKit()}}
   if(S.view==="cp")render();
 }
 function cpLink(){return location.origin+"/u/"+(W.p&&W.p.handle||"")}
@@ -310,7 +316,7 @@ function cpHTML(){
     '<label class="plab">Tagline<input class="in" data-w="p.tagline" maxlength="90" value="'+esc(p.tagline)+'" placeholder="What you make, in one line"></label>'+
     '<label class="plab">About<textarea class="in" data-w="p.bio" rows="4" maxlength="600" placeholder="A few lines about you and your work">'+esc(p.bio)+'</textarea></label>'+
     '<label class="cp-pub"><input type="checkbox" data-act="cp_pub"'+(p.is_public?" checked":"")+'> Make this page public</label>'+
-    '<p id="cpmsg" class="aud-msg" role="status">'+esc(W.pMsg)+'</p></section></div>'+
+    '<p id="cpmsg" class="aud-msg" role="status">'+esc(W.pMsg)+'</p></section>'+kitPanel()+'</div>'+
     '<aside class="cp-side"><div class="panel"><h3>Preview</h3><div id="cppv">'+cpPreviewHTML()+'</div></div>'+
     '<div class="panel"><h3>Your link</h3>'+(p.exists&&p.is_public?'<p class="cp-url">'+esc(cpLink())+'</p><div class="drow"><button class="btn pri" data-act="cp_copy">Copy link</button><button class="btn" data-act="cp_open">Open page</button></div>':'<p class="muted" style="margin:0">'+(p.exists?'Your page is private. Turn on "Make this page public" and save to get a link.':'Save to get a link.')+'</p>')+
     '<p class="muted" style="font-size:13px;margin:12px 0 0">Channels you switch on in Audience show here with their latest numbers.</p></div>'+
@@ -321,8 +327,35 @@ function cpHTML(){
     '<input type="file" id="cpfile" accept="image/*" hidden>';
   return h;
 }
+function kitRows(title,key,arr,ph1,ph2,max,hint){
+  var h='<div class="kt-blk"><div class="kt-h"><b>'+title+'</b>'+(arr.length<max?'<button class="btn sm" data-act="kit_add" data-id="'+key+'">Add</button>':"")+'</div>';
+  if(hint&&!arr.length)h+='<p class="muted kt-hint">'+hint+'</p>';
+  h+=arr.map(function(x,i){
+    var a=key==="b"?x.name:x[0],b=key==="b"?x.note:x[1],f1=key==="b"?"name":"0",f2=key==="b"?"note":"1";
+    return '<div class="kt-row"><input class="in" data-w="k.'+key+'.'+i+'.'+f1+'" maxlength="60" placeholder="'+ph1+'" value="'+esc(a)+'" aria-label="'+ph1+'"><input class="in" data-w="k.'+key+'.'+i+'.'+f2+'" maxlength="'+(key==="b"?120:60)+'" placeholder="'+ph2+'" value="'+esc(b)+'" aria-label="'+ph2+'"><button class="ico" data-act="kit_del" data-id="'+key+'.'+i+'" aria-label="Remove">'+I("x")+'</button></div>';
+  }).join("")+'</div>';
+  return h;
+}
+function kitPanel(){
+  var k=W.p.kit;
+  return '<section class="panel cp-form"><h3>Media kit</h3><p class="muted" style="margin:-4px 0 6px;font-size:14px">A page for sponsors: your numbers, rates and past brands. Send them the link or save it as a PDF.</p>'+
+    '<label class="cp-pub"><input type="checkbox" data-act="kit_on"'+(k.on?" checked":"")+'> Publish my media kit</label>'+
+    '<label class="plab">Intro<textarea class="in" data-w="k.intro" rows="3" maxlength="600" placeholder="Who you are, what you make and who watches">'+esc(k.intro)+'</textarea></label>'+
+    '<label class="plab">Contact email<input class="in" data-w="k.email" maxlength="120" placeholder="business@yourname.com" value="'+esc(k.email)+'"></label>'+
+    kitRows("Extra stats","s",k.stats,"Label, e.g. Avg. views","Value",6,"Your connected channels already show their numbers. Add things like average views or top region.")+
+    kitRows("Rates","r",k.rates,"Service, e.g. Integrated video","Price",8,"Add what you charge.")+
+    kitRows("Brands you have worked with","b",k.brands,"Brand","What you did",10,"Add past sponsors or collaborations.")+
+    '<div class="drow"><button class="btn" data-act="kit_import">Import from Business tab</button>'+(W.p.exists&&W.p.is_public&&k.on?'<a class="btn" href="/u/'+esc(W.p.handle)+'/kit" target="_blank" rel="noopener noreferrer">Open media kit</a><button class="btn" data-act="kit_copy">Copy link</button>':'')+'</div>'+
+    '<p class="muted" style="font-size:13px;margin:0">The kit is shown only when your page is public and this is switched on. Remember to press Save.</p></section>';
+}
 function cpMsg(t){W.pMsg=t||"";var e=$("cpmsg");if(e)e.textContent=W.pMsg}
 function cpPreviewPaint(){var e=$("cppv");if(e)e.innerHTML=cpPreviewHTML();var a=$("cpavprev");if(a&&W.p){a.innerHTML=W.p.avatar_url?'<img src="'+esc(W.p.avatar_url)+'" alt="">':esc((W.p.display_name||"?").slice(0,1).toUpperCase())}}
+function kitClean(k){
+  k=normKit(k);
+  var ok=function(x){return x[0].trim()||x[1].trim()};
+  k.stats=k.stats.filter(ok);k.rates=k.rates.filter(ok);k.brands=k.brands.filter(function(b){return b.name.trim()||b.note.trim()});
+  return k;
+}
 async function cpSave(){
   var p=W.p;
   p.handle=(p.handle||"").trim().toLowerCase();
@@ -330,7 +363,7 @@ async function cpSave(){
   var links=p.links.map(function(l){return {label:(l.label||"").trim().slice(0,30),url:(l.url||"").trim()}}).filter(function(l){return l.url||l.label});
   for(var i=0;i<links.length;i++){if(!/^https?:\/\/\S+\.\S+/i.test(links[i].url)){cpMsg("Link "+(i+1)+" needs a full address starting with https://");return}}
   W.pSaving=true;cpMsg("Saving…");
-  var row={user_id:window.__UID,handle:p.handle,display_name:(p.display_name||"").trim()||null,tagline:(p.tagline||"").trim()||null,bio:(p.bio||"").trim()||null,avatar_url:p.avatar_url||null,accent:p.accent,links:links,is_public:!!p.is_public,updated_at:new Date().toISOString()};
+  var row={user_id:window.__UID,handle:p.handle,display_name:(p.display_name||"").trim()||null,tagline:(p.tagline||"").trim()||null,bio:(p.bio||"").trim()||null,avatar_url:p.avatar_url||null,accent:p.accent,links:links,kit:kitClean(p.kit),is_public:!!p.is_public,updated_at:new Date().toISOString()};
   var r=await WSB.from("profiles").upsert(row,{onConflict:"user_id"});
   W.pSaving=false;
   if(r.error){cpMsg(r.error.code==="23505"?"That handle is taken. Try another.":"Couldn't save. "+r.error.message);return}
@@ -363,6 +396,13 @@ function webAct(a,b){
     case "aud_pub":{var on=!!b.checked;WSB.from("connections").update({show_public:on}).eq("id",id).then(function(r){if(r.error){toast("Couldn't change that");audLoad()}else{var c=W.conns.filter(function(x){return x.id===id})[0];if(c)c.show_public=on;toast(on?"Shown on your public page":"Hidden from your public page")}});return true}
     case "aud_del":arm(b,function(){WSB.from("connections").delete().eq("id",id).then(function(r){if(r.error)toast("Couldn't remove it");else{W.conns=W.conns.filter(function(c){return c.id!==id});audPaint();toast("Removed")}})});return true;
     case "cp_save":cpSave();return true;
+    case "kit_on":W.p.kit.on=!!b.checked;return true;
+    case "kit_add":{var kk=W.p.kit;if(id==="b")kk.brands.push({name:"",note:""});else kk[id==="r"?"rates":"stats"].push(["",""]);render();return true}
+    case "kit_del":{var kd=id.split("."),kq=W.p.kit;(kd[0]==="b"?kq.brands:(kd[0]==="r"?kq.rates:kq.stats)).splice(+kd[1],1);render();return true}
+    case "kit_import":{var bk=(S.kit&&S.kit[S.cur])||null;if(!bk){toast("Nothing in the Business tab yet");return true}
+      var kz=W.p.kit,add=function(dst,src,n){(src||[]).forEach(function(x){if(x&&x[1]&&dst.length<n&&!dst.some(function(y){return y[0]===x[0]}))dst.push([String(x[0]),String(x[1])])})};
+      add(kz.stats,bk.stats,6);add(kz.rates,bk.rates,8);if(!kz.email&&bk.email)kz.email=bk.email;if(!kz.intro&&bk.bio)kz.intro=bk.bio;render();toast("Imported. Press Save to publish.");return true}
+    case "kit_copy":navigator.clipboard&&navigator.clipboard.writeText(location.origin+"/u/"+W.p.handle+"/kit").then(function(){toast("Media kit link copied")});return true;
     case "cp_acc":W.p.accent=id;render();return true;
     case "cp_ladd":W.p.links.push({label:"",url:""});render();return true;
     case "cp_ldel":W.p.links.splice(+id,1);render();return true;
@@ -383,6 +423,10 @@ function webAct(a,b){
 document.addEventListener("input",function(e){
   var t=e.target,w=t&&t.dataset&&t.dataset.w;if(!w)return;
   if(w.indexOf("h.")===0&&W.p){hdSet(HANDLES[+w.slice(2)],t.value);cpPreviewPaint()}
+  else if(w.indexOf("k.")===0&&W.p){var kp=w.split("."),kk=W.p.kit;
+    if(kp.length===2)kk[kp[1]]=t.value;
+    else if(kp[1]==="b"){if(kk.brands[+kp[2]])kk.brands[+kp[2]][kp[3]]=t.value}
+    else{var ka=kp[1]==="r"?kk.rates:kk.stats;if(ka[+kp[2]])ka[+kp[2]][+kp[3]]=t.value}}
   else if(w.indexOf("p.")===0&&W.p){W.p[w.slice(2)]=t.value;cpPreviewPaint()}
   else if(w.indexOf("l.")===0&&W.p){var m=w.split(".");var l=W.p.links[+m[1]];if(l){l[m[2]]=t.value;cpPreviewPaint()}}
 });

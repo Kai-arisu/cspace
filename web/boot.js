@@ -176,7 +176,7 @@ function showGate(startMode){
 }
 
 /* ---------- public creator page ---------- */
-async function showPublic(handle){
+async function showPublic(handle,mode){
   root.className="pubpage";
   var el=$("pubpage");el.hidden=false;el.innerHTML='<div class="pp-wrap"><p class="pp-load">Loading…</p></div>';
   var pr=await SB.from("profiles").select("*").eq("handle",handle).eq("is_public",true).maybeSingle();
@@ -191,13 +191,33 @@ async function showPublic(handle){
     vids=vd.data||[];
   }
   var PL={youtube:"YouTube",instagram:"Instagram",tiktok:"TikTok",x:"X",facebook:"Facebook",other:"Other"};
-  var accent=/^#[0-9a-f]{6}$/i.test(p.accent||"")?p.accent:"#12163A";
+  var accent=/^#[0-9a-f]{6}$/i.test(p.accent||"")?p.accent:"#111111";
+  var kit=p.kit&&typeof p.kit==="object"?p.kit:{};
+  if(mode==="kit"){
+    if(!kit.on){el.innerHTML='<div class="pp-wrap"><div class="pp-card"><h1>No media kit</h1><p class="pp-sub">This creator has not published a media kit.</p><a class="btn pri" href="/u/'+esc(p.handle)+'">See their page</a></div></div>';document.title="Media kit";return}
+    document.title=(p.display_name||"@"+p.handle)+" media kit";
+    var kh='<div class="pp-wrap kit" style="--pa:'+accent+'"><div class="pp-card"><div class="kit-top"><a class="kit-back" href="/u/'+esc(p.handle)+'">← Profile</a><button class="btn sm" id="kitprint">Save as PDF</button></div><div class="pp-head">'+
+      (p.avatar_url?'<img class="pp-av" src="'+esc(p.avatar_url)+'" alt="">':'<span class="pp-av pp-ini">'+esc((p.display_name||p.handle||"?").slice(0,1).toUpperCase())+'</span>')+
+      '<div><p class="kit-eyebrow">Media kit</p><h1>'+esc(p.display_name||p.handle)+'</h1><p class="pp-handle">@'+esc(p.handle)+'</p></div></div>'+
+      (p.tagline?'<p class="pp-tag">'+esc(p.tagline)+'</p>':"")+(kit.intro?'<p class="pp-bio">'+esc(kit.intro)+'</p>':(p.bio?'<p class="pp-bio">'+esc(p.bio)+'</p>':""));
+    var PLn={youtube:"YouTube",instagram:"Instagram",tiktok:"TikTok",x:"X",facebook:"Facebook",other:"Other"};
+    var st=conns.map(function(c){var s=snaps[c.id]||{};return [(PLn[c.platform]||c.platform)+(c.platform==="youtube"?" subscribers":" followers"),fmt(s.followers)]}).concat((Array.isArray(kit.stats)?kit.stats:[]).map(function(x){return [x[0],x[1]]}));
+    if(st.length)kh+='<h2 class="pp-h">Audience</h2><div class="pp-stats">'+st.map(function(x){return '<div class="pp-stat"><span class="pp-pl">'+esc(x[0])+'</span><b>'+esc(x[1])+'</b></div>'}).join("")+'</div>';
+    var rt=Array.isArray(kit.rates)?kit.rates:[];
+    if(rt.length)kh+='<h2 class="pp-h">Rates</h2><div class="kit-list">'+rt.map(function(x){return '<div class="kit-li"><span>'+esc(x[0])+'</span><b>'+esc(x[1])+'</b></div>'}).join("")+'</div>';
+    var br=Array.isArray(kit.brands)?kit.brands:[];
+    if(br.length)kh+='<h2 class="pp-h">Worked with</h2><div class="kit-list">'+br.map(function(x){return '<div class="kit-li"><span>'+esc(x.name)+'</span><small>'+esc(x.note)+'</small></div>'}).join("")+'</div>';
+    if(kit.email)kh+='<h2 class="pp-h">Contact</h2><a class="btn pri kit-mail" href="mailto:'+esc(kit.email)+'">'+esc(kit.email)+'</a>';
+    kh+='</div><p class="pp-foot">Made with <a href="/">Creator Space</a></p></div>';
+    el.innerHTML=kh;var pb=$("kitprint");if(pb)pb.addEventListener("click",function(){window.print()});
+    return;
+  }
   var links=(Array.isArray(p.links)?p.links:[]).filter(function(l){return l&&/^https?:\/\//i.test(l.url||"")});
   var h='<div class="pp-wrap" style="--pa:'+accent+'"><div class="pp-card"><div class="pp-head">'+
     (p.avatar_url?'<img class="pp-av" src="'+esc(p.avatar_url)+'" alt="">':'<span class="pp-av pp-ini">'+esc((p.display_name||p.handle||"?").slice(0,1).toUpperCase())+'</span>')+
     '<div><h1>'+esc(p.display_name||p.handle)+'</h1><p class="pp-handle">@'+esc(p.handle)+'</p></div></div>'+
     (p.tagline?'<p class="pp-tag">'+esc(p.tagline)+'</p>':"")+(p.bio?'<p class="pp-bio">'+esc(p.bio)+'</p>':"")+
-    (links.length?'<div class="pp-links">'+links.map(function(l){return '<a class="pp-link" href="'+esc(l.url)+'" target="_blank" rel="noopener noreferrer">'+esc(l.label||l.url)+'</a>'}).join("")+'</div>':"");
+    (links.length||kit.on?'<div class="pp-links">'+(kit.on?'<a class="pp-link pp-kit" href="/u/'+esc(p.handle)+'/kit">Media kit</a>':"")+links.map(function(l){return '<a class="pp-link" href="'+esc(l.url)+'" target="_blank" rel="noopener noreferrer">'+esc(l.label||l.url)+'</a>'}).join("")+'</div>':"");
   if(conns.length){
     h+='<h2 class="pp-h">Numbers</h2><div class="pp-stats">'+conns.map(function(c){
       var s=snaps[c.id]||{};
@@ -229,8 +249,8 @@ function startApp(session){
 window.__signOut=async function(){try{await SB.auth.signOut()}catch(e){}location.replace("/")};
 
 (async function init(){
-  var m=location.pathname.match(/^\/u\/([a-z0-9_]{3,24})\/?$/i);
-  if(m){showPublic(m[1].toLowerCase());return}
+  var m=location.pathname.match(/^\/u\/([a-z0-9_]{3,24})(\/kit)?\/?$/i);
+  if(m){showPublic(m[1].toLowerCase(),m[2]?"kit":"");return}
   var started=false;
   if(/type=recovery/.test(location.hash+location.search)){started=true;showGate("reset")}
   SB.auth.onAuthStateChange(function(ev,session){

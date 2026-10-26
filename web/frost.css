@@ -421,3 +421,32 @@ html.authing body,html.pubpage body{background:var(--bg)}
 .wbwrap{height:calc(100dvh - 108px)}
 @media (max-width:860px){.col-main[data-v="wb"] .sheet{padding:0 8px 8px}.wbwrap{height:calc(100dvh - 190px)}}
 .wbchips{left:250px}@media (max-width:860px){.wbchips{left:10px;top:auto;bottom:10px}}
+
+/* ===== media kit ===== */
+.kt-blk{display:flex;flex-direction:column;gap:8px;margin:6px 0 4px}
+.kt-h{display:flex;align-items:center;justify-content:space-between}
+.kt-h b{font-weight:520}
+.kt-hint{margin:0;font-size:13px}
+.kt-row{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) 36px;gap:8px;align-items:center}
+@media (max-width:560px){.kt-row{grid-template-columns:minmax(0,1fr) 36px;grid-template-areas:"a x" "b x"}.kt-row input:first-child{grid-area:a}.kt-row input:nth-child(2){grid-area:b}.kt-row .ico{grid-area:x}}
+.pp-kit{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
+.kit-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.kit-back{color:var(--muted);text-decoration:none;font-size:14px}
+.kit-eyebrow{margin:0 0 2px;font:500 12px var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.kit-list{display:flex;flex-direction:column}
+.kit-li{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:12px 0;border-bottom:1px solid var(--line)}
+.kit-li:last-child{border-bottom:0}
+.kit-li b{font-weight:560;white-space:nowrap}
+.kit-li small{color:var(--muted);text-align:right}
+.kit-mail{display:inline-flex;margin-top:6px}
+@media print{
+  html,body{background:#fff!important}
+  .kit-top,.pp-foot,.kit-mail{display:none!important}
+  .pp-card{box-shadow:none!important;border:0!important;background:#fff!important;-webkit-backdrop-filter:none;backdrop-filter:none}
+  .kit-mail{display:none}
+}
+.pubpage .pp-wrap{background:none!important;border:0!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.kit .pp-head>div{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.kit .pp-head h1{margin:0}
+.kit .pp-bio{padding:0}
+.kit .pp-head p{padding:0!important;margin:0!important}.kit .pp-head .pp-handle{margin-top:2px!important}
