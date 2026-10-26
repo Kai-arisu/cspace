@@ -4,7 +4,7 @@ ICONS.trend='<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>';
 (function(){
   var i=VIEWS.map(function(v){return v.id}).indexOf("viz");
   VIEWS.splice(i+1,0,{id:"aud",name:"Audience",ic:"trend",c:"var(--c-viz)",desc:"Real numbers from your channels and pages."});
-  VIEWS.push({id:"cp",g:"You",name:"Creator page",ic:"globe",c:"var(--c-home)",desc:"Your public profile and share link."});
+  VIEWS.push({id:"cp",g:"You",name:"Handles",ic:"globe",c:"var(--c-home)",desc:"Where people find you."});
 })();
 
 var WSB=window.__SB;
@@ -224,26 +224,51 @@ function cpPreviewHTML(){
     '<b>'+esc(p.display_name||p.handle||"Your name")+'</b><span class="cp-h">@'+esc(p.handle||"handle")+'</span>'+(p.tagline?'<span class="cp-tg">'+esc(p.tagline)+'</span>':"")+(p.bio?'<p>'+esc(p.bio)+'</p>':"")+
     (p.links.length?'<div class="cp-ls">'+p.links.filter(function(l){return l.label||l.url}).map(function(l){return '<span>'+esc(l.label||l.url)+'</span>'}).join("")+'</div>':"")+'</div>';
 }
+var HANDLES=[["YouTube","https://youtube.com/@"],["Instagram","https://instagram.com/"],["TikTok","https://tiktok.com/@"],["X","https://x.com/"],["Facebook","https://facebook.com/"],["LinkedIn","https://linkedin.com/in/"],["Website",""]];
+function hdFind(name){var L=W.p.links;for(var i=0;i<L.length;i++)if(L[i].label===name)return i;return -1}
+function hdValue(h){var i=hdFind(h[0]);if(i<0)return "";var u=W.p.links[i].url||"";return h[1]&&u.indexOf(h[1])===0?u.slice(h[1].length):u}
+function hdSet(h,raw){
+  var v=String(raw||"").trim(),i=hdFind(h[0]);
+  if(!v){if(i>=0)W.p.links.splice(i,1);return}
+  var url;
+  if(/^https?:\/\//i.test(v))url=v;
+  else if(!h[1])url="https://"+v;
+  else url=h[1]+v.replace(/^@+/,"").replace(/^\/+/,"");
+  if(i>=0)W.p.links[i].url=url;else W.p.links.push({label:h[0],url:url});
+}
+function hdRows(){
+  var names=HANDLES.map(function(h){return h[0]});
+  var h='<div class="hd-list">'+HANDLES.map(function(x,k){
+    var v=hdValue(x),i=hdFind(x[0]);
+    return '<div class="hd-row"><b>'+x[0]+'</b><label class="cp-pre">'+(x[1]?'<i>@</i>':'')+'<input class="in" data-w="h.'+k+'" maxlength="200" value="'+esc(v)+'" placeholder="'+(x[1]?"yourname":"yourwebsite.com")+'" autocapitalize="none" spellcheck="false" aria-label="'+x[0]+' handle"></label>'+
+      (i>=0&&W.p.links[i].url?'<a class="btn" href="'+esc(W.p.links[i].url)+'" target="_blank" rel="noopener noreferrer">Open</a>':'<span></span>')+'</div>';
+  }).join("")+'</div>';
+  var extra=W.p.links.map(function(l,i){return [l,i]}).filter(function(p){return names.indexOf(p[0].label)<0});
+  if(extra.length)h+='<div class="plab" style="margin-top:14px">Other links'+extra.map(function(p){var i=p[1],l=p[0];return '<div class="cp-lr"><input class="in" data-w="l.'+i+'.label" maxlength="30" placeholder="Label" value="'+esc(l.label||"")+'"><input class="in" data-w="l.'+i+'.url" maxlength="300" placeholder="https://" value="'+esc(l.url||"")+'"><button class="ico" data-act="cp_ldel" data-id="'+i+'" aria-label="Remove link">'+I("x")+'</button></div>'}).join("")+'</div>';
+  if(W.p.links.length<9)h+='<button class="btn" style="margin-top:12px" data-act="cp_ladd">Add another link</button>';
+  return h;
+}
 function cpHTML(){
-  if(!W.pLoaded){cpLoad();return hero("cp","Creator page",null,"")+'<p class="muted">Loading…</p>'}
-  var p=W.p;
-  var h=hero("cp","Creator page",null,'<button class="btn pri" data-act="cp_save"'+(W.pSaving?" disabled":"")+'>'+(W.pSaving?"Saving…":"Save page")+'</button>');
+  if(!W.pLoaded){cpLoad();return hero("cp","Handles",null,"")+'<p class="muted">Loading…</p>'}
+  var p=W.p,mode=themeMode();
+  var h=hero("cp","Handles",null,'<button class="btn pri" data-act="cp_save"'+(W.pSaving?" disabled":"")+'>'+(W.pSaving?"Saving…":"Save")+'</button>');
   if(W.pErr)h+='<p class="ac-errmsg">'+esc(W.pErr)+'</p>';
-  h+='<div class="cp-grid"><section class="panel cp-form"><h3>Your public profile</h3>'+
+  h+='<div class="cp-grid"><div class="cp-form" style="display:flex;flex-direction:column;gap:14px">'+
+    '<section class="panel cp-form"><h3>Your handles</h3><p class="muted" style="margin:-4px 0 6px;font-size:14px">Add the accounts people can find you on. They show on your public page.</p>'+hdRows()+'</section>'+
+    '<section class="panel cp-form"><h3>Public page</h3>'+
     '<div class="prow"><span class="av lg" id="cpavprev">'+(p.avatar_url?'<img src="'+esc(p.avatar_url)+'" alt="">':esc((p.display_name||"?").slice(0,1).toUpperCase()))+'</span><div class="pbtns"><button class="btn sm" data-act="cp_avatar">Upload photo</button><button class="btn sm" data-act="cp_avrm"'+(p.avatar_url?"":" disabled")+'>Remove</button></div></div>'+
-    '<label class="plab">Handle<span class="cp-pre"><i>/u/</i><input class="in" data-w="p.handle" maxlength="24" value="'+esc(p.handle)+'" placeholder="yourname" autocapitalize="none" spellcheck="false"></span></label>'+
-    '<label class="plab">Display name<input class="in" data-w="p.display_name" maxlength="60" value="'+esc(p.display_name)+'"></label>'+
+    '<label class="plab">Your link<span class="cp-pre"><i>/u/</i><input class="in" data-w="p.handle" maxlength="24" value="'+esc(p.handle)+'" placeholder="yourname" autocapitalize="none" spellcheck="false"></span></label>'+
+    '<label class="plab">Name<input class="in" data-w="p.display_name" maxlength="60" value="'+esc(p.display_name)+'"></label>'+
     '<label class="plab">Tagline<input class="in" data-w="p.tagline" maxlength="90" value="'+esc(p.tagline)+'" placeholder="What you make, in one line"></label>'+
     '<label class="plab">About<textarea class="in" data-w="p.bio" rows="4" maxlength="600" placeholder="A few lines about you and your work">'+esc(p.bio)+'</textarea></label>'+
-    '<div class="plab">Accent colour<div class="pacc">'+CPACC.map(function(c){return '<button class="cs" data-act="cp_acc" data-id="'+c+'" style="--c:'+c+'" aria-pressed="'+(p.accent===c)+'" aria-label="'+c+'"></button>'}).join("")+'</div></div>'+
-    '<div class="plab">Links'+p.links.map(function(l,i){return '<div class="cp-lr"><input class="in" data-w="l.'+i+'.label" maxlength="30" placeholder="Label" value="'+esc(l.label||"")+'"><input class="in" data-w="l.'+i+'.url" maxlength="300" placeholder="https://" value="'+esc(l.url||"")+'"><button class="ico" data-act="cp_ldel" data-id="'+i+'" aria-label="Remove link">'+I("x")+'</button></div>'}).join("")+
-    (p.links.length<6?'<button class="btn sm" data-act="cp_ladd">+ Add link</button>':"")+'</div>'+
     '<label class="cp-pub"><input type="checkbox" data-act="cp_pub"'+(p.is_public?" checked":"")+'> Make this page public</label>'+
-    '<p id="cpmsg" class="aud-msg" role="status">'+esc(W.pMsg)+'</p></section>'+
+    '<p id="cpmsg" class="aud-msg" role="status">'+esc(W.pMsg)+'</p></section></div>'+
     '<aside class="cp-side"><div class="panel"><h3>Preview</h3><div id="cppv">'+cpPreviewHTML()+'</div></div>'+
-    '<div class="panel"><h3>Share link</h3>'+(p.exists&&p.is_public?'<p class="cp-url">'+esc(cpLink())+'</p><div class="drow"><button class="btn sm pri" data-act="cp_copy">Copy link</button><button class="btn sm" data-act="cp_open">Open page</button></div>':'<p class="muted" style="margin:0">'+(p.exists?'Your page is private. Turn on "Make this page public" and save to get a link.':'Save your page to get a link.')+'</p>')+
-    '<p class="muted" style="font-size:12px;margin:10px 0 0">Channels you tick "Show on my public page" in Audience appear here with their latest numbers.</p></div>'+
-    '<div class="panel"><h3>Account</h3><p style="margin:0 0 10px;font-size:14px">Signed in as <b>'+esc(window.__EMAIL||"")+'</b></p><div class="drow" style="margin-top:0"><button class="btn sm" data-act="cp_pw">Email me a password reset</button><button class="btn sm" data-act="signout">Sign out</button></div></div></aside></div>'+
+    '<div class="panel"><h3>Your link</h3>'+(p.exists&&p.is_public?'<p class="cp-url">'+esc(cpLink())+'</p><div class="drow"><button class="btn pri" data-act="cp_copy">Copy link</button><button class="btn" data-act="cp_open">Open page</button></div>':'<p class="muted" style="margin:0">'+(p.exists?'Your page is private. Turn on "Make this page public" and save to get a link.':'Save to get a link.')+'</p>')+
+    '<p class="muted" style="font-size:13px;margin:12px 0 0">Channels you switch on in Audience show here with their latest numbers.</p></div>'+
+    '<div class="panel"><h3>Account</h3><p style="margin:0 0 12px;font-size:14px">'+esc(window.__EMAIL||"")+'</p>'+
+    '<div class="hd-seg" role="group" aria-label="Appearance">'+[["auto","Auto"],["light","Light"],["dark","Dark"]].map(function(o){return '<button data-act="ms_theme" data-id="'+o[0]+'" aria-pressed="'+(mode===o[0])+'">'+o[1]+'</button>'}).join("")+'</div>'+
+    '<div class="drow"><button class="btn" data-act="cp_pw">Email me a password reset</button><button class="btn" data-act="signout">Sign out</button></div></div></aside></div>'+
     '<input type="file" id="cpfile" accept="image/*" hidden>';
   return h;
 }
@@ -267,6 +292,9 @@ async function cpSave(){
 function webAct(a,b){
   var id=b.dataset.id;
   switch(a){
+    case "more":moreOpen();return true;
+    case "view":case "datadlg":moreClose();return false;
+    case "ms_theme":setMode(id);if($("msheet")&&!$("msheet").hidden)moreOpen();else render();return true;
     case "aud_gedit":W.goalEd=id||null;audPaint();return true;
     case "aud_gsave":{var gi=$("ag-in"),gv=numOrNull(gi&&gi.value);if(gv!==null&&(isNaN(gv)||gv<1)){toast("Enter a whole number above zero");return true}
       WSB.from("connections").update({goal:gv}).eq("id",id).then(function(r){if(r.error){toast("Couldn't save the goal")}else{var c=W.conns.filter(function(x){return x.id===id})[0];if(c)c.goal=gv;W.goalEd=null;audPaint();toast(gv?"Goal saved":"Goal cleared")}});return true}
@@ -301,7 +329,8 @@ function webAct(a,b){
 }
 document.addEventListener("input",function(e){
   var t=e.target,w=t&&t.dataset&&t.dataset.w;if(!w)return;
-  if(w.indexOf("p.")===0&&W.p){W.p[w.slice(2)]=t.value;cpPreviewPaint()}
+  if(w.indexOf("h.")===0&&W.p){hdSet(HANDLES[+w.slice(2)],t.value);cpPreviewPaint()}
+  else if(w.indexOf("p.")===0&&W.p){W.p[w.slice(2)]=t.value;cpPreviewPaint()}
   else if(w.indexOf("l.")===0&&W.p){var m=w.split(".");var l=W.p.links[+m[1]];if(l){l[m[2]]=t.value;cpPreviewPaint()}}
 });
 document.addEventListener("change",function(e){
@@ -316,6 +345,25 @@ document.addEventListener("change",function(e){
   }
 });
 
+ICONS.grid='<rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.8"/>';
+var DOCK=["home","notes","ideas","plan"];
+function webTabs(){
+  return DOCK.map(function(id){var v=vmeta(id);return '<button data-act="view" data-id="'+id+'" aria-current="'+(S.view===id)+'">'+I(v.ic)+'<span>'+v.name+'</span></button>'}).join("")+
+    '<button data-act="more" aria-haspopup="dialog" aria-current="'+(DOCK.indexOf(S.view)<0)+'">'+I("grid")+'<span>More</span></button>';
+}
+function moreInner(){
+  var last="",out='<div class="msheet-box" role="dialog" aria-modal="true" aria-label="All tools"><div class="ms-grid">',open=true,mode=themeMode();
+  VIEWS.forEach(function(v){
+    if(v.g&&v.g!==last){last=v.g;out+='</div><p class="ms-g">'+esc(v.g)+'</p><div class="ms-grid">'}
+    out+='<button data-act="view" data-id="'+v.id+'" aria-current="'+(S.view===v.id)+'">'+I(v.ic)+'<span>'+esc(v.name)+'</span></button>';
+  });
+  out+='</div><p class="ms-g">Appearance</p><div class="hd-seg" role="group" aria-label="Appearance">'+[["auto","Auto"],["light","Light"],["dark","Dark"]].map(function(o){return '<button data-act="ms_theme" data-id="'+o[0]+'" aria-pressed="'+(mode===o[0])+'">'+o[1]+'</button>'}).join("")+'</div>'+
+    '<div class="ms-row"><button data-act="datadlg">Data and backup</button></div></div>';
+  return out;
+}
+function moreOpen(){var el=$("msheet");if(!el){el=document.createElement("div");el.id="msheet";el.className="msheet";document.body.appendChild(el);el.addEventListener("click",function(e){if(e.target===el)moreClose()})}el.innerHTML=moreInner();el.hidden=false}
+function moreClose(){var el=$("msheet");if(el)el.hidden=true}
+document.addEventListener("keydown",function(e){if(e.key==="Escape")moreClose()});
 function webView(v){
   if(v==="aud"){if(!W.loaded&&!W.loading)audLoad();return audHTML()}
   if(v==="cp")return cpHTML();

@@ -895,7 +895,7 @@ button.status:hover{background:rgba(127,127,140,.12)}
       <div class="slist" id="soon"></div>
     </div>
     <button class="status" id="statusbtn" data-act="datadlg" data-s="busy" aria-label="Data and backup" title="Data and backup"><i></i><span id="status" role="status"></span></button>
-    <button class="pcard" id="pcard" data-act="profile" aria-label="Profile and appearance"></button>
+    <button class="pcard" id="pcard" data-act="profile" aria-label="Your handles"></button>
   </aside>
   <div class="col-main" id="colmain" data-v="home">
     <header class="top">
@@ -909,7 +909,7 @@ button.status:hover{background:rgba(127,127,140,.12)}
         <span class="peers" id="peers" hidden></span>
         <div class="ftimer" id="ftimer"></div>
         <button class="btn kcmd" data-act="palopen" aria-label="Open command palette"><kbd id="kbdlabel">Ctrl K</kbd></button>
-        <button class="ico" data-act="sharehelp" id="sharebtn" aria-label="Share and collaborate" title="Share and collaborate"></button><div class="qwrap bellwrap"><button class="ico" data-act="bell" id="bellbtn" aria-haspopup="true" aria-label="Reminders" title="Reminders"></button><div class="qmenu bellm" id="bellm" hidden></div></div><button class="ico" data-act="profile" id="pavbtn" aria-label="Profile and appearance" title="Profile and appearance"></button><span class="date" id="today"></span>
+        <button class="ico" data-act="sharehelp" id="sharebtn" aria-label="Share and collaborate" title="Share and collaborate"></button><div class="qwrap bellwrap"><button class="ico" data-act="bell" id="bellbtn" aria-haspopup="true" aria-label="Reminders" title="Reminders"></button><div class="qmenu bellm" id="bellm" hidden></div></div><button class="ico" data-act="profile" id="pavbtn" aria-label="Your handles" title="Profile and appearance"></button><span class="date" id="today"></span>
         <div class="qwrap">
           <button class="btn pri" data-act="qtoggle" aria-haspopup="true"><span id="plusico"></span>New</button>
           <div class="qmenu" id="qmenu" hidden>
@@ -941,7 +941,6 @@ var VIEWS=[
   {id:"ideas",name:"Ideas",ic:"bulb",c:"var(--c-ideas)",desc:"Catch ideas before they disappear."},
   {id:"mood",name:"Moodboard",ic:"image",c:"var(--c-mood)",desc:"Collect the look and feel of a project."},
   {id:"wb",name:"Whiteboard",ic:"board2",c:"var(--c-wb)",desc:"Sketch, map out ideas and plan visually."},
-  {id:"ve",name:"Video editor",ic:"film",c:"var(--c-ve)",desc:"Trim, caption and export."},
   {id:"clips",name:"Clips",ic:"link",c:"var(--c-mood)",desc:"Save links and references."},
   {id:"ai",name:"Writing helper",ic:"pen",c:"var(--c-home)",desc:"Titles, hooks, captions and scripts."},
   {id:"plan",g:"Plan",name:"Planner",ic:"calendar",c:"var(--c-lib)",desc:"Plan your day, put dates on the work."},
@@ -1582,7 +1581,7 @@ function paintProfile(){
 function profHTML(){
   var p=S.profile||{},pf=getPref(),mode=themeMode(),acc=pf.acc||"default",bg=pf.bg||"stone",dis=readOnly?" disabled":"";
   function seg(act,list,cur){return list.map(function(o){return '<button class="chip" data-act="'+act+'" data-id="'+o[0]+'" aria-pressed="'+(cur===o[0])+'">'+o[1]+'</button>'}).join("")}
-  return '<div class="dlgbox pdlg" role="dialog" aria-modal="true" aria-label="Profile and appearance"><h2>Profile</h2>'+
+  return '<div class="dlgbox pdlg" role="dialog" aria-modal="true" aria-label="Your handles"><h2>Profile</h2>'+
     '<div class="prow"><span class="av lg">'+avHTML()+'</span><div class="pbtns"><button class="btn sm" data-act="pupload"'+dis+'>Upload photo</button><button class="btn sm" data-act="pavrm"'+(p.avatar&&!readOnly?"":" disabled")+'>Remove</button></div></div>'+
     '<label class="plab">Name<input class="in" id="pname" maxlength="40" value="'+esc(p.name||"")+'" placeholder="Your name"'+dis+'></label>'+
     '<label class="plab">Role<input class="in" id="prole" maxlength="40" value="'+esc(p.role||"")+'" placeholder="Creator, editor, student…"'+dis+'></label>'+
@@ -2197,7 +2196,7 @@ function bellToggle(){
   m.innerHTML='<div class="bhd">Reminders</div>'+(it.length?it.slice(0,8).map(function(x){return '<button data-act="view" data-id="'+x.v+'"><span class="bd k'+x.k+'"></span><span class="bt"><b>'+esc(x.l)+'</b><i>'+esc(x.s)+'</i></span></button>'}).join(""):'<div class="empty" style="padding:14px">You are all caught up.</div>');
   m.hidden=false;
 }
-var SHORTCUTS=[["Ctrl K","Search and commands"],["?","Show this list"],["G then H","Go to Overview"],["G then N","Notes"],["G then I","Ideas"],["G then M","Moodboard"],["G then W","Whiteboard"],["G then V","Video editor"],["G then P","Planner"],["G then B","Progress board"],["Ctrl Z","Undo in the Whiteboard"],["Space","Play or pause in the Video editor"],["I and O","Set trim start and end in the Video editor"],["Delete","Remove the selected item on a canvas"]];
+var SHORTCUTS=[["Ctrl K","Search and commands"],["?","Show this list"],["G then H","Go to Overview"],["G then N","Notes"],["G then I","Ideas"],["G then M","Moodboard"],["G then W","Whiteboard"],["G then P","Planner"],["G then B","Progress board"],["Ctrl Z","Undo in the Whiteboard"],["Space","Play or pause in the Video editor"],["I and O","Set trim start and end in the Video editor"],["Delete","Remove the selected item on a canvas"]];
 function showShortcuts(){
   showInfo("Keyboard shortcuts",'<div class="shk">'+SHORTCUTS.map(function(s){return '<div><kbd>'+esc(s[0])+'</kbd><span>'+esc(s[1])+'</span></div>'}).join("")+'</div>');
 }
@@ -2206,7 +2205,7 @@ document.addEventListener("keydown",function(e){
   var t=e.target;if(/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)||t.isContentEditable||e.ctrlKey||e.metaKey||e.altKey)return;
   if(e.key==="?"){e.preventDefault();showShortcuts();return}
   if(gPend&&Date.now()-gPend<1200){
-    var map={h:"home",n:"notes",i:"ideas",m:"mood",w:"wb",v:"ve",p:"plan",b:"board",c:"cal",l:"library"},v=map[e.key.toLowerCase()];gPend=0;
+    var map={h:"home",n:"notes",i:"ideas",m:"mood",w:"wb",p:"plan",b:"board",c:"cal",l:"library"},v=map[e.key.toLowerCase()];gPend=0;
     if(v){e.preventDefault();go(v)}return;
   }
   if(e.key==="g"||e.key==="G"){gPend=Date.now()}
@@ -2837,7 +2836,7 @@ function palBuild(){
   add("Actions","Switch light or dark theme","moon","var(--c-home)",toggleTheme);
   add("Actions","Keyboard shortcuts","cmd","var(--c-home)",showShortcuts);
   add("Actions","Data and backup","folder","var(--c-home)",dataOpen);
-  add("Actions","Profile and appearance","users","var(--c-home)",function(){profOpenDlg(true)});
+  add("Actions","Your handles","users","var(--c-home)",function(){profOpenDlg(true)});
   out=out.filter(function(i){return !ql||i.l.toLowerCase().indexOf(ql)>-1});
   if(ql.length>1){
     var hit=function(txt){return String(txt||"").toLowerCase().indexOf(ql)>-1},found=[];

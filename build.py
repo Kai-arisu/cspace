@@ -3,7 +3,7 @@ base=os.path.dirname(os.path.abspath(__file__))+'/'
 src=open(base+'creator-space.html').read()
 web=open(base+'web/web.js').read()
 boot=open(base+'web/boot.js').read()
-css=open(base+'web/web.css').read()
+css=open(base+'web/web.css').read()+'\n'+open(base+'web/frost.css').read()
 # split
 i=src.index('<script>');j=src.rindex('</script>')
 pre=src[:i];js=src[i+len('<script>'):j]
@@ -21,6 +21,10 @@ rep("""'<p class="muted" style="font-size:13px;margin:4px 0 0">Only people you i
 k=js.index('function showShare(){');k2=js.index('function commentOn(')
 js=js[:k]+'function showShare(){S.view="cp";render()}\n'+js[k2:]
 rep('Sign in to sync it to your cloud database.','Sign in again to sync it.')
+rep("""  $("tabbar").innerHTML=VIEWS.map(function(v){
+    return '<button data-act="view" data-id="'+v.id+'" aria-current="'+(S.view===v.id)+'" style="--c:'+v.c+'">'+I(v.ic)+'<span>'+v.name+'</span></button>';
+  }).join("");""",'  $("tabbar").innerHTML=webTabs();')
+rep('case "profile":profOpenDlg(true);return true;','case "profile":S.view="cp";render();return true;')
 # html assembly
 m=re.search(r'</style>',pre);head_end=m.end()
 head=pre[:head_end].replace('<meta name="claude:viewport-fit-sides" content="cover">','')
@@ -28,12 +32,14 @@ body=pre[head_end:]
 out='<!doctype html><html lang="en" class="authing"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#E9E9EC">'+head+'<style id="webcss">'+css+'</style></head><body>'
 out+='<div id="authgate" hidden></div><div id="pubpage" hidden></div>'+body
 out+='<script src="/supabase.js"></script><script>'+boot+'</script><script type="text/plain" id="appjs">'+js+'</script><script>if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})</script></body></html>'
+out=re.sub(r'<link rel="stylesheet" href="https://fonts.googleapis.com/[^"]*">','<link rel="preload" href="/geist.woff2" as="font" type="font/woff2" crossorigin>',out,count=1)
 out=out.replace('<title>Creator Space</title>','<title>Creator Space</title><link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/icon-192.png"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%2317171A%27/%3E%3Cpath d=%27M21 11a7 7 0 1 0 0 10%27 fill=%27none%27 stroke=%27white%27 stroke-width=%273%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">',1)
 os.makedirs(base+'public',exist_ok=True)
 open(base+'public/index.html','w').write(out)
 shutil.copy(base+'vendor/supabase.js',base+'public/supabase.js')
 shutil.copy(base+'vendor/591.supabase.js',base+'public/591.supabase.js')
 
+shutil.copy(base+'vendor/fonts/geist-latin-wght-normal.woff2',base+'public/geist.woff2')
 # ---- PWA ----
 import json
 from PIL import Image, ImageDraw

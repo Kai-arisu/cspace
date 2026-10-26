@@ -78,8 +78,14 @@ await pp.screenshot({path:'f-public.png'});
 await pp.goto(origin+'/u/nobody');await pp.waitForTimeout(800);
 ok((await pp.textContent('body')).includes('Page not found'),'unknown handle shows not found');
 // sign out
-await p.click('[data-act="profile"]');await p.waitForTimeout(300);
-await p.click('#dlg [data-act="signout"]');await p.click('#dlg [data-act="signout"]');await p.waitForTimeout(1500);
+await p.click('[data-act="profile"]');await p.waitForTimeout(400);
+ok(await p.locator('.hd-list').isVisible(),'account button opens Handles');
+await p.fill('[data-w="h.1"]','mygram');await p.waitForTimeout(100);
+ok((await p.textContent('#cppv')).includes('Instagram'),'handle shows in preview');
+ok(!(await p.textContent('#nav')).includes('Video editor'),'video editor removed from menu');
+await p.click('[data-act="cp_save"]');await p.waitForTimeout(800);
+ok(st.tables.profiles.some(r=>(r.links||[]).some(l=>l.label==='Instagram'&&l.url==='https://instagram.com/mygram')),'handle saved as link');
+await p.click('main [data-act="signout"]');await p.click('main [data-act="signout"]');await p.waitForTimeout(1500);
 ok(await p.locator('#authgate .ag-card').isVisible(),'back at login after sign out');
 // sign in again keeps data
 await p.fill('#agemail','creator@example.com');await p.fill('#agpass','supersecret1');await p.click('#aggo');await p.waitForTimeout(2500);
