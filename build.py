@@ -13,7 +13,7 @@ def rep(a,b,cnt=1):
     js=js.replace(a,b)
 rep('/* ---------- boot ---------- */',web+'\n/* ---------- boot ---------- */')
 rep('  $("wrap").innerHTML=html;\n','  var wv=webView(v);if(wv!==null)html=wv;\n  $("wrap").innerHTML=html;\n  webMount(v);\n')
-rep('||veAct(a,b)||dataAct(a,b)||rerrAct(a,b))return;','||veAct(a,b)||dataAct(a,b)||rerrAct(a,b)||webAct(a,b))return;')
+rep('||dataAct(a,b)||rerrAct(a,b))return;','||dataAct(a,b)||rerrAct(a,b)||webAct(a,b))return;')
 rep("""    '<p class="muted" style="font-size:12px;margin-top:10px">Appearance is saved""","""    '<div class="plab">Account<div class="pseg"><span class="muted" style="font-size:13px;align-self:center">'+esc(window.__EMAIL||"")+'</span><button class="btn sm" data-act="signout">Sign out</button></div></div>'+
     '<p class="muted" style="font-size:12px;margin-top:10px">Appearance is saved""")
 rep("""if(roleName())h+='<p class="muted" style="margin:8px 0 0;font-size:13px">Your access: <b>'+roleName()+'</b></p>';""","""h+='<p class="muted" style="margin:8px 0 0;font-size:13px">Signed in as <b>'+esc(window.__EMAIL||"")+'</b></p>';""")

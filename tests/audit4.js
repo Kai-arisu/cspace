@@ -29,7 +29,7 @@ await go('clips');await p.fill('#clurl','https://example.com/a');await p.fill('#
 // mood
 await go('mood');await p.click('[data-act="mform"][data-id="color"]').catch(async()=>{await p.click('[data-act="mform"]')});await p.waitForTimeout(200);await p.click('[data-act="msave"]').catch(()=>{});await p.waitForTimeout(250);c=await cnt();console.log('mood',c.mood);
 // whiteboard
-await go('wb');const w0=await p.locator('#wbsvg *, #wbitems *').count();await p.click('[data-act="wbstart"]');await p.waitForTimeout(300);await p.waitForTimeout(900);ok(await p.locator('#wbsvg *, #wbitems *').count()>w0,'whiteboard starter flow adds items');
+await go('wb');const w0=await p.locator('#wbsvg *, #wbitems *').count();await p.click('[data-act="wbmenu"][data-id="more"]');await p.click('[data-act="wbstart"]');await p.waitForTimeout(300);await p.waitForTimeout(900);ok(await p.locator('#wbsvg *, #wbitems *').count()>w0,'whiteboard starter flow adds items');
 // business
 await go('biz');await p.click('[data-act="biztab"][data-id="deals"]');await p.fill('#dbrand','Acme');await p.fill('#damt','5000');await p.click('#main .btn.pri, .col-main form .btn.pri').catch(()=>{});await p.waitForTimeout(300);c=await cnt();console.log('deals',c.deals);
 await p.click('[data-act="biztab"][data-id="income"]').catch(()=>{});await p.waitForTimeout(200);console.log('biz tabs',await p.$$eval('[data-act="biztab"]',e=>e.map(x=>x.dataset.id)));

@@ -64,7 +64,7 @@ cfg.failSets=3;
 await T(A,()=>{const S=__T.S();S.tasks.push({id:'tR',sp:S.cur,title:'retry me',col:'i',due:'',ts:Date.now()});__T.touch()});
 await A.waitForTimeout(1500);
 ok((await T(A,()=>document.getElementById('status').textContent)).match(/Retrying|Saving/),'A shows retry status');
-await A.waitForTimeout(12000);
+for(let i=0;i<40&&await T(A,()=>__T.SY().pending!==false);i++)await A.waitForTimeout(1000);
 ok(await T(A,()=>__T.SY().pending===false),'A recovered after failures');
 // 6 whiteboard chunked
 await T(A,()=>{__T.wb().loadedFor=__T.S().cur;__T.wb().items=[];for(let i=0;i<900;i++)__T.wb().items.push({id:'w'+i,t:'sticky',x:i,y:i,w:100,h:100,txt:'n'.repeat(300)});__T.wbTouch()});

@@ -464,3 +464,15 @@ html.authing body,html.pubpage body{background:var(--bg)}
 .wsbar span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wsbar button{border:0;border-radius:999px;padding:8px 14px;font:500 13.5px var(--f-body);background:var(--on-ink);color:var(--ink);cursor:pointer;flex:none}
 @media (max-width:860px){.wsbar{bottom:calc(92px + env(safe-area-inset-bottom,0px))}}
+
+/* phone: keep the focus timer in the top bar */
+@media (max-width:860px){
+  .topr>.ftimer{display:flex!important;padding:3px 10px 3px 4px;gap:4px}
+  .topr>.ftimer .ico:not(:first-child),.topr>.ftimer [data-act="ftmode"],.topr>.ftimer small,.topr>.ftimer .fmode{display:none!important}
+  .topr>.ftimer .ftt{font-size:14px}
+  .spsel{max-width:34vw}
+  .topr{gap:6px}
+  .topr>.bellwrap,.topr>.qwrap.bellwrap{display:block!important}
+}
+@media (max-width:860px){.mbrand{overflow:hidden;min-width:0}.spsel{min-width:0;flex:1;width:100%;max-width:none;text-overflow:ellipsis;font-size:17px}.mbrand .logo{flex:none}}
+.wbft{font:600 15px var(--f-body);pointer-events:none;user-select:none}
