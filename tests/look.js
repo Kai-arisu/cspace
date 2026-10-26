@@ -1,0 +1,25 @@
+const {chromium}=require('playwright');const http=require('http');const fs=require('fs');const path=require('path');
+const fake=require('./fakesb.js')();const site=path.join(process.cwd(),'public');
+const csp=fs.readFileSync(site+'/_headers','utf8').match(/Content-Security-Policy: (.*)/)[1];
+const srv=http.createServer((req,res)=>{let u=req.url.split('?')[0];if(u==='/'||u.startsWith('/u/'))u='/index.html';const f=path.join(site,u);if(!fs.existsSync(f)){res.writeHead(404);return res.end('nf')}const ext=path.extname(f);res.writeHead(200,{'content-type':ext==='.html'?'text/html':ext==='.js'?'application/javascript':ext==='.woff2'?'font/woff2':'text/plain','content-security-policy':csp});res.end(fs.readFileSync(f))});
+let fail=0;const ok=(c,m)=>{console.log((c?'PASS ':'FAIL ')+m);if(!c)fail++};
+(async()=>{await new Promise(r=>srv.listen(0,r));const b=await chromium.launch();const ctx=await b.newContext({viewport:{width:1280,height:900}});
+await ctx.route('https://ohkecamneutxggqwhend.supabase.co/**',fake.handle);await ctx.route(/fonts\.googleapis/,r=>r.abort());
+const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
+const base='http://localhost:'+srv.address().port;
+await p.goto(base+'/');await p.waitForTimeout(500);await p.click('[data-ag="up"]');await p.fill('#agemail','r@x.co');await p.fill('#agpass','supersecret1');await p.click('#aggo');await p.waitForTimeout(2000);
+await p.click('#pcard');await p.waitForTimeout(600);
+await p.fill('[data-w="p.handle"]','rohit');await p.fill('[data-w="p.display_name"]','Rohit K');await p.check('[data-act="cp_pub"]');
+await p.click('[data-act="cp_acc"][data-id="#0091FF"]');await p.click('[data-act="cp_look"][data-id="dark"]');
+ok(await p.locator('.cp-pv[data-look="dark"]').count()===1,'preview takes the dark look');
+await p.click('[data-act="cp_save"]');await p.waitForTimeout(800);
+const pg=await ctx.newPage();pg.on('pageerror',e=>errs.push(e.message));await pg.route('https://ohkecamneutxggqwhend.supabase.co/**',fake.handle);
+await pg.goto(base+'/u/rohit');await pg.waitForTimeout(1200);
+ok(await pg.evaluate(()=>document.documentElement.getAttribute('data-look'))==='dark','public page uses the saved look');
+ok((await pg.evaluate(()=>getComputedStyle(document.body).backgroundColor))==='rgb(11, 11, 13)','dark background applied');
+ok(await pg.locator('.pp-share').count()===1,'share button present');
+const [dl]=await Promise.all([pg.waitForEvent('download',{timeout:8000}).catch(()=>null),pg.click('.pp-share')]);
+ok(!!dl&&/rohit-creator-space\.png/.test(dl.suggestedFilename()),'share image downloads as a PNG');
+if(dl){await dl.saveAs('/tmp/share.png');const f=await dl.path();ok(require('fs').statSync(f).size>5000,'image has content')}
+ok(errs.length===0,'no page errors '+errs.join('|'));
+console.log(fail?'FAILURES '+fail:'ALL PASSED');await b.close();srv.close();process.exit(fail?1:0)})();

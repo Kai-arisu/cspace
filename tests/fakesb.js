@@ -3,8 +3,8 @@ const crypto=require('crypto');
 function b64(o){return Buffer.from(JSON.stringify(o)).toString('base64url')}
 function jwt(user){return b64({alg:'HS256',typ:'JWT'})+'.'+b64({sub:user.id,email:user.email,role:'authenticated',aud:'authenticated',exp:Math.floor(Date.now()/1000)+3600})+'.sig'}
 module.exports=function(){
-  const st={users:[],tables:{docs:[],leases:[],profiles:[],shares:[],connections:[],snapshots:[],videos:[]},files:{},ytConfigured:true,calls:[],snapId:1};
-  const OWNER=['docs','leases','connections','snapshots','videos'];
+  const st={users:[],tables:{docs:[],leases:[],profiles:[],shares:[],connections:[],snapshots:[],videos:[],cal_tokens:[],push_subs:[]},files:{},ytConfigured:true,calls:[],snapId:1};
+  const OWNER=['docs','leases','connections','snapshots','videos','cal_tokens','push_subs'];
   function session(u){const t=jwt(u);return {access_token:t,token_type:'bearer',expires_in:3600,expires_at:Math.floor(Date.now()/1000)+3600,refresh_token:'r_'+u.id,user:{id:u.id,aud:'authenticated',role:'authenticated',email:u.email,app_metadata:{},user_metadata:{},created_at:new Date().toISOString()}}}
   function uidOf(req){const a=req.headers()['authorization']||'';const m=a.match(/Bearer ([^ ]+)/);if(!m)return null;try{return JSON.parse(Buffer.from(m[1].split('.')[1],'base64url').toString()).sub||null}catch(e){return null}}
   function emailOf(uid){const u=st.users.find(u=>u.id===uid);return u?u.email.toLowerCase():null}
@@ -63,6 +63,7 @@ module.exports=function(){
           let row={...b};
           if(t==='shares'){if(row.owner_id!==uid)return J(403,{code:'42501',message:'rls'});row.id=row.id||crypto.randomUUID()}
           if(OWNER.includes(t)||t==='profiles'){if(!row.user_id)row.user_id=uid;const sh=t==='docs'&&row.user_id!==uid?shareFor(row.user_id,uid):null;if(row.user_id!==uid&&!(sh&&sh.role==='editor'))return J(403,{code:'42501',message:'new row violates row-level security policy'})}
+          if(t==='cal_tokens'){row.token=row.token||crypto.randomUUID()}
           if(t==='connections'){row.id=row.id||crypto.randomUUID();row.kind=row.kind||'own';row.show_public=row.show_public||false;row.created_at=row.created_at||new Date().toISOString();row.source=row.source||'api';row.status=row.status||'ok'}
           if(t==='snapshots'){row.id=st.snapId++;row.ts=row.ts||new Date().toISOString()}
           if(t==='profiles'&&row.handle&&rows.some(r=>r.handle===row.handle&&r.user_id!==row.user_id))return J(409,{code:'23505',message:'duplicate key value violates unique constraint'});

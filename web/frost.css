@@ -546,3 +546,26 @@ html.authing body,html.pubpage body{background:var(--bg)}
 .wbrail .tb:active{transform:scale(.92)}
 
 @media (prefers-reduced-motion:reduce){.app,.dlg,.dlgbox,.palbox,.cmdk,.toast,.wsbar,.qmenu,.bellm,.wrap *{animation:none!important}}
+.sres .sp{margin-left:auto;flex:none;font-size:11px;color:var(--muted);background:var(--flat);border-radius:999px;padding:2px 8px;max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ===== public page looks + accent picker ===== */
+.acc-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.acc-sw{width:30px;height:30px;border-radius:50%;border:2px solid transparent;background:var(--c);cursor:pointer;padding:0;transition:transform .18s var(--spring),box-shadow .18s}
+.acc-sw:hover{transform:scale(1.12)}
+.acc-sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--c)}
+.acc-in{width:34px;height:30px;border:0;padding:0;background:none;border-radius:8px;cursor:pointer}
+.cp-pv[data-look="dark"]{background:#151518;color:#f2f2f2}
+.cp-pv[data-look="dark"] .cp-h,.cp-pv[data-look="dark"] .cp-tg,.cp-pv[data-look="dark"] p{color:#a8a8b0}
+.cp-pv[data-look="tint"]{background:color-mix(in srgb,var(--pa) 10%,transparent)}
+.cp-pv[data-look="glow"]{background:radial-gradient(circle at 85% 0,color-mix(in srgb,var(--pa) 30%,transparent),transparent 70%)}
+.pp-share{display:block;margin:18px auto 0}
+@media screen{
+html.pubpage[data-look="tint"] body{background:color-mix(in srgb,var(--pa-page) 9%,var(--bg))}
+html.pubpage[data-look="glow"] body{background:radial-gradient(900px 520px at 85% -5%,color-mix(in srgb,var(--pa-page) 32%,transparent),transparent 70%),var(--bg);background-attachment:fixed}
+html.pubpage[data-look="dark"]{--bg:#0b0b0d;--fg:#f2f2f2;--solid:#151518;--surface:#151518;--surface2:#1d1d21;--line:rgba(255,255,255,.12);--muted:#a0a0a8;--flat:rgba(255,255,255,.08);--ink:#f2f2f2;--on-ink:#0b0b0d;--glass:rgba(255,255,255,.06);--glass2:rgba(255,255,255,.1);color-scheme:dark}
+html.pubpage[data-look="dark"] .pp-link:not(.pp-kit){background:var(--pa-page);color:#fff}
+}
+html.pubpage[data-look="tint"] .pp-card,html.pubpage[data-look="glow"] .pp-card{background:color-mix(in srgb,var(--solid,var(--surface)) 82%,transparent)}
+@media print{.pp-share,.kit-top{display:none!important}}
+.sh-btns{display:flex;gap:6px}
+@media (max-width:560px){.sh-row{grid-template-columns:minmax(0,1fr) auto}.sh-btns{grid-column:1/-1}}

@@ -272,16 +272,16 @@ async function cpLoad(){
     var r=await WSB.from("profiles").select("*").maybeSingle();
     if(r.error)throw r.error;
     var d=r.data;
-    W.p=d?{handle:d.handle||"",display_name:d.display_name||"",tagline:d.tagline||"",bio:d.bio||"",accent:d.accent||"#12163A",is_public:!!d.is_public,avatar_url:d.avatar_url||"",links:Array.isArray(d.links)?d.links:[],kit:normKit(d.kit),exists:true}
-      :{handle:suggestHandle(),display_name:(S.profile&&S.profile.name)||"",tagline:"",bio:"",accent:"#111111",is_public:false,avatar_url:"",links:[],kit:normKit(),exists:false};
+    W.p=d?{handle:d.handle||"",display_name:d.display_name||"",tagline:d.tagline||"",bio:d.bio||"",accent:d.accent||"#12163A",look:d.look||"plain",is_public:!!d.is_public,avatar_url:d.avatar_url||"",links:Array.isArray(d.links)?d.links:[],kit:normKit(d.kit),exists:true}
+      :{handle:suggestHandle(),display_name:(S.profile&&S.profile.name)||"",tagline:"",bio:"",accent:"#111111",look:"plain",is_public:false,avatar_url:"",links:[],kit:normKit(),exists:false};
     W.pLoaded=true;W.pErr="";
-  }catch(e){W.pErr="Couldn't load your profile. "+((e&&e.message)||"");W.pLoaded=true;if(!W.p)W.p={handle:"",display_name:"",tagline:"",bio:"",accent:"#111111",is_public:false,avatar_url:"",links:[],kit:normKit()}}
+  }catch(e){W.pErr="Couldn't load your profile. "+((e&&e.message)||"");W.pLoaded=true;if(!W.p)W.p={handle:"",display_name:"",tagline:"",bio:"",accent:"#111111",look:"plain",is_public:false,avatar_url:"",links:[],kit:normKit()}}
   if(S.view==="cp")render();
 }
 function cpLink(){return location.origin+"/u/"+(W.p&&W.p.handle||"")}
 function cpPreviewHTML(){
   var p=W.p,ac=/^#[0-9a-f]{6}$/i.test(p.accent)?p.accent:"#111111";
-  return '<div class="cp-pv" style="--pa:'+ac+'">'+(p.avatar_url?'<img class="cp-av" src="'+esc(p.avatar_url)+'" alt="">':'<span class="cp-av cp-ini">'+esc((p.display_name||p.handle||"?").slice(0,1).toUpperCase())+'</span>')+
+  return '<div class="cp-pv" data-look="'+(p.look||"plain")+'" style="--pa:'+ac+'">'+(p.avatar_url?'<img class="cp-av" src="'+esc(p.avatar_url)+'" alt="">':'<span class="cp-av cp-ini">'+esc((p.display_name||p.handle||"?").slice(0,1).toUpperCase())+'</span>')+
     '<b>'+esc(p.display_name||p.handle||"Your name")+'</b><span class="cp-h">@'+esc(p.handle||"handle")+'</span>'+(p.tagline?'<span class="cp-tg">'+esc(p.tagline)+'</span>':"")+(p.bio?'<p>'+esc(p.bio)+'</p>':"")+
     (p.links.length?'<div class="cp-ls">'+p.links.filter(function(l){return l.label||l.url}).map(function(l){return '<span>'+esc(l.label||l.url)+'</span>'}).join("")+'</div>':"")+'</div>';
 }
@@ -309,6 +309,24 @@ function hdRows(){
   if(W.p.links.length<9)h+='<button class="btn" style="margin-top:12px" data-act="cp_ladd">Add another link</button>';
   return h;
 }
+var ACCENTS=["#111111","#E5484D","#F5A524","#30A46C","#0091FF","#8E4EC6","#E0388A","#0F766E"];
+var LOOKS=[["plain","Plain"],["tint","Tinted"],["glow","Glow"],["dark","Dark"]];
+function lookPanel(){
+  var p=W.p,ac=/^#[0-9a-f]{6}$/i.test(p.accent)?p.accent:"#111111";
+  return '<div class="plab">Accent colour<div class="acc-row">'+ACCENTS.map(function(c){return '<button class="acc-sw" data-act="cp_acc" data-id="'+c+'" style="--c:'+c+'" aria-label="Accent '+c+'" aria-pressed="'+(c.toLowerCase()===ac.toLowerCase())+'"></button>'}).join("")+'<input type="color" class="acc-in" data-w="p.accent" value="'+ac+'" aria-label="Custom accent colour"></div></div>'+
+    '<div class="plab">Page look<div class="hd-seg" role="group" aria-label="Page look">'+LOOKS.map(function(o){return '<button data-act="cp_look" data-id="'+o[0]+'" aria-pressed="'+((p.look||"plain")===o[0])+'">'+o[1]+'</button>'}).join("")+'</div></div>';
+}
+async function cpShareImage(){
+  var p=W.p;if(!p||!p.handle){toast("Save your handle first");return}
+  var stats=[];
+  try{
+    var cs=await WSB.from("connections").select("id,platform").eq("user_id",window.__UID).eq("show_public",true).eq("kind","own");
+    var ids=(cs.data||[]).map(function(c){return c.id});
+    if(ids.length){var sn=await WSB.from("snapshots").select("connection_id,followers,ts").in("connection_id",ids).order("ts",{ascending:false}).limit(100);var got={};(sn.data||[]).forEach(function(x){if(!got[x.connection_id])got[x.connection_id]=x});
+      stats=(cs.data||[]).map(function(c){var s=got[c.id];return s&&s.followers!=null?[c.platform==="youtube"?"YouTube":c.platform.charAt(0).toUpperCase()+c.platform.slice(1),s.followers]:null}).filter(Boolean)}
+  }catch(e){}
+  if(window.csShare)window.csShare({name:p.display_name||p.handle,handle:p.handle,tagline:p.tagline,accent:p.accent,look:p.look,avatar:p.avatar_url,stats:stats});
+}
 function cpHTML(){
   if(!W.pLoaded){cpLoad();return hero("cp","Handles",null,"")+'<p class="muted">Loading…</p>'}
   var p=W.p,mode=themeMode();
@@ -322,15 +340,15 @@ function cpHTML(){
     '<label class="plab">Name<input class="in" data-w="p.display_name" maxlength="60" value="'+esc(p.display_name)+'"></label>'+
     '<label class="plab">Tagline<input class="in" data-w="p.tagline" maxlength="90" value="'+esc(p.tagline)+'" placeholder="What you make, in one line"></label>'+
     '<label class="plab">About<textarea class="in" data-w="p.bio" rows="4" maxlength="600" placeholder="A few lines about you and your work">'+esc(p.bio)+'</textarea></label>'+
-    '<label class="cp-pub"><input type="checkbox" data-act="cp_pub"'+(p.is_public?" checked":"")+'> Make this page public</label>'+
+    lookPanel()+'<label class="cp-pub"><input type="checkbox" data-act="cp_pub"'+(p.is_public?" checked":"")+'> Make this page public</label>'+
     '<p id="cpmsg" class="aud-msg" role="status">'+esc(W.pMsg)+'</p></section>'+kitPanel()+(window.__WS?'':shPanel())+'</div>'+
     '<aside class="cp-side"><div class="panel"><h3>Preview</h3><div id="cppv">'+cpPreviewHTML()+'</div></div>'+
-    '<div class="panel"><h3>Your link</h3>'+(p.exists&&p.is_public?'<p class="cp-url">'+esc(cpLink())+'</p><div class="drow"><button class="btn pri" data-act="cp_copy">Copy link</button><button class="btn" data-act="cp_open">Open page</button></div>':'<p class="muted" style="margin:0">'+(p.exists?'Your page is private. Turn on "Make this page public" and save to get a link.':'Save to get a link.')+'</p>')+
+    '<div class="panel"><h3>Your link</h3>'+(p.exists&&p.is_public?'<p class="cp-url">'+esc(cpLink())+'</p><div class="drow"><button class="btn pri" data-act="cp_copy">Copy link</button><button class="btn" data-act="cp_open">Open page</button></div><div class="drow"><button class="btn" data-act="cp_shareimg">Share as image</button></div>':'<p class="muted" style="margin:0">'+(p.exists?'Your page is private. Turn on "Make this page public" and save to get a link.':'Save to get a link.')+'</p>')+
     '<p class="muted" style="font-size:13px;margin:12px 0 0">Channels you switch on in Audience show here with their latest numbers.</p></div>'+
     '<div class="panel"><h3>Account</h3><p style="margin:0 0 12px;font-size:14px">'+esc(window.__EMAIL||"")+'</p>'+
     '<div class="hd-seg" role="group" aria-label="Appearance">'+[["auto","Auto"],["light","Light"],["dark","Dark"]].map(function(o){return '<button data-act="ms_theme" data-id="'+o[0]+'" aria-pressed="'+(mode===o[0])+'">'+o[1]+'</button>'}).join("")+'</div>'+
     '<div class="hd-seg" role="group" aria-label="Sounds" style="margin-top:10px">'+[["on","Sounds on"],["off","Sounds off"]].map(function(o){return '<button data-act="snd" data-id="'+o[0]+'" aria-pressed="'+((o[0]==="on")===sndOn())+'">'+o[1]+'</button>'}).join("")+'</div>'+
-    '<div class="drow"><button class="btn" data-act="cp_pw">Email me a password reset</button><button class="btn" data-act="signout">Sign out</button></div></div></aside></div>'+
+    pushPanel()+'<div class="drow"><button class="btn" data-act="cp_pw">Email me a password reset</button><button class="btn" data-act="signout">Sign out</button></div></div></aside></div>'+
     '<input type="file" id="cpfile" accept="image/*" hidden>';
   return h;
 }
@@ -362,7 +380,7 @@ async function shLoad(){
   try{
     var a=await WSB.from("shares").select("*").eq("owner_id",window.__UID).order("created_at");
     var b=await WSB.rpc("list_workspaces");
-    SH.list=a.data||[];SH.ws=b.data||[];SH.msg=a.error?"Couldn't load teammates.":"";
+    SH.list=a.data||[];SH.ws=b.data||[];if(a.error)SH.msg="Couldn't load teammates.";
   }catch(e){SH.msg="Couldn't load teammates."}
   SH.loaded=true;SH.loading=false;if(S.view==="cp")render();
 }
@@ -372,7 +390,7 @@ function shPanel(){
     '<div class="sh-add"><input class="in" data-w="sh.email" type="email" maxlength="120" placeholder="teammate@email.com" value="'+esc(SH.email)+'" aria-label="Teammate email" autocapitalize="none" spellcheck="false"><select class="wsel" data-w="sh.role" aria-label="Role"><option value="editor"'+(SH.role==="editor"?" selected":"")+'>Editor</option><option value="viewer"'+(SH.role==="viewer"?" selected":"")+'>Viewer</option></select><button class="btn pri" data-act="sh_invite">Invite</button></div>'+
     '<p id="shmsg" class="aud-msg" role="status">'+esc(SH.msg)+'</p>';
   if(!SH.loaded){shLoad();h+='<p class="muted">Loading…</p>'}
-  else if(SH.list.length)h+='<div class="sh-list">'+SH.list.map(function(x,i){return '<div class="sh-row"><span class="sh-em">'+esc(x.invitee_email)+'</span><select class="wsel" data-w="sh.r.'+i+'" aria-label="Role for '+esc(x.invitee_email)+'"><option value="editor"'+(x.role==="editor"?" selected":"")+'>Editor</option><option value="viewer"'+(x.role==="viewer"?" selected":"")+'>Viewer</option></select><button class="btn sm" data-act="sh_del" data-id="'+esc(x.id)+'">Remove</button></div>'}).join("")+'</div>';
+  else if(SH.list.length)h+='<div class="sh-list">'+SH.list.map(function(x,i){return '<div class="sh-row"><span class="sh-em">'+esc(x.invitee_email)+'</span><select class="wsel" data-w="sh.r.'+i+'" aria-label="Role for '+esc(x.invitee_email)+'"><option value="editor"'+(x.role==="editor"?" selected":"")+'>Editor</option><option value="viewer"'+(x.role==="viewer"?" selected":"")+'>Viewer</option></select><span class="sh-btns"><button class="btn sm" data-act="sh_mail" data-id="'+i+'">Email invite</button><button class="btn sm" data-act="sh_del" data-id="'+esc(x.id)+'">Remove</button></span></div>'}).join("")+'</div>';
   else h+='<p class="muted" style="margin:0">No teammates yet.</p>';
   if(SH.ws.length)h+='<h3 style="margin-top:18px">Shared with you</h3><div class="sh-list">'+SH.ws.map(function(w){return '<div class="sh-row"><span class="sh-em">'+esc(w.owner_email)+'<small> · '+(w.role==="editor"?"Editor":"Viewer")+'</small></span><button class="btn sm pri" data-act="sh_open" data-id="'+esc(w.owner_id)+'">Open</button><button class="btn sm" data-act="sh_leave" data-id="'+esc(w.owner_id)+'">Leave</button></div>'}).join("")+'</div>';
   return h+'</section>';
@@ -393,7 +411,7 @@ async function cpSave(){
   var links=p.links.map(function(l){return {label:(l.label||"").trim().slice(0,30),url:(l.url||"").trim()}}).filter(function(l){return l.url||l.label});
   for(var i=0;i<links.length;i++){if(!/^https?:\/\/\S+\.\S+/i.test(links[i].url)){cpMsg("Link "+(i+1)+" needs a full address starting with https://");return}}
   W.pSaving=true;cpMsg("Saving…");
-  var row={user_id:window.__UID,handle:p.handle,display_name:(p.display_name||"").trim()||null,tagline:(p.tagline||"").trim()||null,bio:(p.bio||"").trim()||null,avatar_url:p.avatar_url||null,accent:p.accent,links:links,kit:kitClean(p.kit),is_public:!!p.is_public,updated_at:new Date().toISOString()};
+  var row={user_id:window.__UID,handle:p.handle,display_name:(p.display_name||"").trim()||null,tagline:(p.tagline||"").trim()||null,bio:(p.bio||"").trim()||null,avatar_url:p.avatar_url||null,accent:p.accent,look:p.look||"plain",links:links,kit:kitClean(p.kit),is_public:!!p.is_public,updated_at:new Date().toISOString()};
   var r=await WSB.from("profiles").upsert(row,{onConflict:"user_id"});
   W.pSaving=false;
   if(r.error){cpMsg(r.error.code==="23505"?"That handle is taken. Try another.":"Couldn't save. "+r.error.message);return}
@@ -404,6 +422,12 @@ async function cpSave(){
 function webAct(a,b){
   var id=b.dataset.id;
   switch(a){
+    case "push_on":pushOn();return true;
+    case "push_off":pushOff();return true;
+    case "push_test":pushTest();return true;
+    case "calsync":calSync(false);return true;
+    case "calnew":calSync(true);return true;
+    case "calcopy":copy(CAL.url);return true;
     case "sharehelp":if(window.__WS){toast("Switch back to your own workspace to share your page");return true}S.view="cp";render();return true;
     case "more":sound("tick");moreOpen();return true;
     case "rail":railSet(!document.querySelector(".app").classList.contains("rail"));return true;
@@ -432,8 +456,15 @@ function webAct(a,b){
       if(em===String(window.__EMAIL||"").toLowerCase()){shMsg("That is your own email.");return true}
       WSB.from("shares").upsert({owner_id:window.__UID,invitee_email:em,role:SH.role},{onConflict:"owner_id,invitee_email"}).then(function(r){
         if(r.error){shMsg("Couldn't invite. "+r.error.message);return}
-        SH.email="";SH.loaded=false;shMsg("Invited. Ask them to sign in at "+location.origin+" with "+em+".");SH.loaded=false;shLoad();
+        SH.email="";SH.loaded=false;shMsg("Added. Press \"Email invite\" next to their name to send them the details.");SH.loaded=false;shLoad();
       });return true}
+    case "sh_mail":{var mx=SH.list[+id];if(!mx)return true;
+      var who=(S.profile&&S.profile.name)||String(window.__EMAIL||"").split("@")[0],role=mx.role==="editor"?"edit":"view";
+      var body="Hi,\n\n"+who+" invited you to "+role+" their Creator Space.\n\n1. Open "+location.origin+"\n2. Sign in (or create an account) with this email: "+mx.invitee_email+"\n3. Open the Handles page and choose "+who+"'s workspace under \"Shared with you\".\n\nSee you there.";
+      var href="mailto:"+encodeURIComponent(mx.invitee_email)+"?subject="+encodeURIComponent(who+" invited you to Creator Space")+"&body="+encodeURIComponent(body);
+      var a=document.createElement("a");a.href=href;document.body.appendChild(a);a.click();a.remove();
+      try{navigator.clipboard&&navigator.clipboard.writeText(body).catch(function(){})}catch(e){}
+      shMsg("Your email app opened with the invite. The text is also copied in case it didn't.");return true}
     case "sh_del":WSB.from("shares").delete().eq("id",id).then(function(r){if(r.error)shMsg("Couldn't remove.");else{SH.loaded=false;shLoad()}});return true;
     case "sh_open":try{localStorage.setItem(shWsKey(),JSON.stringify({owner:id}))}catch(e){}location.reload();return true;
     case "sh_home":try{localStorage.removeItem(shWsKey())}catch(e){}location.reload();return true;
@@ -446,6 +477,8 @@ function webAct(a,b){
       add(kz.stats,bk.stats,6);add(kz.rates,bk.rates,8);if(!kz.email&&bk.email)kz.email=bk.email;if(!kz.intro&&bk.bio)kz.intro=bk.bio;render();toast("Imported. Press Save to publish.");return true}
     case "kit_copy":navigator.clipboard&&navigator.clipboard.writeText(location.origin+"/u/"+W.p.handle+"/kit").then(function(){toast("Media kit link copied")});return true;
     case "cp_acc":W.p.accent=id;render();return true;
+    case "cp_look":W.p.look=id;render();return true;
+    case "cp_shareimg":cpShareImage();return true;
     case "cp_ladd":W.p.links.push({label:"",url:""});render();return true;
     case "cp_ldel":W.p.links.splice(+id,1);render();return true;
     case "cp_pub":W.p.is_public=!!b.checked;return true;
@@ -550,3 +583,81 @@ function webMount(v){
     else if(++n>40)clearInterval(iv)
   },120);
 })();
+
+
+/* ---- calendar sync: a private link that Google, Apple or Outlook calendar can subscribe to ---- */
+var CAL={url:""};
+async function calSync(fresh){
+  if(window.__WS){toast("Open your own workspace to sync your calendar");return}
+  try{
+    var uid=window.__UID,r=await WSB.from("cal_tokens").select("token").eq("user_id",uid).maybeSingle();
+    if(fresh&&r.data){await WSB.from("cal_tokens").delete().eq("user_id",uid);r={data:null}}
+    if(!r.data){r=await WSB.from("cal_tokens").insert({user_id:uid}).select("token").single()}
+    if(r.error||!r.data){toast("Couldn't make a calendar link. Try again.");return}
+    CAL.url=location.origin+"/cal/"+r.data.token+".ics";
+    var web=CAL.url.replace(/^https?:/,"webcal:");
+    showInfo("Sync to your calendar",
+      '<p style="margin:0 0 10px">Your scheduled posts and task due dates show up in Google Calendar, Apple Calendar or Outlook. It updates on its own, usually within a few hours.</p>'+
+      '<input class="in" readonly value="'+esc(CAL.url)+'" aria-label="Calendar link" onfocus="this.select()" style="margin-bottom:10px">'+
+      '<div class="drow" style="flex-wrap:wrap"><button class="btn pri" data-act="calcopy">Copy link</button>'+
+      '<a class="btn" target="_blank" rel="noopener noreferrer" href="https://calendar.google.com/calendar/r?cid='+encodeURIComponent(web)+'">Add to Google Calendar</a>'+
+      '<a class="btn" href="'+esc(web)+'">Apple / Outlook</a></div>'+
+      '<p class="muted" style="margin:12px 0 0;font-size:13px">Anyone with this link can see the titles and dates, so keep it private. <button class="btn sm" data-act="calnew" style="margin-left:4px">Make a new link</button> stops the old one working.</p>');
+  }catch(e){toast("Couldn't make a calendar link. Try again.")}
+}
+
+
+/* ---- phone and desktop alerts (web push) ---- */
+var PUSH={ready:false,on:false,perm:"default",busy:false,msg:"",key:"BMGAVIDOgVBd8tRFH6K3h3UudIPMT-S8N3MPZXbhree40-_YO98Pv1kv7ilnMUjJe4BZnKBlrnvmPGa22_Pqvx0"};
+function pushOK(){return "serviceWorker"in navigator&&"PushManager"in window&&"Notification"in window}
+function pushB64(b){var p="=".repeat((4-b.length%4)%4),r=(b+p).replace(/-/g,"+").replace(/_/g,"/"),w=atob(r),o=new Uint8Array(w.length);for(var i=0;i<w.length;i++)o[i]=w.charCodeAt(i);return o}
+function pushBuf(b){var a=new Uint8Array(b),s="";for(var i=0;i<a.length;i++)s+=String.fromCharCode(a[i]);return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
+async function pushRefresh(){
+  PUSH.ready=true;
+  try{PUSH.perm=Notification.permission;var reg=await navigator.serviceWorker.getRegistration();var sub=reg&&await reg.pushManager.getSubscription();PUSH.on=!!sub&&PUSH.perm==="granted"}catch(e){}
+  if(S.view==="cp")render();
+}
+function pushPanel(){
+  var h='<div class="plab" style="margin:0 0 12px">Alerts<p class="muted" style="margin:2px 0 8px;font-size:13px">A morning summary of tasks and posts due today, plus a message when you reach an audience goal or a channel dips.</p>';
+  if(!pushOK())return h+'<p class="muted" style="margin:0;font-size:13px">This browser can\'t show alerts. On iPhone, add Creator Space to your Home Screen first, then open it from there.</p></div>';
+  if(!PUSH.ready){pushRefresh();return h+'<p class="muted" style="margin:0">Checking…</p></div>'}
+  if(PUSH.perm==="denied")return h+'<p class="muted" style="margin:0;font-size:13px">Alerts are blocked for this site. Allow notifications in your browser settings, then come back.</p></div>';
+  h+='<div class="drow">'+(PUSH.on?'<button class="btn" data-act="push_test"'+(PUSH.busy?" disabled":"")+'>Send a test</button><button class="btn" data-act="push_off"'+(PUSH.busy?" disabled":"")+'>Turn off here</button>':'<button class="btn pri" data-act="push_on"'+(PUSH.busy?" disabled":"")+'>Turn on alerts</button>')+'</div>';
+  return h+'<p id="pushmsg" class="aud-msg" role="status">'+esc(PUSH.msg)+'</p></div>';
+}
+function pushMsg(t){PUSH.msg=t||"";var e=$("pushmsg");if(e)e.textContent=PUSH.msg}
+async function pushOn(){
+  if(PUSH.busy)return;PUSH.busy=true;pushMsg("");
+  try{
+    var perm=await Notification.requestPermission();PUSH.perm=perm;
+    if(perm!=="granted"){PUSH.busy=false;pushMsg(perm==="denied"?"Alerts were blocked.":"Alerts weren't turned on.");render();return}
+    var reg=await navigator.serviceWorker.ready;
+    var sub=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:pushB64(PUSH.key)});
+    var j=sub.toJSON(),k=j.keys||{};
+    var tz="Asia/Kolkata";try{tz=Intl.DateTimeFormat().resolvedOptions().timeZone||tz}catch(e){}
+    var r=await WSB.from("push_subs").upsert({user_id:window.__UID,endpoint:sub.endpoint,p256dh:k.p256dh,auth:k.auth,tz:tz},{onConflict:"endpoint"});
+    if(r.error)throw r.error;
+    PUSH.on=true;PUSH.msg="Alerts are on for this device.";
+  }catch(e){PUSH.msg="Couldn't turn on alerts. "+((e&&e.message)||"")}
+  PUSH.busy=false;render();
+}
+async function pushOff(){
+  if(PUSH.busy)return;PUSH.busy=true;
+  try{
+    var reg=await navigator.serviceWorker.getRegistration(),sub=reg&&await reg.pushManager.getSubscription();
+    if(sub){var ep=sub.endpoint;await sub.unsubscribe();await WSB.from("push_subs").delete().eq("endpoint",ep)}
+    PUSH.on=false;PUSH.msg="Alerts are off on this device.";
+  }catch(e){PUSH.msg="Couldn't turn off alerts."}
+  PUSH.busy=false;render();
+}
+async function pushTest(){
+  if(PUSH.busy)return;PUSH.busy=true;pushMsg("Sending…");
+  try{
+    var r=await WSB.functions.invoke("push",{body:{test:true}});
+    if(r.error)throw r.error;
+    var d=r.data||{},ok=(d.codes||[]).filter(function(c){return c===201}).length;
+    PUSH.msg=ok?"Sent. It should appear in a few seconds.":"The test didn't go through. Try turning alerts off and on again.";
+  }catch(e){PUSH.msg="Couldn't send the test. Turn alerts on first."}
+  PUSH.busy=false;pushMsg(PUSH.msg);
+  var b=document.querySelector('[data-act="push_test"]');if(b)b.disabled=false;
+}

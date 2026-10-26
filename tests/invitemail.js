@@ -1,0 +1,18 @@
+const {chromium}=require('playwright');const http=require('http');const fs=require('fs');const path=require('path');
+const fake=require('./fakesb.js')();const site=path.join(process.cwd(),'public');
+const csp=fs.readFileSync(site+'/_headers','utf8').match(/Content-Security-Policy: (.*)/)[1];
+const srv=http.createServer((req,res)=>{let u=req.url.split('?')[0];if(u==='/'||u.startsWith('/u/'))u='/index.html';const f=path.join(site,u);if(!fs.existsSync(f)){res.writeHead(404);return res.end('nf')}const ext=path.extname(f);res.writeHead(200,{'content-type':ext==='.html'?'text/html':ext==='.js'?'application/javascript':ext==='.woff2'?'font/woff2':'text/plain','content-security-policy':csp});res.end(fs.readFileSync(f))});
+let fail=0;const ok=(c,m)=>{console.log((c?'PASS ':'FAIL ')+m);if(!c)fail++};
+(async()=>{await new Promise(r=>srv.listen(0,r));const b=await chromium.launch();const ctx=await b.newContext({viewport:{width:1280,height:900}});
+await ctx.route('https://ohkecamneutxggqwhend.supabase.co/**',fake.handle);await ctx.route(/fonts\.googleapis/,r=>r.abort());
+const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
+const base='http://localhost:'+srv.address().port;
+await p.goto(base+'/');await p.waitForTimeout(500);await p.click('[data-ag="up"]');await p.fill('#agemail','r@x.co');await p.fill('#agpass','supersecret1');await p.click('#aggo');await p.waitForTimeout(2000);
+await p.click('#pcard');await p.waitForTimeout(600);
+await p.fill('[data-w="sh.email"]','mate@x.co');await p.click('[data-act="sh_invite"]');await p.waitForTimeout(900);
+ok(/Email invite/.test(await p.textContent('#shmsg')),'invite message points to Email invite');
+ok(await p.locator('[data-act="sh_mail"]').count()===1,'row has Email invite button');
+await p.click('[data-act="sh_mail"]');await p.waitForTimeout(300);
+ok(/opened|copied/i.test(await p.textContent('#shmsg')),'email action reports back');
+ok(errs.length===0,'no page errors '+errs.join('|'));
+console.log(fail?'FAILURES '+fail:'ALL PASSED');await b.close();srv.close();process.exit(fail?1:0)})();

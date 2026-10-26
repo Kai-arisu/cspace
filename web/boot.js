@@ -178,12 +178,48 @@ function showGate(startMode){
 }
 
 /* ---------- public creator page ---------- */
+var CS_LOOKS={plain:1,tint:1,glow:1,dark:1};
+function setLook(p){
+  var a=/^#[0-9a-f]{6}$/i.test(p.accent||"")?p.accent:"#111111";
+  root.setAttribute("data-look",CS_LOOKS[p.look]?p.look:"plain");root.style.setProperty("--pa-page",a);
+}
+function csShare(o){
+  var W=1080,H=1350,c=document.createElement("canvas");c.width=W;c.height=H;var x=c.getContext("2d");
+  var ac=/^#[0-9a-f]{6}$/i.test(o.accent||"")?o.accent:"#111111",dark=o.look==="dark";
+  var bg=dark?"#0b0b0d":"#f6f5f2",fg=dark?"#f2f2f2":"#111111",mu=dark?"#9a9aa3":"#6b6b6b";
+  x.fillStyle=bg;x.fillRect(0,0,W,H);
+  var g=x.createRadialGradient(W*.85,0,20,W*.85,0,W*1.05);g.addColorStop(0,ac+(dark?"66":"44"));g.addColorStop(1,ac+"00");x.fillStyle=g;x.fillRect(0,0,W,H);
+  function wrap(t,mx,fs,ly,lh,maxL){x.font=fs;var w=String(t||"").split(/\s+/),line="",n=0;for(var i=0;i<w.length;i++){var tt=line?line+" "+w[i]:w[i];if(x.measureText(tt).width>mx&&line){x.fillText(line,90,ly);ly+=lh;line=w[i];if(++n>=maxL-1&&i<w.length-1){x.fillText(line+"…",90,ly);return ly+lh}}else line=tt}x.fillText(line,90,ly);return ly+lh}
+  function done(img){
+    var cy=250;
+    x.save();x.beginPath();x.arc(170,cy,80,0,7);x.clip();
+    if(img){x.drawImage(img,90,cy-80,160,160)}else{x.fillStyle=ac;x.fillRect(90,cy-80,160,160);x.fillStyle="#fff";x.font="800 84px system-ui,sans-serif";x.textAlign="center";x.textBaseline="middle";x.fillText(String(o.name||"?").charAt(0).toUpperCase(),170,cy+4)}
+    x.restore();x.textAlign="left";x.textBaseline="alphabetic";
+    x.fillStyle=fg;x.font="800 80px system-ui,sans-serif";var y=wrap(o.name,W-180,"800 80px system-ui,sans-serif",440,92,2);
+    x.fillStyle=mu;x.font="500 40px system-ui,sans-serif";x.fillText("@"+o.handle,90,y-6);y+=48;
+    if(o.tagline){x.fillStyle=fg;y=wrap(o.tagline,W-180,"500 46px system-ui,sans-serif",y+20,62,3)}
+    var st=(o.stats||[]).slice(0,4),by=Math.max(y+40,820);
+    st.forEach(function(s,i){var col=i%2,row=Math.floor(i/2),bx=90+col*450,byy=by+row*190;
+      x.fillStyle=dark?"rgba(255,255,255,.08)":"rgba(0,0,0,.06)";x.beginPath();x.roundRect?x.roundRect(bx,byy,420,160,28):x.rect(bx,byy,420,160);x.fill();
+      x.fillStyle=mu;x.font="500 30px system-ui,sans-serif";x.fillText(s[0],bx+30,byy+52);
+      x.fillStyle=fg;x.font="800 62px system-ui,sans-serif";x.fillText(fmt(s[1]),bx+30,byy+122)});
+    x.fillStyle=ac;x.fillRect(90,H-170,90,8);
+    x.fillStyle=fg;x.font="600 38px system-ui,sans-serif";x.fillText(location.host+"/u/"+o.handle,90,H-100);
+    c.toBlob(function(b){
+      if(!b)return;var f=new File([b],o.handle+"-creator-space.png",{type:"image/png"});
+      if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:o.name}).catch(function(){})}
+      else{var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=f.name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500)}
+    },"image/png")
+  }
+  if(o.avatar){var im=new Image();im.crossOrigin="anonymous";im.onload=function(){done(im)};im.onerror=function(){done(null)};im.src=o.avatar}else done(null)
+}
+window.csShare=csShare;
 async function showPublic(handle,mode){
   root.className="pubpage";
   var el=$("pubpage");el.hidden=false;el.innerHTML='<div class="pp-wrap"><p class="pp-load">Loading…</p></div>';
   var pr=await SB.from("profiles").select("*").eq("handle",handle).eq("is_public",true).maybeSingle();
   if(pr.error||!pr.data){el.innerHTML='<div class="pp-wrap"><div class="pp-card"><h1>Page not found</h1><p class="pp-sub">There is no public creator page at this address.</p><a class="btn pri" href="/">Go to Creator Space</a></div></div>';document.title="Not found";return}
-  var p=pr.data;document.title=(p.display_name||"@"+p.handle)+" | Creator Space";
+  var p=pr.data;setLook(p);document.title=(p.display_name||"@"+p.handle)+" | Creator Space";
   var cs=await SB.from("connections").select("*").eq("user_id",p.user_id).eq("show_public",true).eq("kind","own").order("created_at");
   var conns=cs.data||[],ids=conns.map(function(c){return c.id}),snaps={},vids=[];
   if(ids.length){
@@ -234,6 +270,9 @@ async function showPublic(handle,mode){
   }
   h+='</div><p class="pp-foot">Made with <a href="/">Creator Space</a></p></div>';
   el.innerHTML=h;
+  var sb=document.createElement("button");sb.className="btn pp-share";sb.type="button";sb.textContent="Share as image";
+  sb.addEventListener("click",function(){csShare({name:p.display_name||p.handle,handle:p.handle,tagline:p.tagline,accent:p.accent,look:p.look,avatar:p.avatar_url,stats:conns.map(function(c){var s=snaps[c.id]||{};return [PL[c.platform]||c.platform,s.followers]}).filter(function(x){return x[1]!=null})})});
+  var ft=el.querySelector(".pp-foot");if(ft)ft.parentNode.insertBefore(sb,ft)
 }
 
 /* ---------- start the app after sign-in ---------- */
