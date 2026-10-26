@@ -1446,6 +1446,76 @@ html.authing body,html.pubpage body{background:var(--bg)}
 }
 @media (max-width:860px){.mbrand{overflow:hidden;min-width:0}.spsel{min-width:0;flex:1;width:100%;max-width:none;text-overflow:ellipsis;font-size:17px}.mbrand .logo{flex:none}}
 .wbft{font:600 15px var(--f-body);pointer-events:none;user-select:none}
+
+/* ===== motion ===== */
+:root{--spring:cubic-bezier(.34,1.56,.64,1)}
+@keyframes rise{from{opacity:0;transform:translateY(14px) scale(.985)}}
+@keyframes popin{from{opacity:0;transform:translateY(-6px) scale(.95)}}
+@keyframes boxin{from{opacity:0;transform:translateY(14px) scale(.94)}}
+@keyframes scrimin{from{opacity:0}}
+@keyframes toastin{from{opacity:0;transform:translate(-50%,14px) scale(.96)}}
+@keyframes barin{from{transform:scaleX(0)}}
+@keyframes appin{from{opacity:0;transform:scale(.992)}}
+@keyframes tabpop{0%{transform:scale(.8)}60%{transform:scale(1.12)}100%{transform:none}}
+@keyframes ring{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--fg) 30%,transparent)}100%{box-shadow:0 0 0 12px transparent}}
+@keyframes bellwig{0%,100%{transform:rotate(0)}20%{transform:rotate(14deg)}40%{transform:rotate(-12deg)}60%{transform:rotate(8deg)}80%{transform:rotate(-5deg)}}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+.app{animation:appin .5s var(--ease) backwards}
+
+/* views: children rise in one after another (only when you switch page) */
+.wrap.enter :is(.stat,.ncard,.frame,.file,.card,.panel,.prow,.vz-tile,.form,.capture,.hero,.chip,.sh-row){animation:rise .5s var(--ease) backwards}
+.wrap.enter :is(.stat,.ncard,.frame,.file,.card,.panel,.prow,.vz-tile,.sh-row):nth-child(1){animation-delay:.02s}
+.wrap.enter :is(.stat,.ncard,.frame,.file,.card,.panel,.prow,.vz-tile,.sh-row):nth-child(2){animation-delay:.07s}
+.wrap.enter :is(.stat,.ncard,.frame,.file,.card,.panel,.prow,.vz-tile,.sh-row):nth-child(3){animation-delay:.12s}
+.wrap.enter :is(.stat,.ncard,.frame,.file,.card,.panel,.prow,.vz-tile,.sh-row):nth-child(4){animation-delay:.17s}
+.wrap.enter :is(.stat,.ncard,.frame,.file,.card,.panel,.prow,.vz-tile,.sh-row):nth-child(5){animation-delay:.22s}
+.wrap.enter :is(.stat,.ncard,.frame,.file,.card,.panel,.prow,.vz-tile,.sh-row):nth-child(6){animation-delay:.27s}
+.wrap.enter :is(.stat,.ncard,.frame,.file,.card,.panel,.prow,.vz-tile,.sh-row):nth-child(7){animation-delay:.32s}
+.wrap.enter :is(.stat,.ncard,.frame,.file,.card,.panel,.prow,.vz-tile,.sh-row):nth-child(n+8){animation-delay:.36s}
+.wrap.enter .chip{animation-duration:.4s}
+.wrap.enter :is(.vfill,.pbar>i,.gfill){transform-origin:left center;animation:barin .9s var(--ease) .15s backwards}
+
+/* menus, dialogs, search, toasts */
+.qmenu,.bellm,.pmenu,.profm,.wbmenu,.wbfly{transform-origin:top right;animation:popin .18s var(--ease)}
+.dlg{animation:scrimin .2s ease-out}
+.dlgbox,.palbox{animation:boxin .28s var(--spring)}
+.cmdk{animation:scrimin .18s ease-out}
+.toast{animation:toastin .3s var(--spring)}
+.wsbar{animation:toastin .4s var(--spring)}
+
+/* touch feedback */
+.btn,.chip,.tb,.si-row,.tabbar button,.stat,.ncard,.file,.frame{-webkit-tap-highlight-color:transparent}
+.btn:active,.chip:active,.tabbar button:active{transform:scale(.94)}
+.stat:active,.ncard:active,.file:active,.frame:active{transform:scale(.985)}
+.btn.pri{transition:background .18s var(--ease),transform .15s var(--ease),box-shadow .2s var(--ease)}
+.btn.pri:hover{transform:translateY(-1px);box-shadow:0 8px 20px -8px color-mix(in srgb,var(--fg) 45%,transparent)}
+.btn.pri:active{transform:scale(.95)}
+.btn svg,.tb svg{transition:transform .25s var(--spring)}
+.btn:hover svg{transform:scale(1.12) rotate(-4deg)}
+.chip{transition:background .15s,transform .15s var(--ease),border-color .15s}
+.chip:hover{transform:translateY(-1px)}
+
+/* sidebar / tabs */
+.si-row{transition:background .18s var(--ease),transform .18s var(--ease)}
+.si-row .ico,.si-row svg{transition:transform .28s var(--spring)}
+.si-row:hover svg{transform:scale(1.14)}
+.side:not(.rail) .si-row:hover{transform:translateX(2px)}
+.tabbar button[aria-current="true"] svg{animation:tabpop .4s var(--spring)}
+.logo:hover{animation:logopop .55s var(--ease)}
+.bellwrap>button:hover svg,.bellwrap>button:focus-visible svg{animation:bellwig .6s ease-in-out}
+.bellwrap .dot,.bellwrap .ct{animation:ring 1.8s ease-out 2}
+.status i{animation:ring 2.4s ease-out infinite;color:#34D399}
+
+/* empty states float gently */
+.empty .ico,.empty svg,.empt .ico,.empt svg{animation:floaty 3.4s ease-in-out infinite}
+
+/* whiteboard */
+.wbrail .tb,.wbstyle button{transition:background .15s var(--ease),color .15s,transform .18s var(--spring)}
+.wbrail .tb:hover{transform:scale(1.1)}
+.wbrail .tb:active{transform:scale(.92)}
+
+@media (prefers-reduced-motion:reduce){.app,.dlg,.dlgbox,.palbox,.cmdk,.toast,.wsbar,.qmenu,.bellm,.wrap *{animation:none!important}}
 </style></head><body><div id="authgate" hidden></div><div id="pubpage" hidden></div>
 
 <div class="app">
@@ -2338,7 +2408,7 @@ function hero(v,title,sub,actions){
   var m=vmeta(v);
   return '<header class="hero"><span class="tile">'+I(m.ic)+'</span><div class="txt"><h1>'+esc(title)+'</h1><p>'+esc(sub||m.desc)+'</p></div><div class="acts">'+(actions||"")+'</div></header>';
 }
-function go(v){var ch=S.view!==v;S.view=v;render();if(ch){var w=$("wrap");if(w){w.classList.remove("enter");void w.offsetWidth;w.classList.add("enter");setTimeout(function(){w.classList.remove("enter")},500)}}}
+function go(v){var ch=S.view!==v;S.view=v;render();if(ch){var w=$("wrap");if(w){w.classList.remove("enter");void w.offsetWidth;w.classList.add("enter");if(window.__csCount)window.__csCount(w);setTimeout(function(){w.classList.remove("enter")},900)}}}
 function closeMenus(){var q=$("qmenu");if(q)q.hidden=true;var r=$("sres");if(r)r.hidden=true;var bm2=$("bellm");if(bm2)bm2.hidden=true}
 
 /* ---------- theme ---------- */
@@ -4934,6 +5004,34 @@ function webMount(v){
     },60000);
   }
 }
+
+
+/* ---- motion: count numbers up when a page opens ---- */
+(function(){
+  var RM=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;
+  window.__csCount=function(root){
+    if(RM||!root)return;
+    root.querySelectorAll(".stat b,.kpi b,.vz-big,.pp-num").forEach(function(el){
+      if(el.children.length)return;
+      var t=el.textContent,m=t.match(/^(\D*)([\d,]+(?:\.\d+)?)(.*)$/);
+      if(!m)return;
+      var pre=m[1],raw=m[2],suf=m[3],dec=(raw.split(".")[1]||"").length,end=parseFloat(raw.replace(/,/g,""));
+      if(!isFinite(end)||end<=0||end>1e12)return;
+      var t0=performance.now(),dur=750;
+      (function step(now){
+        var k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3),v=end*e;
+        el.textContent=k>=1?t:pre+(dec?v.toFixed(dec):Math.round(v).toLocaleString("en-US"))+suf;
+        if(k<1)requestAnimationFrame(step)
+      })(t0)
+    })
+  };
+  /* first load: play the page entrance once */
+  var n=0,iv=setInterval(function(){
+    var w=document.getElementById("wrap");
+    if(w&&w.children.length){clearInterval(iv);w.classList.add("enter");window.__csCount(w);setTimeout(function(){w.classList.remove("enter")},900)}
+    else if(++n>40)clearInterval(iv)
+  },120);
+})();
 
 /* ---------- boot ---------- */
 applyPrefs();

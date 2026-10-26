@@ -1488,7 +1488,7 @@ function hero(v,title,sub,actions){
   var m=vmeta(v);
   return '<header class="hero"><span class="tile">'+I(m.ic)+'</span><div class="txt"><h1>'+esc(title)+'</h1><p>'+esc(sub||m.desc)+'</p></div><div class="acts">'+(actions||"")+'</div></header>';
 }
-function go(v){var ch=S.view!==v;S.view=v;render();if(ch){var w=$("wrap");if(w){w.classList.remove("enter");void w.offsetWidth;w.classList.add("enter");setTimeout(function(){w.classList.remove("enter")},500)}}}
+function go(v){var ch=S.view!==v;S.view=v;render();if(ch){var w=$("wrap");if(w){w.classList.remove("enter");void w.offsetWidth;w.classList.add("enter");if(window.__csCount)window.__csCount(w);setTimeout(function(){w.classList.remove("enter")},900)}}}
 function closeMenus(){var q=$("qmenu");if(q)q.hidden=true;var r=$("sres");if(r)r.hidden=true;var bm2=$("bellm");if(bm2)bm2.hidden=true}
 
 /* ---------- theme ---------- */
