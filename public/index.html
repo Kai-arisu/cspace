@@ -1643,8 +1643,7 @@ var VIEWS=[
   {id:"cal",name:"Content calendar",ic:"send",c:"var(--c-ideas)",desc:"Plan what goes out and when."},
   {id:"board",name:"Progress",ic:"board",c:"var(--c-board)",desc:"Move work from idea to shipped."},
   {id:"viz",g:"Track",name:"Visualizer",ic:"chart",c:"var(--c-viz)",desc:"See how the work is going, built from what is already in this space."},
-  {id:"biz",name:"Business",ic:"wallet",c:"var(--c-notes)",desc:"Sponsors, income, invoices and media kit."},
-  {id:"library",name:"Library",ic:"folder",c:"var(--c-lib)",desc:"Brand colours and files for this space."}
+  {id:"biz",name:"Business",ic:"wallet",c:"var(--c-notes)",desc:"Sponsors, income, invoices and media kit."}
 ];
 var SOON=[];
 var SPCOL=["#7C7CFF","#F06BAE","#34D399","#F5A524","#38BDF8","#B983F5"];
@@ -1759,7 +1758,7 @@ function fix(){
   if(!S.edit||typeof S.edit!=="object")S.edit={};
   if(S.profile.name===undefined)S.profile.name=(function(){var e=String(window.__EMAIL||"").split("@")[0].replace(/[._-]+/g," ").replace(/\d+$/,"").trim();return e?e.replace(/\b\w/g,function(c){return c.toUpperCase()}):""})();if(S.profile.role===undefined)S.profile.role="Creator";if(S.profile.avatar===undefined)S.profile.avatar="";
   if(!S.spaces.some(function(x){return x.id===S.cur}))S.cur=S.spaces[0].id;
-  if(!vmeta(S.view))S.view="home";
+  if(S.view==="library")S.view="clips";if(!vmeta(S.view))S.view="home";
 }
 
 /* ---------- persistence ---------- */
@@ -2483,7 +2482,7 @@ function edPanelHTML(){
   h+='<section class="edsec"><h3>Canvas</h3><div class="edchips">'+EDSIZES.map(function(s){return '<button class="chip" data-act="ed_size" data-id="'+s[0]+'" aria-pressed="'+(cur===s[0])+'">'+s[1]+'</button>'}).join("")+'</div>'+
     '<div class="edwh"><label>W<input class="in" type="number" id="edw" min="64" max="4096" value="'+ED.w+'"></label><label>H<input class="in" type="number" id="edh" min="64" max="4096" value="'+ED.h+'"></label>'+col("bg","Fill",ED.bg)+'</div></section>';
   h+='<section class="edsec"><h3>Photo</h3><div class="edchips"><button class="btn sm" data-act="ed_open">Open photo</button><button class="btn sm" data-act="ed_match"'+(ED.img?"":" disabled")+'>Match photo size</button></div>'+
-    '<select class="wsel" id="edpick" aria-label="Pick from your library"><option value="">Pick from your library…</option>'+edLibOptions()+'</select>'+
+    '<select class="wsel" id="edpick" aria-label="Pick from your uploads"><option value="">Pick from your uploads…</option>'+edLibOptions()+'</select>'+
     '<div class="edchips"><button class="btn sm" data-act="ed_rot" data-id="-90" title="Rotate left">'+I("undo")+'</button><button class="btn sm" data-act="ed_rot" data-id="90" title="Rotate right">'+I("redo")+'</button><button class="btn sm" data-act="ed_flip" data-id="x">Flip H</button><button class="btn sm" data-act="ed_flip" data-id="y">Flip V</button><button class="btn sm" data-act="ed_reset">Reset</button></div>'+
     rng("bs","Zoom",.3,4,.01,ED.bs,"×")+rng("rot","Rotate",-180,180,1,ED.rot,"°")+
     '<div class="edchips">'+EDFILT.map(function(f){return '<button class="chip" data-act="ed_filt" data-id="'+f[0]+'">'+f[1]+'</button>'}).join("")+'</div>'+
@@ -2503,7 +2502,7 @@ function edPanelHTML(){
       '<div class="edchips"><button class="btn sm" data-act="ed_dup">Duplicate</button><button class="btn sm" data-act="ed_fwd">Forward</button><button class="btn sm" data-act="ed_back">Back</button><button class="btn sm" data-act="ed_del">Delete</button></div></section>';
   }
   h+='<section class="edsec"><h3>Export</h3><div class="edchips"><button class="chip" data-act="ed_fmt" data-id="png" aria-pressed="'+(ED.fmt==="png")+'">PNG</button><button class="chip" data-act="ed_fmt" data-id="jpg" aria-pressed="'+(ED.fmt==="jpg")+'">JPG</button></div>'+
-    '<div class="edchips"><button class="btn pri sm" data-act="ed_dl">Download</button><button class="btn sm" data-act="ed_lib"'+(readOnly?" disabled":"")+'>Save to Library</button><button class="btn sm" data-act="ed_mood"'+(readOnly?" disabled":"")+'>Add to Moodboard</button></div></section>';
+    '<div class="edchips"><button class="btn pri sm" data-act="ed_dl">Download</button><button class="btn sm" data-act="ed_lib"'+(readOnly?" disabled":"")+'>Save to Files</button><button class="btn sm" data-act="ed_mood"'+(readOnly?" disabled":"")+'>Add to Moodboard</button></div></section>';
   return h;
 }
 function edLibOptions(){
@@ -2553,8 +2552,8 @@ function edAct(a,b){
     case "ed_fmt":ED.fmt=id;edSave();edPanel();return true;
     case "ed_dl":ED.noSel=true;edBlob(ED.fmt).then(function(bl){ED.noSel=false;if(!bl){toast("Couldn't create the image");return}saveFile(edName(),bl)});return true;
     case "ed_lib":edBlob(ED.fmt).then(function(bl){
-      if(!assets||!bl){toast("Saving to the library isn't available here");return}
-      assets.upload(bl).then(function(r){S.files.push({id:uid(),sp:S.cur,name:edName(),assetId:r.id,type:r.contentType,size:r.sizeBytes});touch();toast("Saved to Library");edPanel()}).catch(function(e){toast(upErr(e))});
+      if(!assets||!bl){toast("Saving files isn't available here");return}
+      assets.upload(bl).then(function(r){S.files.push({id:uid(),sp:S.cur,name:edName(),assetId:r.id,type:r.contentType,size:r.sizeBytes});touch();toast("Saved to Files");edPanel()}).catch(function(e){toast(upErr(e))});
     });return true;
     case "ed_mood":edBlob(ED.fmt).then(function(bl){
       if(!assets||!bl){toast("Saving isn't available here");return}
@@ -2788,7 +2787,7 @@ function veSidePanelHTML(){
     (VE.exporting?'<div class="veprog"><div class="vebar"><i id="veprogbar" style="width:'+(VE.prog*100)+'%"></i></div><span id="veprogtxt">Exporting…</span></div>':
     '<div class="edchips"><button class="btn pri sm" data-act="ve_export">Export video</button><button class="btn sm" data-act="ve_srt"'+(VE.caps.length?"":" disabled")+'>Captions (.srt)</button></div>'+
     '<p class="muted" style="font-size:12px;margin:6px 0 0">Export plays the trimmed clip once and records it, so it takes about as long as the clip.</p>')+
-    (VE.result?'<div class="veres"><video src="'+VE.result.url+'" controls playsinline></video><div class="edchips"><button class="btn pri sm" data-act="ve_dl">Download .'+VE.result.ext+'</button><button class="btn sm" data-act="ve_lib"'+(readOnly?" disabled":"")+'>Save to Library</button></div></div>':'')+'</section>';
+    (VE.result?'<div class="veres"><video src="'+VE.result.url+'" controls playsinline></video><div class="edchips"><button class="btn pri sm" data-act="ve_dl">Download .'+VE.result.ext+'</button><button class="btn sm" data-act="ve_lib"'+(readOnly?" disabled":"")+'>Save to Files</button></div></div>':'')+'</section>';
   return h;
 }
 function veSidePanel(){var s=$("veside");if(!s)return;var y=s.scrollTop;s.innerHTML=veSidePanelHTML();s.scrollTop=y}
@@ -2827,7 +2826,7 @@ function veAct(a,b){
     case "ve_srt":saveFile(veName("srt"),new Blob([veSrt()],{type:"text/plain"}));return true;
     case "ve_frame":veFrameToEditor();return true;
     case "ve_dl":if(VE.result)saveFile(veName(VE.result.ext),VE.result.blob);return true;
-    case "ve_lib":if(VE.result){if(!assets){toast("Saving to the library isn't available here");return true}assets.upload(VE.result.blob).then(function(r){S.files.push({id:uid(),sp:S.cur,name:veName(VE.result.ext),assetId:r.id,type:r.contentType,size:r.sizeBytes});touch();toast("Saved to Library")}).catch(function(e){toast(upErr(e))})}return true;
+    case "ve_lib":if(VE.result){if(!assets){toast("Saving files isn't available here");return true}assets.upload(VE.result.blob).then(function(r){S.files.push({id:uid(),sp:S.cur,name:veName(VE.result.ext),assetId:r.id,type:r.contentType,size:r.sizeBytes});touch();toast("Saved to Files")}).catch(function(e){toast(upErr(e))})}return true;
   }
   return false;
 }
@@ -2880,7 +2879,7 @@ document.addEventListener("keydown",function(e){
   var t=e.target;if(/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)||t.isContentEditable||e.ctrlKey||e.metaKey||e.altKey)return;
   if(e.key==="?"){e.preventDefault();showShortcuts();return}
   if(gPend&&Date.now()-gPend<1200){
-    var map={h:"home",n:"notes",i:"ideas",m:"mood",w:"wb",p:"plan",b:"board",c:"cal",l:"library"},v=map[e.key.toLowerCase()];gPend=0;
+    var map={h:"home",n:"notes",i:"ideas",m:"mood",w:"wb",p:"plan",b:"board",c:"cal",l:"clips"},v=map[e.key.toLowerCase()];gPend=0;
     if(v){e.preventDefault();go(v)}return;
   }
   if(e.key==="g"||e.key==="G"){gPend=Date.now()}
@@ -2898,13 +2897,13 @@ function addPicture(file){
   }).catch(function(x){toast(upErr(x))});
 }
 document.addEventListener("paste",function(e){
-  if((S.view!=="mood"&&S.view!=="library")||/^(INPUT|TEXTAREA)$/.test((e.target||{}).tagName))return;
+  if((S.view!=="mood"&&S.view!=="clips")||/^(INPUT|TEXTAREA)$/.test((e.target||{}).tagName))return;
   var items=e.clipboardData&&e.clipboardData.items;if(!items)return;
   for(var i=0;i<items.length;i++){if(items[i].type.indexOf("image/")===0){var f=items[i].getAsFile();if(f){e.preventDefault();addPicture(f)}break}}
 });
-document.addEventListener("dragover",function(e){if((S.view==="mood"||S.view==="library")&&e.dataTransfer&&e.dataTransfer.types&&[].indexOf.call(e.dataTransfer.types,"Files")>-1)e.preventDefault()});
+document.addEventListener("dragover",function(e){if((S.view==="mood"||S.view==="clips")&&e.dataTransfer&&e.dataTransfer.types&&[].indexOf.call(e.dataTransfer.types,"Files")>-1)e.preventDefault()});
 document.addEventListener("drop",function(e){
-  if(S.view!=="mood"&&S.view!=="library")return;var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
+  if(S.view!=="mood"&&S.view!=="clips")return;var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
   if(f&&/^image\//.test(f.type)){e.preventDefault();addPicture(f)}
 });
 
@@ -2955,10 +2954,10 @@ function bnPreview(){
     '<div class="bn-cap"><b>'+esc(nm)+'</b><span>'+(f&&f.size?fmtSize(f.size):"Moodboard")+'</span></div><div class="bn-who"><span class="av sm">'+avHTML()+'</span><span>'+esc((S.profile&&S.profile.name)||"You")+'<i>'+esc(spaceName())+'</i></span></div></section>';
 }
 function bnFiles(){
-  var files=mine("files").slice().reverse().slice(0,4).map(function(f){return {n:f.name,a:"view",id:"library"}});
+  var files=mine("files").slice().reverse().slice(0,4).map(function(f){return {n:f.name,a:"view",id:"clips"}});
   var notes=mine("notes").slice().sort(function(a,b){return b.ts-a.ts}).slice(0,4-files.length).map(function(n){return {n:(n.title||"Untitled")+".note",a:"opennote",id:n.id}});
   var all=files.concat(notes);
-  return '<section class="panel bn-files"><h2>All files<button class="bn-plus" data-act="view" data-id="library" aria-label="Open library">'+I("plus")+'</button></h2>'+
+  return '<section class="panel bn-files"><h2>All files<button class="bn-plus" data-act="view" data-id="clips" aria-label="Open clips and files">'+I("plus")+'</button></h2>'+
     (all.length?all.map(function(x){return '<button class="bn-file" data-act="'+x.a+'" data-id="'+x.id+'"><span class="fi">'+I("notes")+'</span><span class="nm">'+esc(x.n)+'</span></button>'}).join(""):'<div class="empty">Upload a file or write a note and it shows up here.</div>')+'</section>';
 }
 function bnTeam(t){
@@ -3185,7 +3184,7 @@ function vMood(){
     SECS.forEach(function(s){
       var its=items.filter(function(x){return secOf(x)===s.id});
       var adds=readOnly?"":s.add.map(function(a){return '<button class="btn sm" data-act="mform" data-id="'+a[0]+'" data-sec="'+s.id+'">+ '+a[1]+'</button>'}).join("")+
-        (s.id==="palette"?'<button class="btn sm" data-act="mimport" title="Add the colours from Library">From Library</button>'+(its.length?'<button class="btn sm" data-act="msync" title="Save these colours as the Library palette">To Library</button>':""):"");
+        "";
       h+='<section class="mb-sec s-'+s.id+'"><div class="mb-lbl"><h3>'+s.name+'</h3><p>'+s.hint+'</p><div class="mb-add">'+adds+'</div></div><div class="mb-body">';
       if(moodForm&&moodSec===s.id)h+=mForm(s.id);
       if(s.id==="type")h+=mTypeHTML(m);
@@ -3279,19 +3278,15 @@ document.addEventListener("keydown",function(e){
   if(e.key==="Enter"&&t.id==="mkw"&&!readOnly){e.preventDefault();var v=t.value.trim();if(!v)return;var k=bm().keywords;if(k.indexOf(v)<0&&k.length<12)k.push(v);touch();render();var n=$("mkw");if(n)n.focus()}
 });
 
-function vLibrary(){
-  var pal=S.palette[S.cur]||[],files=mine("files");
-  var h=hero("library","Library",null,"");
-  h+='<section><h2 style="font-size:16px;margin-bottom:12px">Brand colours</h2><div class="pal">'+pal.map(function(c){
-    return '<button data-act="copycolor" data-id="'+esc(c)+'" aria-label="Copy '+esc(c)+'"><div class="sw" style="background:'+esc(c)+'"></div><div class="hx">'+esc(c)+'</div></button>';
-  }).join("")+'</div><div class="form" style="margin-top:14px"><label class="fix">Add colour<input type="color" id="pcolor" value="#E0388A"></label><button class="btn" data-act="addcolor"'+(readOnly?" disabled":"")+'>Add to palette</button>'+(pal.length?'<button class="btn" data-act="popcolor"'+(readOnly?" disabled":"")+'>Remove last</button>':"")+'</div></section>';
-  h+='<section class="sec"><h2>Files</h2>';
-  if(assets){
+function vFiles(){
+  var files=mine("files");
+  var h='<section class="sec" style="margin-top:26px"><h2>Files</h2>';
+  if(assets&&!readOnly){
     h+='<div class="form"><label>Upload images, video, PDFs or fonts<input class="in" type="file" id="ffile" accept="image/*,video/mp4,video/webm,application/pdf,.woff,.woff2,.ttf,.otf"></label><button class="btn pri" data-act="upfile">Upload</button></div>';
   }else{
-    h+='<p class="note-hint">File uploads are available to people who can edit this page.</p>';
+    h+='<p class="note-hint">File uploads are not available right now.</p>';
   }
-  if(!files.length)h+='<div class="empty">No files yet.</div>';
+  if(!files.length)h+='<div class="empty">No files yet. Upload footage, thumbnails or PDFs to keep them with your links.</div>';
   h+='<div class="files">'+files.map(function(f){
     var isImg=/^image\//.test(f.type||"");
     return '<div class="file"><div class="thumb">'+(isImg?'<img src="/_blob/'+esc(f.assetId)+'" alt="" loading="lazy">':esc((f.type||"file").split("/").pop().toUpperCase()))+'</div><div class="meta">'+esc(f.name)+'<div class="muted" style="font-size:12px">'+fmtSize(f.size||0)+'</div></div><div class="foot"><a href="/_blob/'+esc(f.assetId)+'" target="_blank" rel="noopener noreferrer">Open</a><button class="btn sm" data-act="delfile" data-id="'+f.id+'">Delete</button></div></div>';
@@ -3822,9 +3817,10 @@ function clipListHTML(){
 }
 function vClips(){
   var all=mine("clips"),tags={};all.forEach(function(c){(c.tags||[]).forEach(function(t){tags[t]=1})});
-  var h=hero("clips","Clips","Save links, videos and references. Add #tags to find them later.","");
+  var h=hero("clips","Clips","Save links and videos, and upload files. Add #tags to find links later.","");
   if(!readOnly)h+='<div class="form clipform"><label style="flex:2 1 260px">Link<input class="in" id="clurl" placeholder="Paste a link" maxlength="400"></label><label style="flex:1 1 160px">Title<input class="in" id="cltitle" placeholder="Optional" maxlength="90"></label><label style="flex:2 1 220px">Note and #tags<input class="in" id="clnote" placeholder="Why it is worth keeping #lighting" maxlength="240"></label><button class="btn pri" data-act="clipadd">Save</button></div>';
   h+='<div class="chips" role="group" aria-label="Filter clips"><button class="chip" data-act="clipf" data-id="all" aria-pressed="'+(clipTag==="all")+'">All '+all.length+'</button>'+Object.keys(tags).sort().map(function(t){return '<button class="chip" data-act="clipf" data-id="'+esc(t)+'" aria-pressed="'+(clipTag===t)+'">#'+esc(t)+'</button>'}).join("")+'<input class="in" id="clipq" data-clipq="1" placeholder="Search clips" style="max-width:220px;margin-left:auto" value="'+esc(clipQ)+'" aria-label="Search clips"></div><div id="cliplist">'+clipListHTML()+'</div>';
+  h+=vFiles();
   return h;
 }
 function clipAdd(){
@@ -4043,7 +4039,7 @@ function render0(){
   renderChrome();
   var v=S.view,html="";
   if(v==="home")html=vHome();else if(v==="notes")html=vNotes();else if(v==="ideas")html=vIdeas();
-  else if(v==="board")html=vBoard();else if(v==="plan")html=vPlan();else if(v==="cal")html=vCal();else if(v==="biz")html=vBiz();else if(v==="clips")html=vClips();else if(v==="ai")html=vAi();else if(v==="wb")html=vWb();else if(v==="ed")html=vEd();else if(v==="ve")html=vVe();else if(v==="viz")html=vViz();else if(v==="mood")html=vMood();else html=vLibrary();
+  else if(v==="board")html=vBoard();else if(v==="plan")html=vPlan();else if(v==="cal")html=vCal();else if(v==="biz")html=vBiz();else if(v==="clips")html=vClips();else if(v==="ai")html=vAi();else if(v==="wb")html=vWb();else if(v==="ed")html=vEd();else if(v==="ve")html=vVe();else if(v==="viz")html=vViz();else if(v==="mood")html=vMood();else html=vClips();
   var wv=webView(v);if(wv!==null)html=wv;
   $("wrap").innerHTML=html;
   webMount(v);
