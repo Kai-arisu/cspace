@@ -25,6 +25,7 @@ rep("""  $("tabbar").innerHTML=VIEWS.map(function(v){
     return '<button data-act="view" data-id="'+v.id+'" aria-current="'+(S.view===v.id)+'" style="--c:'+v.c+'">'+I(v.ic)+'<span>'+v.name+'</span></button>';
   }).join("");""",'  $("tabbar").innerHTML=webTabs();')
 rep('case "profile":profOpenDlg(true);return true;','case "profile":S.view="cp";render();return true;')
+rep('paintTheme();ftPaint();paintProfile();paintBell();\n}','paintTheme();ftPaint();paintProfile();paintBell();webCrumb();\n}')
 # html assembly
 m=re.search(r'</style>',pre);head_end=m.end()
 head=pre[:head_end].replace('<meta name="claude:viewport-fit-sides" content="cover">','')
@@ -34,6 +35,9 @@ out+='<div id="authgate" hidden></div><div id="pubpage" hidden></div>'+body
 out+='<script src="/supabase.js"></script><script>'+boot+'</script><script type="text/plain" id="appjs">'+js+'</script><script>if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})</script></body></html>'
 out=re.sub(r'<link rel="stylesheet" href="https://fonts.googleapis.com/[^"]*">','<link rel="preload" href="/geist.woff2" as="font" type="font/woff2" crossorigin>',out,count=1)
 out=out.replace('<title>Creator Space</title>','<title>Creator Space</title><link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/icon-192.png"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%2317171A%27/%3E%3Cpath d=%27M21 11a7 7 0 1 0 0 10%27 fill=%27none%27 stroke=%27white%27 stroke-width=%273%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">',1)
+old='<div class="brand"><span class="logo" id="logo"></span><b>Creator Space</b></div>'
+assert out.count(old)==1
+out=out.replace(old,'<button class="brand" id="railbtn" data-act="rail" aria-expanded="true" aria-label="Collapse sidebar" title="Collapse sidebar  ["><span class="logo" id="logo"></span><b>Creator Space</b><span class="rail-ic" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M14 6l-6 6 6 6"/></svg></span></button>')
 os.makedirs(base+'public',exist_ok=True)
 open(base+'public/index.html','w').write(out)
 shutil.copy(base+'vendor/supabase.js',base+'public/supabase.js')

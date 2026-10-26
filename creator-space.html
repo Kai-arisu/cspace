@@ -2433,9 +2433,9 @@ function toHex(e){return "#"+[e.r,e.g,e.b].map(function(v){return Math.round(v).
 function bm(){
   if(!S.bmeta||typeof S.bmeta!=="object")S.bmeta={};
   var m=S.bmeta[S.cur];
-  if(!m||typeof m!=="object"){m=S.bmeta[S.cur]={kicker:"Brand board",title:"",tagline:"",about:"",keywords:[],head:"Playfair Display",body:"Montserrat",layout:"poster"}}
+  if(!m||typeof m!=="object"){m=S.bmeta[S.cur]={kicker:"Brand board",title:"",tagline:"",about:"",keywords:[],head:"Inter",body:"Inter",layout:"poster"}}
   if(!Array.isArray(m.keywords))m.keywords=[];
-  if(!fontInfo(m.head))m.head="Playfair Display";if(!fontInfo(m.body))m.body="Montserrat";
+  if(!fontInfo(m.head))m.head="Inter";if(!fontInfo(m.body))m.body="Inter";
   if(m.layout!=="collage")m.layout="poster";
   return m;
 }

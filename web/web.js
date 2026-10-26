@@ -7,6 +7,54 @@ ICONS.trend='<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>';
   VIEWS.push({id:"cp",g:"You",name:"Handles",ic:"globe",c:"var(--c-home)",desc:"Where people find you."});
 })();
 
+/* ---------- sidebar rail, sounds, breadcrumb (website only) ---------- */
+var SND={ctx:null,last:0};
+function sndOn(){try{return localStorage.getItem("cs-sound")!=="off"}catch(e){return true}}
+function sndSet(on){try{localStorage.setItem("cs-sound",on?"on":"off")}catch(e){}}
+function sndCtx(){
+  if(!SND.ctx){var C=window.AudioContext||window.webkitAudioContext;if(!C)return null;try{SND.ctx=new C()}catch(e){return null}}
+  if(SND.ctx.state==="suspended")SND.ctx.resume();return SND.ctx;
+}
+function sndNote(c,out,f0,f1,t,dur,vol){
+  var o=c.createOscillator(),g=c.createGain();
+  o.type="sine";o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f1,t+dur);
+  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.012);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g);g.connect(out);o.start(t);o.stop(t+dur+0.02);
+}
+function sound(kind){
+  if(!sndOn()||document.visibilityState==="hidden")return;
+  var c=sndCtx();if(!c)return;
+  var now=c.currentTime;if(kind==="tick"&&now-SND.last<0.06)return;SND.last=now;
+  var lp=c.createBiquadFilter();lp.type="lowpass";lp.frequency.value=2600;
+  var m=c.createGain();m.gain.value=0.9;lp.connect(m);m.connect(c.destination);
+  if(kind==="collapse"){sndNote(c,lp,640,430,now,0.16,0.09);sndNote(c,lp,430,290,now+0.07,0.22,0.07)}
+  else if(kind==="expand"){sndNote(c,lp,290,430,now,0.16,0.07);sndNote(c,lp,430,660,now+0.07,0.22,0.09)}
+  else if(kind==="on"){sndNote(c,lp,520,780,now,0.14,0.08)}
+  else{sndNote(c,lp,1500,900,now,0.045,0.035)}
+}
+function railGet(){try{return localStorage.getItem("cs-rail")==="1"}catch(e){return false}}
+function railSet(on,quiet){
+  var a=document.querySelector(".app");if(!a)return;
+  a.classList.toggle("rail",on);
+  try{localStorage.setItem("cs-rail",on?"1":"0")}catch(e){}
+  var b=$("railbtn");if(b){b.setAttribute("aria-expanded",String(!on));b.setAttribute("aria-label",on?"Expand sidebar":"Collapse sidebar")}
+  var lg=$("logo");if(lg&&!quiet){lg.classList.remove("pop");void lg.offsetWidth;lg.classList.add("pop")}
+  if(!quiet)sound(on?"collapse":"expand");
+}
+function webCrumb(){
+  var v=vmeta(S.view),el=$("crumb");if(!v)return;
+  var g="";for(var i=0;i<VIEWS.length;i++){if(VIEWS[i].g)g=VIEWS[i].g;if(VIEWS[i].id===v.id)break}
+  if(!el){var top=document.querySelector(".top .search");if(!top)return;el=document.createElement("div");el.id="crumb";el.className="crumb";top.parentNode.insertBefore(el,top)}
+  el.innerHTML=(g?'<span>'+esc(g)+'</span><i>/</i>':'')+'<b>'+esc(v.name)+'</b>';
+  document.querySelectorAll("#nav .si-row,#spaces .si-row").forEach(function(r){var n=r.querySelector(".nm");if(n)r.setAttribute("title",n.textContent)});
+}
+document.addEventListener("keydown",function(e){
+  if(e.key!=="["||e.metaKey||e.ctrlKey||e.altKey)return;
+  var t=e.target,tag=t&&t.tagName;if(tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT"||(t&&t.isContentEditable))return;
+  railSet(!document.querySelector(".app").classList.contains("rail"));
+});
+railSet(railGet(),true);
+
 var WSB=window.__SB;
 var PLATS=[["youtube","YouTube","#DC2626"],["instagram","Instagram","#C026D3"],["tiktok","TikTok","#0F766E"],["x","X","#374151"],["facebook","Facebook","#2563EB"]];
 var W={conns:[],snaps:{},vids:{},loaded:false,loading:false,err:"",cfg:true,plat:"youtube",kind:"own",busy:false,msg:"",manual:null,timer:null,tick:0,lastRefresh:0,
@@ -268,6 +316,7 @@ function cpHTML(){
     '<p class="muted" style="font-size:13px;margin:12px 0 0">Channels you switch on in Audience show here with their latest numbers.</p></div>'+
     '<div class="panel"><h3>Account</h3><p style="margin:0 0 12px;font-size:14px">'+esc(window.__EMAIL||"")+'</p>'+
     '<div class="hd-seg" role="group" aria-label="Appearance">'+[["auto","Auto"],["light","Light"],["dark","Dark"]].map(function(o){return '<button data-act="ms_theme" data-id="'+o[0]+'" aria-pressed="'+(mode===o[0])+'">'+o[1]+'</button>'}).join("")+'</div>'+
+    '<div class="hd-seg" role="group" aria-label="Sounds" style="margin-top:10px">'+[["on","Sounds on"],["off","Sounds off"]].map(function(o){return '<button data-act="snd" data-id="'+o[0]+'" aria-pressed="'+((o[0]==="on")===sndOn())+'">'+o[1]+'</button>'}).join("")+'</div>'+
     '<div class="drow"><button class="btn" data-act="cp_pw">Email me a password reset</button><button class="btn" data-act="signout">Sign out</button></div></div></aside></div>'+
     '<input type="file" id="cpfile" accept="image/*" hidden>';
   return h;
@@ -292,8 +341,11 @@ async function cpSave(){
 function webAct(a,b){
   var id=b.dataset.id;
   switch(a){
-    case "more":moreOpen();return true;
-    case "view":case "datadlg":moreClose();return false;
+    case "more":sound("tick");moreOpen();return true;
+    case "rail":railSet(!document.querySelector(".app").classList.contains("rail"));return true;
+    case "snd":sndSet(id==="on");if(id==="on")sound("on");if($("msheet")&&!$("msheet").hidden)moreOpen();else render();return true;
+    case "view":sound("tick");moreClose();return false;
+    case "datadlg":moreClose();return false;
     case "ms_theme":setMode(id);if($("msheet")&&!$("msheet").hidden)moreOpen();else render();return true;
     case "aud_gedit":W.goalEd=id||null;audPaint();return true;
     case "aud_gsave":{var gi=$("ag-in"),gv=numOrNull(gi&&gi.value);if(gv!==null&&(isNaN(gv)||gv<1)){toast("Enter a whole number above zero");return true}
@@ -357,7 +409,7 @@ function moreInner(){
     if(v.g&&v.g!==last){last=v.g;out+='</div><p class="ms-g">'+esc(v.g)+'</p><div class="ms-grid">'}
     out+='<button data-act="view" data-id="'+v.id+'" aria-current="'+(S.view===v.id)+'">'+I(v.ic)+'<span>'+esc(v.name)+'</span></button>';
   });
-  out+='</div><p class="ms-g">Appearance</p><div class="hd-seg" role="group" aria-label="Appearance">'+[["auto","Auto"],["light","Light"],["dark","Dark"]].map(function(o){return '<button data-act="ms_theme" data-id="'+o[0]+'" aria-pressed="'+(mode===o[0])+'">'+o[1]+'</button>'}).join("")+'</div>'+
+  out+='</div><p class="ms-g">Sounds</p><div class="hd-seg" role="group" aria-label="Sounds">'+[["on","On"],["off","Off"]].map(function(o){return '<button data-act="snd" data-id="'+o[0]+'" aria-pressed="'+((o[0]==="on")===sndOn())+'">'+o[1]+'</button>'}).join("")+'</div><p class="ms-g">Appearance</p><div class="hd-seg" role="group" aria-label="Appearance">'+[["auto","Auto"],["light","Light"],["dark","Dark"]].map(function(o){return '<button data-act="ms_theme" data-id="'+o[0]+'" aria-pressed="'+(mode===o[0])+'">'+o[1]+'</button>'}).join("")+'</div>'+
     '<div class="ms-row"><button data-act="datadlg">Data and backup</button></div></div>';
   return out;
 }
