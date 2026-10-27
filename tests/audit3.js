@@ -10,7 +10,7 @@ await p.goto('http://localhost:'+srv.address().port+'/');await p.waitForTimeout(
 const S=()=>p.evaluate(()=>JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k=>/^cs/.test(k)&&localStorage.getItem(k).startsWith('{"cur"'))||'')||'{}'));
 const view=()=>p.evaluate(()=>document.querySelector('.col-main').dataset.v||'');
 // share
-await p.click('#sharebtn');await p.waitForTimeout(300);ok((await p.textContent('.hero h1,.td-head h1')||'').length>0&&await p.locator('.cp-grid,.hd-list').count()>0,'Share button opens handles/public page');
+await p.click('#nav [data-id="cp"]');await p.waitForTimeout(300);ok((await p.textContent('.hero h1,.td-head h1')||'').length>0&&await p.locator('.cp-grid,.hd-list').count()>0,'Share button opens handles/public page');
 // new space
 await p.click('[data-act="spaceadd"]');await p.waitForTimeout(300);console.log('spaceadd ->',await p.evaluate(()=>!!document.querySelector('.dlg input,.dlgbox input,#spname,input:focus')));
 await p.keyboard.press('Escape');
@@ -19,9 +19,9 @@ await p.click('[data-act="qtoggle"]');await p.click('[data-act="qnote"]');await 
 await p.click('[data-act="qtoggle"]');await p.click('[data-act="qidea"]');await p.waitForTimeout(300);ok((await view())==='ideas','New > Idea');
 await p.click('[data-act="qtoggle"]');await p.click('[data-act="qtask"]');await p.waitForTimeout(300);console.log('new task view',await view());
 // timer
-await p.click('[data-act="ftoggle"]');await p.waitForTimeout(1300);ok(!/^25:00$/.test(await p.textContent('#ftt')),'timer counts down');
+await p.click('#nav [data-id="home"]');await p.waitForTimeout(300);await p.click('#tdfocus [data-act="ftoggle"]');await p.waitForTimeout(1300);ok(!/^25:00$/.test(await p.textContent('#ftt2')),'timer counts down');ok(await p.locator('#ftt').isVisible(),'running timer shows in the top bar');
 // theme
-const t0=await p.evaluate(()=>document.documentElement.dataset.theme);await p.click('#themebtn');await p.waitForTimeout(200);ok(t0!==await p.evaluate(()=>document.documentElement.dataset.theme),'theme toggles');
+const t0=await p.evaluate(()=>document.documentElement.dataset.theme);await p.click('#nav [data-id="cp"]');await p.waitForTimeout(500);await p.click('[data-act="ms_theme"][data-id="'+(t0==='dark'?'light':'dark')+'"]');await p.waitForTimeout(200);ok(t0!==await p.evaluate(()=>document.documentElement.dataset.theme),'theme toggles');
 // palette
 await p.keyboard.press('Control+k');await p.waitForTimeout(300);ok(await p.locator('.pal,.palbox,[role=dialog]').count()>0,'command palette opens');await p.keyboard.press('Escape');
 // bell

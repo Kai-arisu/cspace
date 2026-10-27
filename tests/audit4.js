@@ -19,9 +19,9 @@ await p.click('[data-act="pinnote"]').catch(()=>{});
 // ideas
 await go('ideas');await p.fill('#ideain','idea one #x');await p.click('[data-act="addidea"]');await p.waitForTimeout(200);c=await cnt();ok(c.ideas===1,'idea added');
 await p.click('[data-act="staridea"]');await p.click('[data-act="idea2task"]');await p.waitForTimeout(200);c=await cnt();ok(c.tasks===1,'idea -> task');
-// planner
-await go('plan');const pin=await p.locator('#planin').count();console.log('planin',pin);
-if(pin){await p.fill('#planin','plan task');await p.keyboard.press('Enter');await p.waitForTimeout(250);c=await cnt();ok(c.tasks===2,'planner task added')}
+// calendar (planner merged)
+await go('cal');const pin=await p.locator('#planin').count();console.log('planin',pin);
+if(pin){await p.fill('#planin','plan task');await p.keyboard.press('Enter');await p.waitForTimeout(250);c=await cnt();ok(c.tasks===2,'calendar task added')}else ok(false,'calendar task input present')
 // board
 await go('board').catch(()=>{});
 // clips
@@ -33,8 +33,6 @@ await go('wb');const w0=await p.locator('#wbsvg *, #wbitems *').count();await p.
 // business
 await go('biz');await p.click('[data-act="biztab"][data-id="deals"]');await p.fill('#dbrand','Acme');await p.fill('#damt','5000');await p.click('#main .btn.pri, .col-main form .btn.pri').catch(()=>{});await p.waitForTimeout(300);c=await cnt();console.log('deals',c.deals);
 await p.click('[data-act="biztab"][data-id="income"]').catch(()=>{});await p.waitForTimeout(200);console.log('biz tabs',await p.$$eval('[data-act="biztab"]',e=>e.map(x=>x.dataset.id)));
-// writing helper
-await go('ai');await p.fill('#aitopic','coffee');await p.click('[data-act="aigo"], #main .btn.pri').catch(()=>{});await p.waitForTimeout(500);console.log('ai out',(await p.textContent('#aiout').catch(()=>'')||'').slice(0,60));
 // visualizer, progress, calendar, library render
 for(const v of ['cal','prog','viz','lib','aud','board']){await go(v).catch(()=>{});console.log(v,(await p.textContent('.hero h1,.td-head h1').catch(()=>'-')).slice(0,30))}
 console.log('errors',errs);console.log(fail?'FAILURES '+fail:'ALL PASSED');await b.close();srv.close()})();

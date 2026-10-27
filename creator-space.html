@@ -941,9 +941,7 @@ var VIEWS=[
   {id:"mood",name:"Moodboard",ic:"image",c:"var(--c-mood)",desc:"Collect the look and feel of a project."},
   {id:"wb",name:"Whiteboard",ic:"board2",c:"var(--c-wb)",desc:"Sketch, map out ideas and plan visually."},
   {id:"clips",name:"Clips",ic:"link",c:"var(--c-mood)",desc:"Save links and references."},
-  {id:"ai",name:"Writing helper",ic:"pen",c:"var(--c-home)",desc:"Titles, hooks, captions and scripts."},
-  {id:"plan",g:"Plan",name:"Planner",ic:"calendar",c:"var(--c-lib)",desc:"Plan your day, put dates on the work."},
-  {id:"cal",name:"Content calendar",ic:"send",c:"var(--c-ideas)",desc:"Plan what goes out and when."},
+  {id:"cal",g:"Plan",name:"Calendar",ic:"calendar",c:"var(--c-ideas)",desc:"Tasks and posts, by day."},
   {id:"board",name:"Progress",ic:"board",c:"var(--c-board)",desc:"Move work from idea to shipped."},
   {id:"viz",g:"Grow",name:"Visualizer",ic:"chart",c:"var(--c-viz)",desc:"See how the work is going, built from what is already in this space."},
   {id:"biz",g:"Run",name:"Business",ic:"wallet",c:"var(--c-notes)",desc:"Sponsors, income, invoices and media kit."}
@@ -1488,7 +1486,7 @@ function hero(v,title,sub,actions){
   var m=vmeta(v);
   return '<header class="hero"><span class="tile">'+I(m.ic)+'</span><div class="txt"><h1>'+esc(title)+'</h1><p>'+esc(sub||m.desc)+'</p></div><div class="acts">'+(actions||"")+'</div></header>';
 }
-function go(v){var ch=S.view!==v;S.view=v;render();if(ch){var w=$("wrap");if(w){w.classList.remove("enter");void w.offsetWidth;w.classList.add("enter");if(window.__csCount)window.__csCount(w);setTimeout(function(){w.classList.remove("enter")},900)}}}
+function go(v){if(v==="plan")v="cal";if(v==="ai")v="home";var ch=S.view!==v;S.view=v;render();if(ch){var w=$("wrap");if(w){w.classList.remove("enter");void w.offsetWidth;w.classList.add("enter");if(window.__csCount)window.__csCount(w);setTimeout(function(){w.classList.remove("enter")},900)}}}
 function closeMenus(){var q=$("qmenu");if(q)q.hidden=true;var r=$("sres");if(r)r.hidden=true;var bm2=$("bellm");if(bm2)bm2.hidden=true}
 
 /* ---------- theme ---------- */
@@ -1664,7 +1662,7 @@ document.addEventListener("keydown",function(e){
   var t=e.target;if(/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)||t.isContentEditable||e.ctrlKey||e.metaKey||e.altKey)return;
   if(e.key==="?"){e.preventDefault();showShortcuts();return}
   if(gPend&&Date.now()-gPend<1200){
-    var map={h:"home",n:"notes",i:"ideas",m:"mood",w:"wb",p:"plan",b:"board",c:"cal",l:"clips"},v=map[e.key.toLowerCase()];gPend=0;
+    var map={h:"home",n:"notes",i:"ideas",m:"mood",w:"wb",p:"cal",b:"board",c:"cal",l:"clips"},v=map[e.key.toLowerCase()];gPend=0;
     if(v){e.preventDefault();go(v)}return;
   }
   if(e.key==="g"||e.key==="G"){gPend=Date.now()}
@@ -1784,7 +1782,7 @@ function vHome(){
   var h='<header class="td-head"><div><div class="td-eyebrow">'+esc(new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long"}))+' · '+esc(spaceName())+'</div><h1>'+greet+(nm?", "+esc(nm):"")+'</h1><p>'+esc(sum)+'</p></div></header>';
   if(!readOnly)h+='<div class="td-cap"><input class="in" id="qcin" placeholder="Capture anything… an idea, a task, a note" maxlength="240" aria-label="Quick capture"><button type="button" class="btn" data-act="qcap" data-id="idea">'+I("bulb")+'Idea</button><button type="button" class="btn" data-act="qcap" data-id="task">'+I("check")+'Task</button><button type="button" class="btn" data-act="qcap" data-id="note">'+I("notes")+'Note</button></div>';
   function stat(n,l,v,c){return '<button class="td-stat'+(c?" "+c:"")+'" data-act="view" data-id="'+v+'"><b>'+n+'</b><span>'+l+'</span></button>'}
-  h+='<div class="td-stats">'+stat(over,"Overdue","board",over?"warn":"")+stat(dueT,"Due today","board","")+stat(posts.length,"Posts this week","cal","")+stat(fmin,"Min focused","home","")+'</div>';
+  h+='<div class="td-stats">'+stat(over,"Overdue","board",over?"warn":"")+stat(dueT,"Due today","board","")+stat(posts.length,"Posts this week","cal","")+'<div class="td-stat td-ft" id="tdfocus">'+tdFocusInner()+'</div></div>';
   h+='<div class="td-cols"><section class="panel"><h2>Needs attention'+(items.length>5?'<span class="muted" style="font-size:12px;font-weight:500">+'+(items.length-5)+' more in the bell</span>':"")+'</h2>'+
     (items.length?items.slice(0,5).map(function(x){return '<button class="td-row" data-act="view" data-id="'+x.v+'"><span class="bic k'+x.k+'">'+I(x.ic)+'</span><span class="bt"><b>'+esc(x.l)+'</b><i>'+esc(x.s)+'</i></span></button>'}).join(""):'<div class="empty">Nothing overdue or due soon.</div>')+'</section>';
   var rows="";
@@ -1794,7 +1792,7 @@ function vHome(){
     posts.forEach(function(p){if(p.date===key)its.push({n:p.title,k:"post",v:"cal"})});
     if(its.length)rows+='<div class="td-day"><span class="td-dl">'+(i===0?"Today":(i===1?"Tomorrow":d.toLocaleDateString("en-IN",{weekday:"short",day:"numeric"})))+'</span><div>'+its.map(function(x){return '<button class="td-ev '+x.k+'" data-act="view" data-id="'+x.v+'"><i></i>'+esc(x.n)+'</button>'}).join("")+'</div></div>';
   }
-  h+='<section class="panel"><h2>Next 7 days<button class="btn sm" data-act="view" data-id="cal">Planner</button></h2>'+(rows||'<div class="empty">Nothing scheduled. Give a task a date or plan a post.</div>')+'</section></div>';
+  h+='<section class="panel"><h2>Next 7 days<button class="btn sm" data-act="view" data-id="cal">Calendar</button></h2>'+(rows||'<div class="empty">Nothing scheduled. Give a task a date or plan a post.</div>')+'</section></div>';
   var ideas=mine("ideas").slice().sort(function(a,b){return b.ts-a.ts}).filter(function(i){return !i.task}).slice(0,4),pins=mine("notes").filter(function(n){return n.pin}).slice(0,3);
   var cnt={};STAGES.forEach(function(s){cnt[s.id]=t.filter(function(x){return x.col===s.id}).length});
   h+='<div class="td-cols"><section class="panel"><h2>Pipeline<button class="btn sm" data-act="view" data-id="board">Open board</button></h2><div class="td-pipe">'+STAGES.map(function(s,i){return '<button data-act="view" data-id="board"><b>'+cnt[s.id]+'</b><span>'+esc(s.name||s.label||s.id)+'</span></button>'+(i<STAGES.length-1?'<em>›</em>':"")}).join("")+'</div></section>'+
@@ -1835,7 +1833,7 @@ function noteEditorHTML(){
 function vIdeas(){
   var all=mine("ideas"),tags={};
   all.forEach(function(i){(i.tags||[]).forEach(function(t){tags[t]=1})});
-  var h=hero("ideas","Ideas",null,'<button class="btn" data-act="view" data-id="ai">'+I("bulb")+'Idea helper</button>');
+  var h=hero("ideas","Ideas",null,"");
   h+='<div class="capture"><input class="in" id="ideain" placeholder="A video about…   add #tags to sort it later" maxlength="240" aria-label="New idea"'+(readOnly?" disabled":"")+'><button class="btn pri" data-act="addidea"'+(readOnly?" disabled":"")+'>Add</button></div>';
   h+='<div class="chips" role="group" aria-label="Filter ideas"><button class="chip" data-act="ifilter" data-id="all" aria-pressed="'+(ideaFilter==="all")+'">All '+all.length+'</button><button class="chip" data-act="ifilter" data-id="star" aria-pressed="'+(ideaFilter==="star")+'">Starred</button>'+
     Object.keys(tags).sort().map(function(t){return '<button class="chip" data-act="ifilter" data-id="'+esc(t)+'" aria-pressed="'+(ideaFilter===t)+'">#'+esc(t)+'</button>'}).join("")+'</div>';
@@ -2265,14 +2263,16 @@ function vViz(){
 var FT={mode:"f",left:1500,run:false,end:0,tick:null},FTLEN={f:1500,b:300};
 function fmtT(n){return Math.floor(n/60)+":"+String(n%60).padStart(2,"0")}
 function ftPaint(){
+  var tf=$("tdfocus");if(tf){tf.dataset.run=FT.run;tf.innerHTML=tdFocusInner()}
   var e=$("ftimer");if(!e)return;
   e.dataset.run=FT.run;e.dataset.mode=FT.mode;
   e.innerHTML='<button class="ftb" data-act="ftoggle" aria-label="'+(FT.run?"Pause":"Start")+' timer">'+I(FT.run?"pause":"play")+'</button><span class="ftt" id="ftt" aria-live="off">'+fmtT(FT.left)+'</span><button class="ftm" data-act="ftmode" title="Switch between focus and break">'+(FT.mode==="f"?"Focus":"Break")+'</button>'+((FT.run||FT.left!==FTLEN[FT.mode])?'<button class="ico" data-act="ftreset" aria-label="Reset timer">'+I("undo")+'</button>':"");
 }
+function tdFocusInner(){var fm=S.focus[ymd(new Date())]||0;return '<div class="tf-row"><b class="tf-t" id="ftt2">'+fmtT(FT.left)+'</b><span class="tf-b"><button class="ico" data-act="ftoggle" aria-label="'+(FT.run?"Pause":"Start")+' focus timer">'+I(FT.run?"pause":"play")+'</button><button class="ico" data-act="ftreset" aria-label="Reset timer">'+I("undo")+'</button></span></div><span>'+(FT.mode==="f"?"Focus":"Break")+' · '+fm+' min today · <button class="tf-sw" data-act="ftmode">'+(FT.mode==="f"?"Take a break":"Back to focus")+'</button></span>'}
 function ftTick(){
   FT.left=Math.max(0,Math.round((FT.end-Date.now())/1000));
   if(FT.left<=0){ftDone();return}
-  var t=$("ftt");if(t)t.textContent=fmtT(FT.left);
+  var t=$("ftt");if(t)t.textContent=fmtT(FT.left);var t2=$("ftt2");if(t2)t2.textContent=fmtT(FT.left);
   document.title=fmtT(FT.left)+" · Creator Space";
 }
 function ftDone(){
@@ -2420,7 +2420,7 @@ function vPlan(){
   return h;
 }
 function planAdd(v){
-  var due=planFilter==="planned"?planSel:"";
+  var due=S.view==="cal"?calSel:(planFilter==="planned"?planSel:"");
   S.tasks.push({id:uid(),sp:S.cur,title:v,col:"i",due:due,pri:0,ts:Date.now()});touch();render();
   var n=$("planin");if(n)n.focus();
 }
@@ -2515,25 +2515,32 @@ var calMonth=firstOf(new Date()), calSel=ymd(new Date());
 function platCol(n){var p=PLAT.filter(function(x){return x[0]===n})[0];return p?p[1]:"#8A90B8"}
 function pstOf(id){return PST.filter(function(x){return x[0]===id})[0]||PST[0]}
 function vCal(){
-  var posts=mine("posts"),td=ymd(new Date()),h=hero("cal","Content calendar","Plan what goes out and when. Move each post from idea to published.",'<button class="btn" data-act="calsync">Sync to calendar</button>');
-  h+='<div class="chips" aria-label="Pipeline" style="margin-top:0">'+PST.map(function(s){var n=posts.filter(function(p){return p.status===s[0]}).length;return '<span class="chip" style="cursor:default"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+s[2]+';margin-right:6px"></i>'+s[1]+' '+n+'</span>'}).join("")+'</div>';
+  var posts=mine("posts"),tasks=mine("tasks"),td=ymd(new Date());
+  var h=hero("cal","Calendar","Tasks and posts, by day. Pick a day to plan it.",'<button class="btn" data-act="calsync">Sync to calendar</button>');
   var y=calMonth.getFullYear(),m=calMonth.getMonth(),lead=(new Date(y,m,1).getDay()+6)%7,days=new Date(y,m+1,0).getDate();
-  var g='<div class="cc-h"><b>'+calMonth.toLocaleDateString("en-IN",{month:"long",year:"numeric"})+'</b><span><button class="ico" data-act="cmonth" data-d="-1" aria-label="Previous month">'+I("left")+'</button><button class="ico" data-act="cmonth" data-d="1" aria-label="Next month">'+I("right")+'</button></span></div><div class="cc-g">';
+  var g='<div class="cc-h"><b>'+calMonth.toLocaleDateString("en-IN",{month:"long",year:"numeric"})+'</b><span><button class="btn sm" data-act="cday" data-id="'+td+'">Today</button><button class="ico" data-act="cmonth" data-d="-1" aria-label="Previous month">'+I("left")+'</button><button class="ico" data-act="cmonth" data-d="1" aria-label="Next month">'+I("right")+'</button></span></div><div class="cc-g">';
   ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].forEach(function(w){g+='<span class="cw">'+w+'</span>'});
   for(var i=0;i<lead;i++)g+='<span></span>';
   for(var d=1;d<=days;d++){
-    var k=y+"-"+String(m+1).padStart(2,"0")+"-"+String(d).padStart(2,"0"),ps=posts.filter(function(p){return p.date===k});
-    g+='<button class="ccd'+(k===td?" today":"")+(k===calSel?" sel":"")+'" data-act="cday" data-id="'+k+'" aria-pressed="'+(k===calSel)+'"><span class="n">'+d+'</span>'+ps.slice(0,2).map(function(p){return '<span class="ccp" style="--c:'+platCol(p.platform)+'"><i></i>'+esc(p.title)+'</span>'}).join("")+(ps.length>2?'<span class="ccm">+'+(ps.length-2)+' more</span>':"")+'</button>';
+    var k=y+"-"+String(m+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
+    var ps=posts.filter(function(p){return p.date===k}),ts=tasks.filter(function(t){return t.due===k&&t.col!=="s"});
+    var ev=ps.map(function(p){return '<span class="ccp" style="--c:'+platCol(p.platform)+'"><i></i>'+esc(p.title)+'</span>'}).concat(ts.map(function(t){return '<span class="cct'+(k<td?" late":"")+'"><i></i>'+esc(t.title)+'</span>'}));
+    g+='<button class="ccd'+(k===td?" today":"")+(k===calSel?" sel":"")+'" data-act="cday" data-id="'+k+'" aria-pressed="'+(k===calSel)+'" aria-label="'+esc(dayLong(dparse(k)))+(ev.length?", "+ev.length+" items":"")+'"><span class="n">'+d+'</span>'+ev.slice(0,2).join("")+(ev.length>2?'<span class="ccm">+'+(ev.length-2)+' more</span>':"")+'</button>';
   }
-  g+='</div>';
-  var day=posts.filter(function(p){return p.date===calSel});
+  g+='</div><div class="bn-leg" style="margin-top:12px"><span><i class="k"></i>Task</span><span><i class="k post"></i>Post</span></div>';
+  var dayP=posts.filter(function(p){return p.date===calSel}),dayT=tasks.filter(function(t){return t.due===calSel});
   var free=mine("ideas").filter(function(i){return !posts.some(function(p){return p.ideaId===i.id})});
   var side='<h2>'+esc(dayLong(dparse(calSel)))+'</h2>';
-  side+=day.length?day.map(function(p){var st=pstOf(p.status);return '<div class="cpost"><input class="ghost" data-pf="'+p.id+'|title" value="'+esc(p.title)+'" aria-label="Post title"'+(readOnly?" readonly":"")+'><div class="cpr"><select class="wsel" data-pf="'+p.id+'|platform" aria-label="Platform"'+(readOnly?" disabled":"")+'>'+opts(PLAT.map(function(x){return x[0]}),p.platform)+'</select><select class="wsel" data-pf="'+p.id+'|status" aria-label="Status" style="border-color:'+st[2]+'"'+(readOnly?" disabled":"")+'>'+opts(PST.map(function(x){return [x[0],x[1]]}),p.status)+'</select><button class="ico danger" data-act="cdel" data-id="'+p.id+'" aria-label="Delete post"'+(readOnly?" disabled":"")+'>'+I("x")+'</button></div></div>'}).join(""):'<div class="empty">Nothing planned for this day.</div>';
-  if(!readOnly)side+='<div class="cpadd"><input class="in" id="cptitle" placeholder="Post title" maxlength="100" aria-label="Post title"><div class="cpr"><select class="wsel" id="cpplat" aria-label="Platform">'+opts(PLAT.map(function(x){return x[0]}),"YouTube")+'</select><select class="wsel" id="cpidea" aria-label="Use an idea"><option value="">or pick an idea…</option>'+free.map(function(i){return '<option value="'+i.id+'">'+esc(i.text.replace(/\s*#[\w-]+/g,"").slice(0,48))+'</option>'}).join("")+'</select></div><button class="btn pri" data-act="cadd">Add to this day</button></div>';
-  var up=posts.filter(function(p){return p.status!=="published"&&p.date>=td}).sort(function(a,b){return a.date<b.date?-1:1}).slice(0,6);
-  var upH='<section class="panel" style="margin-top:16px"><h2>Up next</h2>'+(up.length?up.map(function(p){var st=pstOf(p.status);return '<button class="cup" data-act="cday" data-id="'+p.date+'"><span class="ccp" style="--c:'+platCol(p.platform)+'"><i></i>'+esc(p.platform)+'</span><span class="t">'+esc(p.title)+'</span><span class="pst" style="color:'+st[2]+';border-color:'+st[2]+'">'+st[1]+'</span><span class="muted" style="font-size:13px;white-space:nowrap">'+esc(fmtDue(p.date))+'</span></button>'}).join(""):'<div class="empty">Nothing scheduled yet. Pick a day above and add your first post.</div>')+'</section>';
-  return h+'<div class="cc"><section class="panel">'+g+'</section><section class="panel cc-side">'+side+'</section></div>'+upH;
+  side+='<div class="cal-sec">Tasks</div>'+(dayT.length?dayT.map(prow).join(""):'<div class="empty">No tasks due this day.</div>');
+  if(!readOnly)side+='<div class="cal-add"><input class="in" id="planin" placeholder="Add a task for this day" maxlength="120" aria-label="Add a task for this day"><button class="btn" data-act="caltask">Add</button></div>';
+  side+='<div class="cal-sec">Posts</div>';
+  side+=dayP.length?dayP.map(function(p){var st=pstOf(p.status);return '<div class="cpost"><input class="ghost" data-pf="'+p.id+'|title" value="'+esc(p.title)+'" aria-label="Post title"'+(readOnly?" readonly":"")+'><div class="cpr"><select class="wsel" data-pf="'+p.id+'|platform" aria-label="Platform"'+(readOnly?" disabled":"")+'>'+opts(PLAT.map(function(x){return x[0]}),p.platform)+'</select><select class="wsel" data-pf="'+p.id+'|status" aria-label="Status"'+(readOnly?" disabled":"")+'>'+PST.map(function(x){return '<option value="'+x[0]+'"'+(x[0]===p.status?" selected":"")+'>'+x[1]+'</option>'}).join("")+'</select><button class="ico danger" data-act="cdel" data-id="'+p.id+'" aria-label="Delete post"'+(readOnly?" disabled":"")+'>'+I("x")+'</button></div></div>'}).join(""):'<div class="empty">No posts this day.</div>';
+  if(!readOnly)side+='<div class="cpadd"><input class="in" id="cptitle" placeholder="Post title" maxlength="100" aria-label="Post title"><div class="cpr"><select class="wsel" id="cpplat" aria-label="Platform">'+opts(PLAT.map(function(x){return x[0]}),"YouTube")+'</select><select class="wsel" id="cpidea" aria-label="Use an idea"><option value="">or pick an idea…</option>'+free.map(function(i){return '<option value="'+i.id+'">'+esc(i.text.slice(0,60))+'</option>'}).join("")+'</select></div><button class="btn" data-act="cadd">Add post</button></div>';
+  var un=tasks.filter(function(t){return t.col!=="s"&&!t.due}),late=tasks.filter(function(t){return t.col!=="s"&&t.due&&t.due<td});
+  var below='';
+  if(late.length)below+='<section class="panel"><h2>Overdue <span class="ct hot">'+late.length+'</span></h2>'+late.map(prow).join("")+'</section>';
+  below+='<section class="panel"><h2>No date yet<span class="muted" style="font-weight:400;font-size:12.5px">Give one a date to put it on the calendar</span></h2>'+(un.length?un.map(prow).join(""):'<div class="empty">Every open task has a date.</div>')+'</section>';
+  return h+'<div class="cc"><section class="panel">'+g+'</section><section class="panel cc-side">'+side+'</section></div><div class="cal-below">'+below+'</div>';
 }
 function calAdd(){
   var t=($("cptitle").value||"").trim(),idea=$("cpidea").value,plat=$("cpplat").value;
@@ -2743,6 +2750,7 @@ function v10act(a,b){
       else if(id==="task"){S.tasks.push({id:uid(),sp:S.cur,title:qt,col:"i",due:"",ts:Date.now()});touch();render();toast("Added to Progress")}
       else{var qn={id:uid(),sp:S.cur,title:qt.slice(0,60),body:qt.length>60?qt:"",pin:false,ts:Date.now()};S.notes.push(qn);selNote=qn.id;touch();go("notes")}
       return true}
+    case "caltask":{var ci=$("planin"),cv=ci?ci.value.trim():"";if(!cv){toast("Type the task first");if(ci)ci.focus();return true}planAdd(cv);return true}
     case "bellall":bellMark(bellItems().map(function(x){return x.id}));paintBell();var bm=$("bellm");if(bm)bm.innerHTML=bellHTML();return true;
     case "bellgo":bellMark([b.dataset.id]);closeMenus();go(b.dataset.v);return true;
     case "shortcuts":showShortcuts();return true;
@@ -2851,13 +2859,13 @@ function render(){
 function render0(){
   closeMenus();
   renderChrome();
+  if(S.view==="plan")S.view="cal";if(S.view==="ai")S.view="home";
   var v=S.view,html="";
   if(v==="home")html=vHome();else if(v==="notes")html=vNotes();else if(v==="ideas")html=vIdeas();
   else if(v==="board")html=vBoard();else if(v==="plan")html=vPlan();else if(v==="cal")html=vCal();else if(v==="biz")html=vBiz();else if(v==="clips")html=vClips();else if(v==="ai")html=vAi();else if(v==="wb")html=vWb();else if(v==="viz")html=vViz();else if(v==="mood")html=vMood();else html=vClips();
   $("wrap").innerHTML=html;
   if(v==="notes"){$("nlist").innerHTML=noteListHTML("");$("neditor").innerHTML=noteEditorHTML()}
   if(v==="wb"){wbMount();wbBgApply()}
-  if(v==="plan")planMountClock();
   renderDialog();
 }
 

@@ -57,5 +57,15 @@ const np=await p.locator('[data-act="idea2post"]').count();ok(np>0,'ideas offer 
 await p.evaluate(()=>document.querySelector('[data-act="idea2post"]').click());await p.waitForTimeout(600);
 ok(await p.evaluate(()=>document.querySelector('.col-main').dataset.v)==='cal','Plan post opens the calendar');
 ok(await p.locator('.cc-side .cpost').count()>0||(await p.content()).includes('planned'),'post appears on the chosen day');
+
+// merged calendar
+ok(await p.locator('#nav [data-id="plan"], #nav [data-id="ai"]').count()===0,'Planner and Writing helper gone from nav');
+await p.evaluate(()=>{var b=document.querySelector('#nav [data-id="cal"]');b.click()});await p.waitForTimeout(500);
+ok(await p.locator('.ccd .cct').count()>0,'calendar shows tasks on their days');
+await p.fill('#planin','Calendar day task');await p.press('#planin','Enter');await p.waitForTimeout(400);
+ok(await p.evaluate(()=>[...document.querySelectorAll('.cc-side [data-f="task"]')].some(i=>i.value==='Calendar day task')),'task added to the selected day');
+ok(await p.locator('#tdfocus').count()===0,'focus tile only on Today');
+await p.evaluate(()=>{document.querySelector('#nav [data-id="home"]').click()});await p.waitForTimeout(400);
+ok(await p.locator('#tdfocus [data-act="ftoggle"]').count()===1,'focus timer lives on Today');
 console.log('errors',errs);ok(!errs.length,'no page errors');
 console.log(fail?'FAILURES '+fail:'ALL PASSED');await b.close();srv.close()})();

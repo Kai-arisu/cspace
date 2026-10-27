@@ -3,7 +3,7 @@ base=os.path.dirname(os.path.abspath(__file__))+'/'
 src=open(base+'creator-space.html').read()
 web=open(base+'web/web.js').read()
 boot=open(base+'web/boot.js').read()
-css=open(base+'web/web.css').read()+'\n'+open(base+'web/frost.css').read()
+css=open(base+'web/web.css').read()+'\n'+open(base+'web/frost.css').read()+'\n'+open(base+'web/studio.css').read()
 # split
 i=src.index('<script>');j=src.rindex('</script>')
 pre=src[:i];js=src[i+len('<script>'):j]
@@ -30,7 +30,7 @@ rep('paintTheme();ftPaint();paintProfile();paintBell();\n}','paintTheme();ftPain
 m=re.search(r'</style>',pre);head_end=m.end()
 head=pre[:head_end].replace('<meta name="claude:viewport-fit-sides" content="cover">','')
 body=pre[head_end:]
-out='<!doctype html><html lang="en" class="authing"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#E9E9EC">'+head+'<style id="webcss">'+css+'</style></head><body>'
+out='<!doctype html><html lang="en" class="authing"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#FAFAFA">'+head+'<style id="webcss">'+css+'</style></head><body>'
 out+='<div id="authgate" hidden></div><div id="pubpage" hidden></div>'+body
 out+='<script src="/supabase.js"></script><script>'+boot+'</script><script type="text/plain" id="appjs">'+js+'</script><script>if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})</script></body></html>'
 out=re.sub(r'<link rel="stylesheet" href="https://fonts.googleapis.com/[^"]*">','<link rel="preload" href="/geist.woff2" as="font" type="font/woff2" crossorigin>',out,count=1)

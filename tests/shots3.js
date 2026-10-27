@@ -14,7 +14,7 @@ async function run(tag,vp,scheme){
   await p.goto(origin+'/');await p.waitForTimeout(500);
   await p.click('[data-ag="up"]');await p.fill('#agemail',email);await p.fill('#agpass','supersecret1');await p.click('#aggo');await p.waitForTimeout(1800);
   seed(fake,email);await p.reload();await p.waitForTimeout(2500);
-  const ids=(process.env.VIEWS||'home,notes,ideas,mood,wb,clips,ai,plan,cal,board,viz,aud,biz,team,cp').split(',');
+  const ids=(process.env.VIEWS||'home,notes,ideas,mood,wb,clips,cal,board,viz,aud,biz,team,cp').split(',');
   for(const id of ids){
     const ok=await p.evaluate(i=>{var b=document.querySelector('[data-act="view"][data-id="'+i+'"]');if(b){b.click();return true}return false},id);
     if(!ok){await p.evaluate(()=>{var m=document.querySelector('[data-act="more"]');if(m)m.click()});await p.waitForTimeout(200);await p.evaluate(i=>{var b=document.querySelector('.msheet [data-act="view"][data-id="'+i+'"]');if(b)b.click()},id)}
