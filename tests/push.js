@@ -3,6 +3,7 @@ const fake=require('./fakesb.js')();const site=path.join(process.cwd(),'public')
 const csp=fs.readFileSync(site+'/_headers','utf8').match(/Content-Security-Policy: (.*)/)[1];
 const srv=http.createServer((req,res)=>{let u=req.url.split('?')[0];if(u==='/'||u.startsWith('/u/'))u='/index.html';const f=path.join(site,u);if(!fs.existsSync(f)){res.writeHead(404);return res.end('nf')}const ext=path.extname(f);res.writeHead(200,{'content-type':ext==='.html'?'text/html':ext==='.js'?'application/javascript':ext==='.woff2'?'font/woff2':'text/plain','content-security-policy':csp});res.end(fs.readFileSync(f))});
 let fail=0;const ok=(c,m)=>{console.log((c?'PASS ':'FAIL ')+m);if(!c)fail++};
+const tab=async(pg,t)=>{await pg.evaluate(t=>{var b=document.querySelector('[data-act="cp_tab"][data-id="'+t+'"]');if(b)b.click()},t);await pg.waitForTimeout(300)};
 (async()=>{await new Promise(r=>srv.listen(0,r));const b=await chromium.launch();const ctx=await b.newContext({permissions:["notifications"],viewport:{width:1280,height:900}});
 await ctx.route('https://ohkecamneutxggqwhend.supabase.co/**',fake.handle);await ctx.route(/fonts\.googleapis/,r=>r.abort());
 const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
@@ -10,7 +11,7 @@ const base='http://localhost:'+srv.address().port;
 await ctx.addInitScript(()=>{Object.defineProperty(Notification,'permission',{get:()=>window.__perm||'default'});Notification.requestPermission=async()=>{window.__perm='granted';return 'granted'};let sub=null;PushManager.prototype.getSubscription=async()=>sub;PushManager.prototype.subscribe=async()=>{sub={endpoint:'https://push.example/ep1',toJSON:()=>({keys:{p256dh:'pk',auth:'ak'}}),unsubscribe:async()=>{sub=null;return true}};return sub}});
 await p.goto(base+'/');await p.waitForTimeout(500);await p.click('[data-ag="up"]');await p.fill('#agemail','r@x.co');await p.fill('#agpass','supersecret1');await p.click('#aggo');await p.waitForTimeout(2000);
 await p.click('#pcard');await p.waitForTimeout(900);
-ok(await p.locator('[data-act="push_on"]').count()===1,'Turn on alerts button shows');
+await tab(p,'settings');ok(await p.locator('[data-act="push_on"]').count()===1,'Turn on alerts button shows');
 await p.click('[data-act="push_on"]');await p.waitForTimeout(4000);
 const t=await p.textContent('#pushmsg').catch(()=>'');const on=await p.locator('[data-act="push_test"]').count();
 ok(on===1&&/on for this device/.test(t),'alerts turn on and the test button appears ('+t.slice(0,50)+')');

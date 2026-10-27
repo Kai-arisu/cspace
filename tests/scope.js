@@ -3,6 +3,7 @@ const fake=require('./fakesb.js')();const site=path.join(process.cwd(),'public')
 const csp=fs.readFileSync(site+'/_headers','utf8').match(/Content-Security-Policy: (.*)/)[1];
 const srv=http.createServer((req,res)=>{let u=req.url.split('?')[0];if(u==='/'||u.startsWith('/u/'))u='/index.html';const f=path.join(site,u);if(!fs.existsSync(f)){res.writeHead(404);return res.end('nf')}const ext=path.extname(f);res.writeHead(200,{'content-type':ext==='.html'?'text/html':ext==='.js'?'application/javascript':ext==='.woff2'?'font/woff2':'text/plain','content-security-policy':csp});res.end(fs.readFileSync(f))});
 let fail=0;const ok=(c,m)=>{console.log((c?'PASS ':'FAIL ')+m);if(!c)fail++};
+const tab=async(pg,t)=>{await pg.evaluate(t=>{var b=document.querySelector('[data-act="cp_tab"][data-id="'+t+'"]');if(b)b.click()},t);await pg.waitForTimeout(300)};
 (async()=>{await new Promise(r=>srv.listen(0,r));const b=await chromium.launch();const base='http://localhost:'+srv.address().port;const errs=[];
 async function mk(){const ctx=await b.newContext({viewport:{width:1280,height:900}});await ctx.route('https://ohkecamneutxggqwhend.supabase.co/**',fake.handle);await ctx.route(/fonts\.googleapis/,r=>r.abort());const p=await ctx.newPage();p.on('pageerror',e=>errs.push(e.message));return p}
 async function signup(p,email){await p.goto(base+'/');await p.waitForTimeout(500);await p.click('[data-ag="up"]');await p.fill('#agemail',email);await p.fill('#agpass','supersecret1');await p.click('#aggo');await p.waitForTimeout(2000)}
@@ -12,7 +13,7 @@ await A.click('#nav .si-row[data-id="ideas"]');await A.fill('#ideain','Main secr
 await A.click('[data-act="spaceadd"]');await A.waitForTimeout(300);await A.fill('#newspace','Podcast');await A.keyboard.press('Enter');await A.waitForTimeout(600);
 await A.click('[data-act="qtoggle"]');await A.click('[data-act="qnote"]');await A.waitForTimeout(300);await A.fill('#ntitle','Podcast secret');await A.waitForTimeout(1800);
 await A.click('#pcard');await A.waitForTimeout(900);
-await A.fill('[data-w="sh.email"]','b@x.co');await A.selectOption('[data-w="sh.space"]',{label:'Only Podcast'});await A.click('[data-act="sh_invite"]');await A.waitForTimeout(500);
+await tab(A,'settings');await A.fill('[data-w="sh.email"]','b@x.co');await A.selectOption('[data-w="sh.space"]',{label:'Only Podcast'});await A.click('[data-act="sh_invite"]');await A.waitForTimeout(500);
 ok((await A.locator('#dlg').textContent()).includes('Share only Podcast'),'asks before moving the space');
 await A.click('[data-act="sh_isogo"]');await A.waitForTimeout(2500);
 const sh=fake.st.tables.shares;ok(sh.length===1&&sh[0].space_id&&sh[0].invitee_email==='b@x.co','share saved with the space id');
@@ -20,13 +21,13 @@ const ownerId=fake.st.users.find(u=>u.email==='a@x.co').id;
 ok(fake.st.tables.docs.some(d=>d.user_id===ownerId&&d.path.startsWith('sp/'+sh[0].space_id+'/store/')),'space data moved to its private area');
 const root=fake.st.tables.docs.filter(d=>d.user_id===ownerId&&d.path.startsWith('store/k_notes'));
 ok(root.every(d=>!/Podcast secret/.test(JSON.stringify(d.data))),'main storage no longer holds the private space');
-ok(await A.locator('[data-act="sh_openiso"]').count()===1,'owner sees Your private spaces');
+await tab(A,'settings');ok(await A.locator('[data-act="sh_openiso"]').count()===1,'owner sees Your private spaces');
 ok((await A.locator('.spsel option').allTextContents()).join('|').indexOf('Podcast')<0,'space gone from main space list');
 // invitee
 const B=await mk();await signup(B,'b@x.co');
 await B.click('#pcard');await B.waitForTimeout(900);
-ok(/One space/.test(await B.locator('.sh-list').last().textContent()),'invitee sees a one-space share');
-await B.click('[data-act="sh_open"]');await B.waitForTimeout(3000);
+await tab(B,'settings');ok(/One space/.test(await B.locator('.sh-list').last().textContent()),'invitee sees a one-space share');
+await tab(B,'settings');await B.click('[data-act="sh_open"]');await B.waitForTimeout(3000);
 ok((await B.textContent('#wsbar')).includes('Podcast'),'banner names the space: '+(await B.textContent('#wsbar')).slice(0,60));
 await B.click('#nav .si-row[data-id="notes"]');await B.waitForTimeout(600);
 ok((await B.textContent('#main')).includes('Podcast secret'),'invitee sees the shared space note');
@@ -48,7 +49,7 @@ ok(res.write===403,'database refuses writes outside the shared space ('+res.writ
 // invitee edits, owner sees it
 await B.fill('#ideain','From teammate');await B.click('[data-act="addidea"]');await B.waitForTimeout(3000);
 await A.reload();await A.waitForTimeout(2500);await A.click('#pcard');await A.waitForTimeout(900);
-await A.click('[data-act="sh_openiso"]');await A.waitForTimeout(3000);
+await tab(A,'settings');await A.click('[data-act="sh_openiso"]');await A.waitForTimeout(3000);
 ok((await A.textContent('#wsbar')).includes('Podcast'),'owner opens the private space');
 await A.click('#nav .si-row[data-id="ideas"]');await A.waitForTimeout(500);
 ok((await A.textContent('#main')).includes('From teammate'),'owner sees the teammate edit');

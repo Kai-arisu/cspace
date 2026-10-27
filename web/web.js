@@ -108,7 +108,7 @@ async function ytCall(body){
 async function audLoad(quiet){
   if(W.loading)return;W.loading=true;
   try{
-    var c=await WSB.from("connections").select("*").order("created_at",{ascending:true});
+    var c=await WSB.from("connections").select("*").eq("user_id",window.__UID).order("created_at",{ascending:true});
     if(c.error)throw c.error;
     var conns=c.data||[],ids=conns.map(function(x){return x.id}),snaps={},vids={};
     if(ids.length){
@@ -273,19 +273,25 @@ function normKit(k){
 }
 async function cpLoad(){
   try{
-    var r=await WSB.from("profiles").select("*").maybeSingle();
+    var r=await WSB.from("profiles").select("*").eq("user_id",window.__UID).maybeSingle();
     if(r.error)throw r.error;
     var d=r.data;
     W.p=d?{handle:d.handle||"",display_name:d.display_name||"",tagline:d.tagline||"",bio:d.bio||"",accent:d.accent||"#12163A",look:d.look||"plain",is_public:!!d.is_public,avatar_url:d.avatar_url||"",links:Array.isArray(d.links)?d.links:[],kit:normKit(d.kit),exists:true}
       :{handle:suggestHandle(),display_name:(S.profile&&S.profile.name)||"",tagline:"",bio:"",accent:"#111111",look:"plain",is_public:false,avatar_url:"",links:[],kit:normKit(),exists:false};
     W.pLoaded=true;W.pErr="";
+    try{S.profile=S.profile||{};
+      if(!W.p.avatar_url&&S.profile.avatar)W.p.avatar_url="/_blob/"+S.profile.avatar;
+      else if(W.p.avatar_url&&!S.profile.avatar&&W.p.avatar_url.indexOf("/_blob/")===0){S.profile.avatar=W.p.avatar_url.slice(7);touch()}
+      if(!W.p.display_name&&S.profile.name)W.p.display_name=S.profile.name;
+      else if(W.p.display_name&&!S.profile.name){S.profile.name=W.p.display_name;touch()}
+      if(typeof paintProfile==="function")paintProfile()}catch(e){}
   }catch(e){W.pErr="Couldn't load your profile. "+((e&&e.message)||"");W.pLoaded=true;if(!W.p)W.p={handle:"",display_name:"",tagline:"",bio:"",accent:"#111111",look:"plain",is_public:false,avatar_url:"",links:[],kit:normKit()}}
   if(S.view==="cp")render();
 }
 function cpLink(){return location.origin+"/u/"+(W.p&&W.p.handle||"")}
 function cpPreviewHTML(){
   var p=W.p,ac=/^#[0-9a-f]{6}$/i.test(p.accent)?p.accent:"#111111";
-  return '<div class="cp-pv" data-look="'+(p.look||"plain")+'" style="--pa:'+ac+'">'+(p.avatar_url?'<img class="cp-av" src="'+esc(p.avatar_url)+'" alt="">':'<span class="cp-av cp-ini">'+esc((p.display_name||p.handle||"?").slice(0,1).toUpperCase())+'</span>')+
+  return '<div class="cp-pv" data-look="'+(p.look||"plain")+'" style="--pa:'+ac+'">'+(cpAvatarSrc()?'<img class="cp-av" src="'+esc(cpAvatarSrc())+'" alt="">':'<span class="cp-av cp-ini">'+esc((p.display_name||p.handle||"?").slice(0,1).toUpperCase())+'</span>')+
     '<b>'+esc(p.display_name||p.handle||"Your name")+'</b><span class="cp-h">@'+esc(p.handle||"handle")+'</span>'+(p.tagline?'<span class="cp-tg">'+esc(p.tagline)+'</span>':"")+(p.bio?'<p>'+esc(p.bio)+'</p>':"")+
     (p.links.length?'<div class="cp-ls">'+p.links.filter(function(l){return l.label||l.url}).map(function(l){return '<span>'+esc(l.label||l.url)+'</span>'}).join("")+'</div>':"")+'</div>';
 }
@@ -331,33 +337,51 @@ async function cpShareImage(){
   }catch(e){}
   if(window.csShare)window.csShare({name:p.display_name||p.handle,handle:p.handle,tagline:p.tagline,accent:p.accent,look:p.look,avatar:p.avatar_url,stats:stats});
 }
+function cpAvatarHTML(size){var p=W.p,src=cpAvatarSrc();return '<span class="av '+(size||"xl")+'">'+(src?'<img src="'+esc(src)+'" alt="">':'<span>'+esc(((p&&p.display_name)||(S.profile&&S.profile.name)||"?").slice(0,1).toUpperCase())+'</span>')+'</span>'}
+function cpAvatarSrc(){var a=S.profile&&S.profile.avatar;if(a)return "/_blob/"+a;return (W.p&&W.p.avatar_url)||""}
+function cpTabs(){var t=W.cpTab||"profile";return '<div class="cp-tabs" role="tablist">'+[["profile","Profile"],["page","Public page"],["settings","Settings"]].map(function(x){return '<button role="tab" data-act="cp_tab" data-id="'+x[0]+'" aria-selected="'+(t===x[0])+'">'+x[1]+'</button>'}).join("")+'</div>'}
+function cpLinkCard(){
+  var p=W.p;
+  if(!(p.exists&&p.is_public))return '<div class="panel"><h3>Your link</h3><p class="muted" style="margin:0;font-size:13.5px">'+(p.exists?"Your page is private. Switch on “Make this page public” and save to get a link.":"Pick your link name and save to create your page.")+'</p></div>';
+  return '<div class="panel"><h3>Your link</h3><p class="cp-url">'+esc(cpLink())+'</p><div class="drow"><button class="btn pri sm" data-act="cp_copy">Copy link</button><button class="btn sm" data-act="cp_open">Open page</button><button class="btn sm" data-act="cp_shareimg">Share as image</button></div></div>';
+}
 function cpHTML(){
   if(!W.pLoaded){cpLoad();return hero("cp","Profile & settings",null,"")+'<p class="muted">Loading…</p>'}
-  var p=W.p,mode=themeMode();
-  var h=hero("cp","Profile & settings",null,'<button class="btn pri" data-act="cp_save"'+(W.pSaving?" disabled":"")+'>'+(W.pSaving?"Saving…":"Save")+'</button>');
+  var p=W.p,mode=themeMode(),tab=W.cpTab||"profile";
+  var save=tab==="settings"?"":'<button class="btn pri" data-act="cp_save"'+(W.pSaving?" disabled":"")+'>'+(W.pSaving?"Saving…":"Save changes")+'</button>';
+  var h=hero("cp","Profile & settings",null,save)+cpTabs();
   if(W.pErr)h+='<p class="ac-errmsg">'+esc(W.pErr)+'</p>';
-  h+='<div class="cp-grid"><div class="cp-form" style="display:flex;flex-direction:column;gap:14px">'+
-    '<section class="panel cp-form"><h3>Your handles</h3><p class="muted" style="margin:-4px 0 6px;font-size:14px">Add the accounts people can find you on. They show on your public page.</p>'+hdRows()+'</section>'+
-    '<section class="panel cp-form"><h3>Public page</h3>'+
-    '<div class="prow"><span class="av lg" id="cpavprev">'+(p.avatar_url?'<img src="'+esc(p.avatar_url)+'" alt="">':esc((p.display_name||"?").slice(0,1).toUpperCase()))+'</span><div class="pbtns"><button class="btn sm" data-act="cp_avatar">Upload photo</button><button class="btn sm" data-act="cp_avrm"'+(p.avatar_url?"":" disabled")+'>Remove</button></div></div>'+
-    '<label class="plab">Your link<span class="cp-pre"><i>/u/</i><input class="in" data-w="p.handle" maxlength="24" value="'+esc(p.handle)+'" placeholder="yourname" autocapitalize="none" spellcheck="false"></span></label>'+
-    '<label class="plab">Name<input class="in" data-w="p.display_name" maxlength="60" value="'+esc(p.display_name)+'"></label>'+
-    '<label class="plab">Tagline<input class="in" data-w="p.tagline" maxlength="90" value="'+esc(p.tagline)+'" placeholder="What you make, in one line"></label>'+
-    '<label class="plab">About<textarea class="in" data-w="p.bio" rows="4" maxlength="600" placeholder="A few lines about you and your work">'+esc(p.bio)+'</textarea></label>'+
-    lookPanel()+'<label class="cp-pub"><input type="checkbox" data-act="cp_pub"'+(p.is_public?" checked":"")+'> Make this page public</label>'+
-    '<p id="cpmsg" class="aud-msg" role="status">'+esc(W.pMsg)+'</p></section>'+kitPanel()+(window.__WS?'':shPanel())+'</div>'+
-    '<aside class="cp-side"><div class="panel"><h3>Preview</h3><div id="cppv">'+cpPreviewHTML()+'</div></div>'+
-    '<div class="panel"><h3>Your link</h3>'+(p.exists&&p.is_public?'<p class="cp-url">'+esc(cpLink())+'</p><div class="drow"><button class="btn pri" data-act="cp_copy">Copy link</button><button class="btn" data-act="cp_open">Open page</button></div><div class="drow"><button class="btn" data-act="cp_shareimg">Share as image</button></div>':'<p class="muted" style="margin:0">'+(p.exists?'Your page is private. Turn on "Make this page public" and save to get a link.':'Save to get a link.')+'</p>')+
-    '<p class="muted" style="font-size:13px;margin:12px 0 0">Channels you switch on in Audience show here with their latest numbers.</p></div>'+
-    '<div class="panel"><h3>Settings</h3>'+
-    '<div class="setrow"><span>Appearance</span><div class="hd-seg" role="group" aria-label="Appearance">'+[["auto","Auto"],["light","Light"],["dark","Dark"]].map(function(o){return '<button data-act="ms_theme" data-id="'+o[0]+'" aria-pressed="'+(mode===o[0])+'">'+o[1]+'</button>'}).join("")+'</div></div>'+
-    '<div class="setrow"><span>Sounds</span><div class="hd-seg" role="group" aria-label="Sounds">'+[["on","On"],["off","Off"]].map(function(o){return '<button data-act="snd" data-id="'+o[0]+'" aria-pressed="'+((o[0]==="on")===sndOn())+'">'+o[1]+'</button>'}).join("")+'</div></div>'+
-    '<div class="setrow"><span>Sharing</span><button class="btn sm" data-act="sharehelp">Teammates and sharing</button></div>'+
-    '<div class="setrow"><span>Your data</span><button class="btn sm" data-act="datadlg">Backup and export</button></div>'+
-    '<div class="setrow"><span>Signed in as</span><b>'+esc(window.__EMAIL||"")+'</b></div>'+
-    pushPanel()+'<div class="drow"><button class="btn" data-act="cp_pw">Email me a password reset</button><button class="btn" data-act="signout">Sign out</button></div></div></aside></div>'+
-    '<input type="file" id="cpfile" accept="image/*" hidden>';
-  return h;
+  if(W.pMsg&&tab!=="settings")h+='<p id="cpmsg" class="cp-note" role="status">'+esc(W.pMsg)+'</p>';else h+='<p id="cpmsg" class="cp-note" role="status" hidden></p>';
+  if(tab==="profile"){
+    h+='<div class="cp-grid"><div class="cp-main">'+
+      '<section class="panel"><h3>You</h3><div class="cp-me">'+cpAvatarHTML("xl")+'<div class="cp-mebtn"><button class="btn sm" data-act="cp_avatar">'+(cpAvatarSrc()?"Change photo":"Upload photo")+'</button>'+(cpAvatarSrc()?'<button class="btn sm" data-act="cp_avrm">Remove</button>':'')+'<small class="muted">Used everywhere: sidebar, team, public page.</small></div></div>'+
+      '<div class="cp-two"><label class="plab">Name<input class="in" data-w="p.display_name" maxlength="60" value="'+esc(p.display_name||(S.profile&&S.profile.name)||"")+'"></label>'+
+      '<label class="plab">Role<input class="in" data-w="s.role" maxlength="40" value="'+esc((S.profile&&S.profile.role)||"")+'" placeholder="Creator, editor, podcaster…"></label></div>'+
+      '<label class="plab">Tagline<input class="in" data-w="p.tagline" maxlength="90" value="'+esc(p.tagline)+'" placeholder="What you make, in one line"></label>'+
+      '<label class="plab">About<textarea class="in" data-w="p.bio" rows="3" maxlength="600" placeholder="A few lines about you and your work">'+esc(p.bio)+'</textarea></label></section>'+
+      '<section class="panel"><h3>Where people find you</h3>'+hdRows()+'</section></div>'+
+      '<aside class="cp-side"><div class="panel"><h3>Preview</h3><div id="cppv">'+cpPreviewHTML()+'</div></div>'+cpLinkCard()+'</aside></div>';
+  }else if(tab==="page"){
+    h+='<div class="cp-grid"><div class="cp-main">'+
+      '<section class="panel"><h3>Your page</h3>'+
+      '<label class="plab">Link<span class="cp-pre"><i>'+esc(location.host)+'/u/</i><input class="in" data-w="p.handle" maxlength="24" value="'+esc(p.handle)+'" placeholder="yourname" autocapitalize="none" spellcheck="false"></span></label>'+
+      '<label class="cp-sw"><input type="checkbox" data-act="cp_pub"'+(p.is_public?" checked":"")+'><span><b>Make this page public</b><small>Anyone with the link can see your name, photo, handles and the channels you choose in Audience.</small></span></label>'+
+      lookPanel()+'</section>'+kitPanel()+'</div>'+
+      '<aside class="cp-side"><div class="panel"><h3>Preview</h3><div id="cppv">'+cpPreviewHTML()+'</div></div>'+cpLinkCard()+'</aside></div>';
+  }else{
+    h+='<div class="cp-set">'+
+      '<section class="panel"><h3>Appearance</h3>'+
+      '<div class="setrow"><span>Theme</span><div class="hd-seg" role="group" aria-label="Appearance">'+[["auto","Auto"],["light","Light"],["dark","Dark"]].map(function(o){return '<button data-act="ms_theme" data-id="'+o[0]+'" aria-pressed="'+(mode===o[0])+'">'+o[1]+'</button>'}).join("")+'</div></div>'+
+      '<div class="setrow"><span>Sounds</span><div class="hd-seg" role="group" aria-label="Sounds">'+[["on","On"],["off","Off"]].map(function(o){return '<button data-act="snd" data-id="'+o[0]+'" aria-pressed="'+((o[0]==="on")===sndOn())+'">'+o[1]+'</button>'}).join("")+'</div></div></section>'+
+      '<section class="panel"><h3>Phone alerts</h3>'+pushPanel().replace('>Alerts<p','><p')+'</section>'+
+      (window.__WS?'':shPanel())+
+      '<section class="panel"><h3>Account</h3>'+
+      '<div class="setrow"><span>Signed in as</span><b>'+esc(window.__EMAIL||"")+'</b></div>'+
+      '<div class="setrow"><span>Your data</span><button class="btn sm" data-act="datadlg">Backup and export</button></div>'+
+      '<div class="setrow"><span>Password</span><button class="btn sm" data-act="cp_pw">Email me a reset link</button></div>'+
+      '<div class="setrow"><span>Sign out of this device</span><button class="btn sm" data-act="signout">Sign out</button></div></section></div>';
+  }
+  return h+'<input type="file" id="cpfile" accept="image/*" hidden>';
 }
 function kitRows(title,key,arr,ph1,ph2,max,hint){
   var h='<div class="kt-blk"><div class="kt-h"><b>'+title+'</b>'+(arr.length<max?'<button class="btn sm" data-act="kit_add" data-id="'+key+'">Add</button>':"")+'</div>';
@@ -415,7 +439,7 @@ function shPanel(){
   return h+'</section>';
 }
 function shWsKey(){return "cs-ws-"+window.__UID}
-function cpMsg(t){W.pMsg=t||"";var e=$("cpmsg");if(e)e.textContent=W.pMsg}
+function cpMsg(t){W.pMsg=t||"";var e=$("cpmsg");if(e){e.textContent=W.pMsg;e.hidden=!W.pMsg}}
 function cpPreviewPaint(){var e=$("cppv");if(e)e.innerHTML=cpPreviewHTML();var a=$("cpavprev");if(a&&W.p){a.innerHTML=W.p.avatar_url?'<img src="'+esc(W.p.avatar_url)+'" alt="">':esc((W.p.display_name||"?").slice(0,1).toUpperCase())}}
 function kitClean(k){
   k=normKit(k);
@@ -532,7 +556,8 @@ function webAct(a,b){
     case "cp_ldel":W.p.links.splice(+id,1);render();return true;
     case "cp_pub":W.p.is_public=!!b.checked;return true;
     case "cp_avatar":{var f=$("cpfile");if(f)f.click();return true}
-    case "cp_avrm":W.p.avatar_url="";render();return true;
+    case "cp_tab":W.cpTab=id;W.pMsg="";render();return true;
+    case "cp_avrm":W.p.avatar_url="";if(S.profile){S.profile.avatar="";touch()}if(typeof paintProfile==="function")paintProfile();if(W.p.exists)WSB.from("profiles").update({avatar_url:null}).eq("user_id",window.__UID).then(function(){});render();return true;
     case "cp_copy":copy(cpLink());return true;
     case "cp_open":window.open(cpLink(),"_blank","noopener");return true;
     case "cp_pw":WSB.auth.resetPasswordForEmail(window.__EMAIL||"",{redirectTo:location.origin}).then(function(r){toast(r.error?"Couldn't send the email":"Reset link sent to your email")});return true;
@@ -555,7 +580,8 @@ document.addEventListener("input",function(e){
     if(kp.length===2)kk[kp[1]]=t.value;
     else if(kp[1]==="b"){if(kk.brands[+kp[2]])kk.brands[+kp[2]][kp[3]]=t.value}
     else{var ka=kp[1]==="r"?kk.rates:kk.stats;if(ka[+kp[2]])ka[+kp[2]][+kp[3]]=t.value}}
-  else if(w.indexOf("p.")===0&&W.p){W.p[w.slice(2)]=t.value;cpPreviewPaint()}
+  else if(w==="s.role"){S.profile=S.profile||{};S.profile.role=t.value;touch();if(typeof paintProfile==="function")paintProfile()}
+  else if(w.indexOf("p.")===0&&W.p){W.p[w.slice(2)]=t.value;if(w==="p.display_name"){S.profile=S.profile||{};S.profile.name=t.value;touch();if(typeof paintProfile==="function")paintProfile()}cpPreviewPaint()}
   else if(w.indexOf("l.")===0&&W.p){var m=w.split(".");var l=W.p.links[+m[1]];if(l){l[m[2]]=t.value;cpPreviewPaint()}}
 });
 document.addEventListener("change",function(e){
@@ -566,7 +592,9 @@ document.addEventListener("change",function(e){
     if(f.size>5*1048576){toast("Choose a photo under 5 MB");return}
     if(!assets){toast("Uploads aren't ready yet");return}
     toast("Uploading…");
-    assets.upload(f).then(function(r){W.p.avatar_url=r.url;render();toast("Photo added. Save the page to publish it.")}).catch(function(){toast("Upload failed. Try again.")});
+    assets.upload(f).then(function(r){W.p.avatar_url=r.url;if(S.profile){S.profile.avatar=r.id;touch()}if(typeof paintProfile==="function")paintProfile();
+      if(W.p.exists)WSB.from("profiles").update({avatar_url:r.url}).eq("user_id",window.__UID).then(function(){});
+      render();toast("Photo updated")}).catch(function(){toast("Upload failed. Try again.")});
   }
 });
 

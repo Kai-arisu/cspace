@@ -1555,7 +1555,7 @@ function setMode(m){
   paintTheme();
 }
 function initials(n){var w=String(n||"").trim().split(/\s+/).filter(Boolean);return w.length?(w[0][0]+(w.length>1?w[w.length-1][0]:"")).toUpperCase():"?"}
-function avHTML(){var p=S.profile||{};return p.avatar?'<img src="/_blob/'+esc(p.avatar)+'" alt="">':'<span>'+esc(initials(p.name))+'</span>'}
+function avHTML(){var p=S.profile||{},src=p.avatar?"/_blob/"+p.avatar:((typeof W!=="undefined"&&W.p&&W.p.avatar_url)||"");return src?'<img src="'+esc(src)+'" alt="">':'<span>'+esc(initials(p.name))+'</span>'}
 function paintProfile(){
   var p=S.profile||{},c=$("pcard"),b=$("pavbtn");
   if(c)c.innerHTML='<span class="av">'+avHTML()+'</span><span class="pt"><b>'+esc(p.name||"Your name")+'</b><i>'+esc(p.role||"Add your role")+'</i></span><span class="pc">'+I("chevd")+'</span>';

@@ -3,6 +3,7 @@ const fake=require('./fakesb.js')();const site=path.join(process.cwd(),'public')
 const csp=fs.readFileSync(site+'/_headers','utf8').match(/Content-Security-Policy: (.*)/)[1];
 const srv=http.createServer((req,res)=>{let u=req.url.split('?')[0];if(u==='/')u='/index.html';const f=path.join(site,u);if(!fs.existsSync(f)){res.writeHead(404);return res.end('nf')}const ext=path.extname(f);res.writeHead(200,{'content-type':ext==='.html'?'text/html':ext==='.js'?'application/javascript':ext==='.woff2'?'font/woff2':'text/plain','content-security-policy':csp});res.end(fs.readFileSync(f))});
 let fail=0;const ok=(c,m)=>{console.log((c?'PASS ':'FAIL ')+m);if(!c)fail++};
+const tab=async(pg,t)=>{await pg.evaluate(t=>{var b=document.querySelector('[data-act="cp_tab"][data-id="'+t+'"]');if(b)b.click()},t);await pg.waitForTimeout(300)};
 (async()=>{await new Promise(r=>srv.listen(0,r));const b=await chromium.launch();const ctx=await b.newContext({viewport:{width:1280,height:800}});
 await ctx.route('https://ohkecamneutxggqwhend.supabase.co/**',fake.handle);await ctx.route(/fonts\.googleapis/,r=>r.abort());
 const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
@@ -21,7 +22,7 @@ await p.click('[data-act="qtoggle"]');await p.click('[data-act="qtask"]');await 
 // timer
 await p.click('#nav [data-id="home"]');await p.waitForTimeout(300);await p.click('#tdfocus [data-act="ftoggle"]');await p.waitForTimeout(1300);ok(!/^25:00$/.test(await p.textContent('#ftt2')),'timer counts down');ok(await p.locator('#ftt').isVisible(),'running timer shows in the top bar');
 // theme
-const t0=await p.evaluate(()=>document.documentElement.dataset.theme);await p.click('#nav [data-id="cp"]');await p.waitForTimeout(500);await p.click('[data-act="ms_theme"][data-id="'+(t0==='dark'?'light':'dark')+'"]');await p.waitForTimeout(200);ok(t0!==await p.evaluate(()=>document.documentElement.dataset.theme),'theme toggles');
+const t0=await p.evaluate(()=>document.documentElement.dataset.theme);await p.click('#nav [data-id="cp"]');await p.waitForTimeout(500);await tab(p,'settings');await p.click('[data-act="ms_theme"][data-id="'+(t0==='dark'?'light':'dark')+'"]');await p.waitForTimeout(200);ok(t0!==await p.evaluate(()=>document.documentElement.dataset.theme),'theme toggles');
 // palette
 await p.keyboard.press('Control+k');await p.waitForTimeout(300);ok(await p.locator('.pal,.palbox,[role=dialog]').count()>0,'command palette opens');await p.keyboard.press('Escape');
 // bell

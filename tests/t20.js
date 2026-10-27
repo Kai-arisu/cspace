@@ -6,6 +6,7 @@ const srv=http.createServer((req,res)=>{let u=req.url.split('?')[0];if(u.startsW
   const f=path.join(site,u);if(!fs.existsSync(f)){res.writeHead(404);return res.end('nf')}
   const ext=path.extname(f);res.writeHead(200,{'content-type':ext==='.html'?'text/html':ext==='.js'?'application/javascript':'text/plain','content-security-policy':csp});res.end(fs.readFileSync(f))});
 let fail=0;const ok=(c,m)=>{console.log((c?'PASS ':'FAIL ')+m);if(!c)fail++};
+const tab=async(pg,t)=>{await pg.evaluate(t=>{var b=document.querySelector('[data-act="cp_tab"][data-id="'+t+'"]');if(b)b.click()},t);await pg.waitForTimeout(300)};
 (async()=>{await new Promise(r=>srv.listen(0,r));const origin='http://localhost:'+srv.address().port;
 const b=await chromium.launch();
 async function mkctx(){const ctx=await b.newContext({viewport:{width:1200,height:900}});await ctx.route('https://ohkecamneutxggqwhend.supabase.co/**',fake.handle);await ctx.route(/fonts\.(googleapis|gstatic)\.com/,r=>r.abort());return ctx}
@@ -62,10 +63,10 @@ st.ytConfigured=false;await p.click('[data-act="aud_refresh"]');await p.waitForT
 ok(await p.locator('.aud-setup').count()===1,'setup steps shown when key missing');st.ytConfigured=true;
 // creator page
 await p.click('[data-act="view"][data-id="cp"]');await p.waitForTimeout(1000);
-await p.fill('[data-w="p.handle"]','abhinav_c');await p.fill('[data-w="p.display_name"]','Abhinav C');await p.fill('[data-w="p.tagline"]','Making things');
+await tab(p,'page');await p.fill('[data-w="p.handle"]','abhinav_c');await tab(p,'profile');await p.fill('[data-w="p.display_name"]','Abhinav C');await p.fill('[data-w="p.tagline"]','Making things');
 await p.click('[data-act="cp_ladd"]');await p.waitForTimeout(200);
 await p.fill('[data-w="l.0.label"]','Site');await p.fill('[data-w="l.0.url"]','https://example.com');
-await p.check('[data-act="cp_pub"]');await p.click('[data-act="cp_save"]');await p.waitForTimeout(1000);
+await tab(p,'page');await p.check('[data-act="cp_pub"]');await p.click('[data-act="cp_save"]');await p.waitForTimeout(1000);
 ok(st.tables.profiles.length===1&&st.tables.profiles[0].is_public===true,'profile saved public');
 await p.screenshot({path:'f-cp.png'});
 // public page in a fresh context
@@ -85,7 +86,7 @@ ok((await p.textContent('#cppv')).includes('Instagram'),'handle shows in preview
 ok(!(await p.textContent('#nav')).includes('Video editor'),'video editor removed from menu');
 await p.click('[data-act="cp_save"]');await p.waitForTimeout(800);
 ok(st.tables.profiles.some(r=>(r.links||[]).some(l=>l.label==='Instagram'&&l.url==='https://instagram.com/mygram')),'handle saved as link');
-await p.click('main [data-act="signout"]');await p.click('main [data-act="signout"]');await p.waitForTimeout(1500);
+await tab(p,'settings');await p.click('main [data-act="signout"]');await p.click('main [data-act="signout"]');await p.waitForTimeout(1500);
 ok(await p.locator('#authgate .ag-card').isVisible(),'back at login after sign out');
 // sign in again keeps data
 await p.fill('#agemail','creator@example.com');await p.fill('#agpass','supersecret1');await p.click('#aggo');await p.waitForTimeout(2500);

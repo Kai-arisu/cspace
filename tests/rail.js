@@ -3,6 +3,7 @@ const fake=require('./fakesb.js')();const site=path.join(process.cwd(),'public')
 const csp=fs.readFileSync(site+'/_headers','utf8').match(/Content-Security-Policy: (.*)/)[1];
 const srv=http.createServer((req,res)=>{let u=req.url.split('?')[0];if(u==='/')u='/index.html';const f=path.join(site,u);if(!fs.existsSync(f)){res.writeHead(404);return res.end('nf')}const ext=path.extname(f);res.writeHead(200,{'content-type':ext==='.html'?'text/html':ext==='.js'?'application/javascript':ext==='.woff2'?'font/woff2':'text/plain','content-security-policy':csp});res.end(fs.readFileSync(f))});
 let fail=0;const ok=(c,m)=>{console.log((c?'PASS ':'FAIL ')+m);if(!c)fail++};
+const tab=async(pg,t)=>{await pg.evaluate(t=>{var b=document.querySelector('[data-act="cp_tab"][data-id="'+t+'"]');if(b)b.click()},t);await pg.waitForTimeout(300)};
 (async()=>{await new Promise(r=>srv.listen(0,r));const b=await chromium.launch();const ctx=await b.newContext({viewport:{width:1280,height:800}});
 await ctx.route('https://ohkecamneutxggqwhend.supabase.co/**',fake.handle);await ctx.route(/fonts\.googleapis/,r=>r.abort());
 const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));p.on('console',m=>{if(/Content Security|Refused/.test(m.text()))errs.push(m.text())});
@@ -23,7 +24,7 @@ await p.keyboard.press('[');await p.waitForTimeout(600);
 ok(await p.locator('.app.rail').count()===0,'[ key expands');
 // sound switch
 await p.click('[data-act="profile"]');await p.waitForTimeout(300);
-await p.click('[data-act="snd"][data-id="off"]');await p.waitForTimeout(200);
+await tab(p,'settings');await p.click('[data-act="snd"][data-id="off"]');await p.waitForTimeout(200);
 ok(await p.evaluate(()=>localStorage.getItem('cs-sound'))==='off','sounds can be switched off');
 const played=await p.evaluate(()=>{window.__n=0;var C=window.AudioContext;var o=C.prototype.createOscillator;C.prototype.createOscillator=function(){window.__n++;return o.apply(this,arguments)};return 1});
 await p.click('#railbtn');await p.waitForTimeout(300);
