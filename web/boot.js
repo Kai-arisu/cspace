@@ -23,10 +23,11 @@ function mapErr(e){
   if(e&&/quota|storage limit|exceeded the maximum/i.test(msg))code="quota_exceeded";
   return {code:code,message:msg};
 }
-function makeDb(uid,owner){
-  owner=owner||uid;
+function makeDb(uid,owner,pfx){
+  owner=owner||uid;pfx=pfx||"";
   function snap(d){return {exists:d!==undefined,data:function(){return d},metadata:{hasPendingWrites:false}}}
-  function doc(path){
+  function doc(p0){
+    var path=pfx+p0;
     var ref={
       path:path,
       get:async function(){
@@ -69,8 +70,8 @@ function makeDb(uid,owner){
     };
     return ref;
   }
-  function collection(path){
-    var q={};
+  function collection(p0){
+    var path=pfx+p0,q={};
     var o={
       where:function(f,op,v){q.where=[f,op,v];return o},
       orderBy:function(f,d){q.order=f;q.dir=d;return o},
@@ -280,10 +281,12 @@ async function pickWorkspace(u){
   var ws=null;
   try{ws=JSON.parse(localStorage.getItem("cs-ws-"+u.id)||"null")}catch(e){}
   if(!ws||!ws.owner)return null;
+  /* one of my own private spaces, opened on its own */
+  if(ws.owner===u.id&&ws.space&&/^[A-Za-z0-9_-]{1,40}$/.test(ws.space))return {owner:u.id,role:"editor",label:ws.label||"Private space",space:ws.space,self:true};
   try{
     var r=await SB.rpc("list_workspaces");
-    var hit=(r.data||[]).filter(function(x){return x.owner_id===ws.owner})[0];
-    if(hit)return {owner:hit.owner_id,role:hit.role,label:hit.owner_email};
+    var hit=(r.data||[]).filter(function(x){return x.owner_id===ws.owner&&(x.space_id||"")===(ws.space||"")})[0];
+    if(hit)return {owner:hit.owner_id,role:hit.role,label:hit.owner_email+(hit.space_id&&ws.label?" · "+ws.label:""),space:hit.space_id||"",self:false};
   }catch(e){}
   try{localStorage.removeItem("cs-ws-"+u.id)}catch(e){}
   return null;
@@ -292,12 +295,13 @@ async function startApp(session){
   var u=session.user;
   window.__UID=u.id;window.__EMAIL=u.email||"";window.__USER=u;
   var ws=await pickWorkspace(u);window.__WS=ws;
-  var db=makeDb(u.id,ws&&ws.owner),assets=makeAssets(u.id),user=makeUser(u.id,ws&&ws.role);
+  window.__mkdb=function(p){return makeDb(u.id,ws&&ws.owner,p||"")};
+  var db=makeDb(u.id,ws&&ws.owner,ws&&ws.space?"sp/"+ws.space+"/":""),assets=makeAssets(u.id),user=makeUser(u.id,ws&&ws.role);
   window.claude={use:async function(n){
     if(n==="db")return db;if(n==="assets")return assets;if(n==="user")return user;return null;
   }};
   root.className="";$("authgate").hidden=true;
-  var src=$("appjs").textContent.replace('var LS="creator-space-v1";','var LS="creator-space-v1-'+u.id+(ws?'-via-'+ws.owner:'')+'";');
+  var src=$("appjs").textContent.replace('var LS="creator-space-v1";','var LS="creator-space-v1-'+u.id+(ws?'-via-'+ws.owner+(ws.space?'-sp-'+ws.space:''):'')+'";');
   var s=document.createElement("script");s.textContent=src;document.body.appendChild(s);
 }
 window.__signOut=async function(){try{await SB.auth.signOut()}catch(e){}location.replace("/")};

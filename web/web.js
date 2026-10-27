@@ -43,10 +43,11 @@ function railSet(on,quiet){
   if(!quiet)sound(on?"collapse":"expand");
 }
 function wsBar(){
-  if(!window.__WS||$("wsbar"))return;
-  var d=document.createElement("div");d.id="wsbar";d.className="wsbar";
-  d.innerHTML='<span>Viewing <b>'+esc(window.__WS.label||"a shared workspace")+'</b> as '+(window.__WS.role==="editor"?"editor":"viewer")+'</span><button data-act="sh_home">Back to mine</button>';
-  document.body.appendChild(d);
+  if(!window.__WS)return;
+  var d=$("wsbar")||document.createElement("div"),fresh=!d.parentNode;d.id="wsbar";d.className="wsbar";
+  var W0=window.__WS,sn=W0.space&&S.spaces[0]?S.spaces[0].name:"",who=W0.self?"Working in <b>"+esc(sn||W0.label||"a private space")+"</b>":"Viewing <b>"+esc(sn?sn+" · "+String(W0.label||"").split(" · ")[0]:(W0.label||"a shared workspace"))+"</b> as "+(W0.role==="editor"?"editor":"viewer");
+  d.innerHTML='<span>'+who+'</span><button data-act="sh_home">'+(W0.self?"Back to my workspace":"Back to mine")+'</button>';
+  if(fresh)document.body.appendChild(d);
 }
 function webCrumb(){wsBar();var sb=document.getElementById("sharebtn");if(sb){sb.title="Share your public page";sb.setAttribute("aria-label","Share your public page")}
   var v=vmeta(S.view),el=$("crumb");if(!v)return;
@@ -374,7 +375,7 @@ function kitPanel(){
     '<p class="muted" style="font-size:13px;margin:0">The kit is shown only when your page is public and this is switched on. Remember to press Save.</p></section>';
 }
 /* ---------- teammates ---------- */
-var SH={loaded:false,loading:false,list:[],ws:[],email:"",role:"editor",msg:""};
+var SH={loaded:false,loading:false,list:[],ws:[],email:"",role:"editor",space:"",msg:""};
 async function shLoad(){
   if(SH.loading)return;SH.loading=true;
   try{
@@ -385,14 +386,26 @@ async function shLoad(){
   SH.loaded=true;SH.loading=false;if(S.view==="cp")render();
 }
 function shMsg(t){SH.msg=t||"";var e=$("shmsg");if(e)e.textContent=SH.msg}
+function shSpaceName(id){
+  if(!id)return "Everything";
+  var f=(S.spaces||[]).concat(S.iso||[]).filter(function(x){return x.id===id})[0];return f?f.name:"A space";
+}
+function shIsIso(id){return (S.iso||[]).some(function(x){return x.id===id})}
+function shAccessOpts(sel){
+  var o='<option value=""'+(!sel?" selected":"")+'>Everything</option>';
+  (S.spaces||[]).forEach(function(x){o+='<option value="'+esc(x.id)+'"'+(sel===x.id?" selected":"")+'>Only '+esc(x.name)+'</option>'});
+  (S.iso||[]).forEach(function(x){o+='<option value="'+esc(x.id)+'"'+(sel===x.id?" selected":"")+'>Only '+esc(x.name)+' (private)</option>'});
+  return o;
+}
 function shPanel(){
-  var h='<section class="panel cp-form"><h3>Teammates</h3><p class="muted" style="margin:-4px 0 6px;font-size:14px">Let someone else work in your Creator Space. They sign in with the email you enter, then open your workspace from this page. They will see all of your spaces. Editors can change things. Viewers can only look.</p>'+
-    '<div class="sh-add"><input class="in" data-w="sh.email" type="email" maxlength="120" placeholder="teammate@email.com" value="'+esc(SH.email)+'" aria-label="Teammate email" autocapitalize="none" spellcheck="false"><select class="wsel" data-w="sh.role" aria-label="Role"><option value="editor"'+(SH.role==="editor"?" selected":"")+'>Editor</option><option value="viewer"'+(SH.role==="viewer"?" selected":"")+'>Viewer</option></select><button class="btn pri" data-act="sh_invite">Invite</button></div>'+
+  var h='<section class="panel cp-form"><h3>Teammates</h3><p class="muted" style="margin:-4px 0 6px;font-size:14px">Let someone else work in your Creator Space. They sign in with the email you enter, then open it from this page. Choose to share everything, or only one space. A single space is kept completely apart: they cannot see your other spaces. Editors can change things. Viewers can only look.</p>'+
+    '<div class="sh-add"><input class="in" data-w="sh.email" type="email" maxlength="120" placeholder="teammate@email.com" value="'+esc(SH.email)+'" aria-label="Teammate email" autocapitalize="none" spellcheck="false"><select class="wsel" data-w="sh.space" aria-label="What they can open">'+shAccessOpts(SH.space)+'</select><select class="wsel" data-w="sh.role" aria-label="Role"><option value="editor"'+(SH.role==="editor"?" selected":"")+'>Editor</option><option value="viewer"'+(SH.role==="viewer"?" selected":"")+'>Viewer</option></select><button class="btn pri" data-act="sh_invite">Invite</button></div>'+
     '<p id="shmsg" class="aud-msg" role="status">'+esc(SH.msg)+'</p>';
   if(!SH.loaded){shLoad();h+='<p class="muted">Loading…</p>'}
-  else if(SH.list.length)h+='<div class="sh-list">'+SH.list.map(function(x,i){return '<div class="sh-row"><span class="sh-em">'+esc(x.invitee_email)+'</span><select class="wsel" data-w="sh.r.'+i+'" aria-label="Role for '+esc(x.invitee_email)+'"><option value="editor"'+(x.role==="editor"?" selected":"")+'>Editor</option><option value="viewer"'+(x.role==="viewer"?" selected":"")+'>Viewer</option></select><span class="sh-btns"><button class="btn sm" data-act="sh_mail" data-id="'+i+'">Email invite</button><button class="btn sm" data-act="sh_del" data-id="'+esc(x.id)+'">Remove</button></span></div>'}).join("")+'</div>';
+  else if(SH.list.length)h+='<div class="sh-list">'+SH.list.map(function(x,i){return '<div class="sh-row"><span class="sh-em">'+esc(x.invitee_email)+'<small> · '+esc(shSpaceName(x.space_id))+'</small></span><select class="wsel" data-w="sh.r.'+i+'" aria-label="Role for '+esc(x.invitee_email)+'"><option value="editor"'+(x.role==="editor"?" selected":"")+'>Editor</option><option value="viewer"'+(x.role==="viewer"?" selected":"")+'>Viewer</option></select><span class="sh-btns"><button class="btn sm" data-act="sh_mail" data-id="'+i+'">Email invite</button><button class="btn sm" data-act="sh_del" data-id="'+esc(x.id)+'">Remove</button></span></div>'}).join("")+'</div>';
   else h+='<p class="muted" style="margin:0">No teammates yet.</p>';
-  if(SH.ws.length)h+='<h3 style="margin-top:18px">Shared with you</h3><div class="sh-list">'+SH.ws.map(function(w){return '<div class="sh-row"><span class="sh-em">'+esc(w.owner_email)+'<small> · '+(w.role==="editor"?"Editor":"Viewer")+'</small></span><button class="btn sm pri" data-act="sh_open" data-id="'+esc(w.owner_id)+'">Open</button><button class="btn sm" data-act="sh_leave" data-id="'+esc(w.owner_id)+'">Leave</button></div>'}).join("")+'</div>';
+  if((S.iso||[]).length)h+='<h3 style="margin-top:18px">Your private spaces</h3><p class="muted" style="margin:-4px 0 6px;font-size:13px">These are kept apart so they can be shared on their own. Open one to work in it.</p><div class="sh-list">'+S.iso.map(function(x){return '<div class="sh-row"><span class="sh-em">'+esc(x.name)+'</span><button class="btn sm pri" data-act="sh_openiso" data-id="'+esc(x.id)+'">Open</button></div>'}).join("")+'</div>';
+  if(SH.ws.length)h+='<h3 style="margin-top:18px">Shared with you</h3><div class="sh-list">'+SH.ws.map(function(w,i){return '<div class="sh-row"><span class="sh-em">'+esc(w.owner_email)+'<small> · '+(w.space_id?"One space · ":"")+(w.role==="editor"?"Editor":"Viewer")+'</small></span><button class="btn sm pri" data-act="sh_open" data-id="'+i+'">Open</button><button class="btn sm" data-act="sh_leave" data-id="'+i+'">Leave</button></div>'}).join("")+'</div>';
   return h+'</section>';
 }
 function shWsKey(){return "cs-ws-"+window.__UID}
@@ -422,6 +435,7 @@ async function cpSave(){
 function webAct(a,b){
   var id=b.dataset.id;
   switch(a){
+    case "spaceadd":case "delspace":case "renamespace":if(window.__WS&&window.__WS.space){toast("This space is managed from the owner's workspace");return true}return false;
     case "push_on":pushOn();return true;
     case "push_off":pushOff();return true;
     case "push_test":pushTest();return true;
@@ -454,10 +468,16 @@ function webAct(a,b){
       var em=String(SH.email||"").trim().toLowerCase();
       if(!/^\S+@\S+\.\S+$/.test(em)){shMsg("Enter a valid email address.");return true}
       if(em===String(window.__EMAIL||"").toLowerCase()){shMsg("That is your own email.");return true}
-      WSB.from("shares").upsert({owner_id:window.__UID,invitee_email:em,role:SH.role},{onConflict:"owner_id,invitee_email"}).then(function(r){
-        if(r.error){shMsg("Couldn't invite. "+r.error.message);return}
-        SH.email="";SH.loaded=false;shMsg("Added. Press \"Email invite\" next to their name to send them the details.");SH.loaded=false;shLoad();
-      });return true}
+      if(SH.space&&!shIsIso(SH.space)){
+        var sn=shSpaceName(SH.space);
+        if(S.spaces.length<2){shMsg("You need at least one other space to keep for yourself. Add another space first.");return true}
+        showInfo("Share only "+sn+"?",'<p style="margin:0 0 10px">To keep <b>'+esc(sn)+'</b> apart from your other spaces, it moves into its own private area. After that:</p><ul style="margin:0 0 12px;padding-left:20px;display:flex;flex-direction:column;gap:6px"><li>You open it from <b>Your private spaces</b> on this page.</li><li>It no longer shows in your main Overview, search or reminders.</li><li>Nothing is lost. Your notes, tasks, ideas and whiteboard come with it.</li></ul><div class="row"><button class="btn" data-act="dlgclose">Cancel</button><button class="btn pri" data-act="sh_isogo">Move and invite</button></div>');
+        return true}
+      shAdd(em,SH.role,SH.space);return true}
+    case "sh_isogo":{var gsp=SH.space,gem=String(SH.email||"").trim().toLowerCase(),grole=SH.role;infoHTML="";renderDialog();shMsg("Moving the space…");
+      isolateSpace(gsp).then(function(ok){if(ok)shAdd(gem,grole,gsp);else shMsg("Couldn't move the space. Nothing was changed.")});return true}
+    case "sh_openiso":{var ix=(S.iso||[]).filter(function(x){return x.id===id})[0];
+      try{localStorage.setItem(shWsKey(),JSON.stringify({owner:window.__UID,space:id,label:ix?ix.name:""}))}catch(e){}location.reload();return true}
     case "sh_mail":{var mx=SH.list[+id];if(!mx)return true;
       var who=(S.profile&&S.profile.name)||String(window.__EMAIL||"").split("@")[0],role=mx.role==="editor"?"edit":"view";
       var body="Hi,\n\n"+who+" invited you to "+role+" their Creator Space.\n\n1. Open "+location.origin+"\n2. Sign in (or create an account) with this email: "+mx.invitee_email+"\n3. Open the Handles page and choose "+who+"'s workspace under \"Shared with you\".\n\nSee you there.";
@@ -466,9 +486,9 @@ function webAct(a,b){
       try{navigator.clipboard&&navigator.clipboard.writeText(body).catch(function(){})}catch(e){}
       shMsg("Your email app opened with the invite. The text is also copied in case it didn't.");return true}
     case "sh_del":WSB.from("shares").delete().eq("id",id).then(function(r){if(r.error)shMsg("Couldn't remove.");else{SH.loaded=false;shLoad()}});return true;
-    case "sh_open":try{localStorage.setItem(shWsKey(),JSON.stringify({owner:id}))}catch(e){}location.reload();return true;
+    case "sh_open":{var ow=SH.ws[+id];if(!ow)return true;try{localStorage.setItem(shWsKey(),JSON.stringify({owner:ow.owner_id,space:ow.space_id||"",label:ow.space_id?"":""}))}catch(e){}location.reload();return true}
     case "sh_home":try{localStorage.removeItem(shWsKey())}catch(e){}location.reload();return true;
-    case "sh_leave":WSB.from("shares").delete().eq("owner_id",id).eq("invitee_email",String(window.__EMAIL||"").toLowerCase()).then(function(r){if(r.error)shMsg("Couldn't leave.");else{SH.loaded=false;shLoad()}});return true;
+    case "sh_leave":{var lw=SH.ws[+id];if(!lw)return true;var lq=WSB.from("shares").delete().eq("owner_id",lw.owner_id).eq("invitee_email",String(window.__EMAIL||"").toLowerCase());lq=lw.space_id?lq.eq("space_id",lw.space_id):lq.is("space_id",null);lq.then(function(r){if(r.error)shMsg("Couldn't leave.");else{SH.loaded=false;shLoad()}});return true}
     case "kit_on":W.p.kit.on=!!b.checked;return true;
     case "kit_add":{var kk=W.p.kit;if(id==="b")kk.brands.push({name:"",note:""});else kk[id==="r"?"rates":"stats"].push(["",""]);render();return true}
     case "kit_del":{var kd=id.split("."),kq=W.p.kit;(kd[0]==="b"?kq.brands:(kd[0]==="r"?kq.rates:kq.stats)).splice(+kd[1],1);render();return true}
@@ -500,6 +520,7 @@ document.addEventListener("input",function(e){
   if(w.indexOf("h.")===0&&W.p){hdSet(HANDLES[+w.slice(2)],t.value);cpPreviewPaint()}
   else if(w==="sh.email"){SH.email=t.value}
   else if(w==="sh.role"){SH.role=t.value}
+  else if(w==="sh.space"){SH.space=t.value}
   else if(w.indexOf("sh.r.")===0){var sx=SH.list[+w.slice(5)];if(sx){var nr=t.value;WSB.from("shares").update({role:nr}).eq("id",sx.id).then(function(r){if(r.error)shMsg("Couldn't change the role.");else{sx.role=nr;shMsg("Role updated.")}})}}
   else if(w.indexOf("k.")===0&&W.p){var kp=w.split("."),kk=W.p.kit;
     if(kp.length===2)kk[kp[1]]=t.value;
@@ -660,4 +681,49 @@ async function pushTest(){
   }catch(e){PUSH.msg="Couldn't send the test. Turn alerts on first."}
   PUSH.busy=false;pushMsg(PUSH.msg);
   var b=document.querySelector('[data-act="push_test"]');if(b)b.disabled=false;
+}
+
+
+/* ---- private spaces: move one space into its own locked area so it can be shared on its own ---- */
+function shAdd(em,role,space){
+  var row={owner_id:window.__UID,invitee_email:em,role:role,space_id:space||null,space_name:space?shSpaceName(space):null};
+  WSB.from("shares").upsert(row,{onConflict:"owner_id,invitee_email,space_key"}).then(function(r){
+    if(r.error){shMsg("Couldn't invite. "+r.error.message);return}
+    SH.email="";SH.loaded=false;shMsg('Added. Press "Email invite" next to their name to send them the details.');shLoad();
+  });
+}
+async function isolateSpace(id){
+  try{
+    var sp=S.spaces.filter(function(x){return x.id===id})[0];
+    if(!sp||S.spaces.length<2||shIsIso(id)||!window.__mkdb||window.__WS)return false;
+    var arr=["notes","ideas","tasks","mood","files","posts","clips","deals","income","invoices"],pre="sp/"+id+"/",pdb=window.__mkdb(pre);
+    var N={spaces:[clone(sp)],palette:{},bmeta:{},kit:{},cfg:clone(S.cfg||{}),profile:clone(S.profile||{}),focus:{},edit:{}};
+    arr.forEach(function(k){N[k]=S[k].filter(function(x){return x.sp===id}).map(clone)});
+    ["palette","bmeta","kit"].forEach(function(k){if(S[k]&&S[k][id])N[k][id]=clone(S[k][id])});
+    var sh=shards(N),keys={};
+    for(var k in sh){
+      keys[k]={n:sh[k].p.length,h:sh[k].h};
+      for(var i=0;i<sh[k].p.length;i++)await pdb.doc("store/k_"+k+"_"+i).set({s:sh[k].p[i],i:i});
+    }
+    await pdb.doc("store/meta").set({ts:Date.now(),dev:TAB,keys:keys,v:2});
+    var oldBd=[],rm=await db.doc("bd/"+id+"_m").get();
+    if(rm.exists){
+      var md=rm.data();
+      for(var j=0;j<md.n;j++){var d=await db.doc("bd/"+id+"_"+j).get();if(!d.exists)throw new Error("board");await pdb.doc("bd/"+id+"_"+j).set(d.data());oldBd.push("bd/"+id+"_"+j)}
+      await pdb.doc("bd/"+id+"_m").set(md);oldBd.push("bd/"+id+"_m");
+    }
+    var chk=await pdb.doc("store/meta").get();
+    if(!chk.exists)throw new Error("verify");
+    for(var q in keys){var c0=await pdb.doc("store/k_"+q+"_0").get();if(!c0.exists)throw new Error("verify")}
+    /* the copy is safe: now take it out of the main workspace */
+    arr.forEach(function(k){S[k]=S[k].filter(function(x){return x.sp!==id})});
+    ["palette","bmeta","kit"].forEach(function(k){if(S[k])delete S[k][id]});
+    S.spaces=S.spaces.filter(function(x){return x.id!==id});
+    if(!Array.isArray(S.iso))S.iso=[];S.iso.push({id:id,name:sp.name});
+    if(S.cur===id)S.cur=S.spaces[0].id;
+    try{localStorage.removeItem(wbKey(id))}catch(e){}
+    touch();render();
+    oldBd.forEach(function(pth){db.doc(pth).delete().catch(function(){})});
+    return true;
+  }catch(e){return false}
 }

@@ -1060,6 +1060,7 @@ function fix(){
   if(!S.cfg||typeof S.cfg!=="object")S.cfg={};if(!S.kit||typeof S.kit!=="object")S.kit={};
   if(!S.palette||typeof S.palette!=="object")S.palette={};
   if(!S.focus||typeof S.focus!=="object")S.focus={};
+  if(!Array.isArray(S.iso))S.iso=[];
   if(!S.bmeta||typeof S.bmeta!=="object")S.bmeta={};
   if(!S.spaces.length)S.spaces=d.spaces;
   if(!S.profile||typeof S.profile!=="object")S.profile={};
@@ -1512,8 +1513,8 @@ function renderChrome(){
     var n=S.tasks.filter(function(t){return t.sp===sp.id&&t.col!=="s"}).length;
     return '<button class="si-row" data-act="space" data-id="'+sp.id+'" aria-current="'+(sp.id===S.cur)+'" style="--c:'+spColor(sp.id)+'"><span class="dot"></span><span class="nm">'+esc(sp.name)+'</span><span class="ct" title="Open tasks">'+n+'</span></button>';
   }).join("");
-  $("addspace").innerHTML='<button class="sbtn" data-act="spaceadd"'+(readOnly?" disabled":"")+'>+ New space</button>';
-  $("spsel").innerHTML=S.spaces.map(function(sp){return '<option value="'+sp.id+'"'+(sp.id===S.cur?" selected":"")+'>'+esc(sp.name)+'</option>'}).join("")+'<option value="__new">+ New space…</option>';
+  $("addspace").innerHTML='<button class="sbtn" data-act="spaceadd"'+(readOnly||(window.__WS&&window.__WS.space)?" disabled":"")+'>+ New space</button>';
+  $("spsel").innerHTML=S.spaces.map(function(sp){return '<option value="'+sp.id+'"'+(sp.id===S.cur?" selected":"")+'>'+esc(sp.name)+'</option>'}).join("")+(window.__WS&&window.__WS.space?'':'<option value="__new">+ New space…</option>');
   var c={notes:mine("notes").length,ideas:mine("ideas").length,board:mine("tasks").filter(function(t){return t.col!=="s"}).length,plan:mine("tasks").filter(function(t){return t.col!=="s"&&t.due}).length,cal:mine("posts").filter(function(p){return p.status!=="published"}).length,clips:mine("clips").length,mood:mine("mood").length,library:mine("files").length};
   var lastG="";$("nav").innerHTML=VIEWS.map(function(v){
     var gh="";if(v.g&&v.g!==lastG){lastG=v.g;gh='<div class="slbl g">'+v.g+'</div>'}
@@ -3545,7 +3546,7 @@ document.addEventListener("input",function(e){
 document.addEventListener("change",function(e){
   var t=e.target;
   if(t.id==="spsel"){
-    if(t.value==="__new"){t.value=S.cur;if(!readOnly){addingSpace=true;renderDialog()}}
+    if(t.value==="__new"){t.value=S.cur;if(!readOnly&&!(window.__WS&&window.__WS.space)){addingSpace=true;renderDialog()}}
     else{S.cur=t.value;touch();render()}
   }
   if(t.dataset&&t.dataset.f==="due"){var k=findIn(S.tasks,t.dataset.id);if(k){k.due=t.value;touch();render()}}

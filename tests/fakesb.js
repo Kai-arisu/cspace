@@ -8,10 +8,10 @@ module.exports=function(){
   function session(u){const t=jwt(u);return {access_token:t,token_type:'bearer',expires_in:3600,expires_at:Math.floor(Date.now()/1000)+3600,refresh_token:'r_'+u.id,user:{id:u.id,aud:'authenticated',role:'authenticated',email:u.email,app_metadata:{},user_metadata:{},created_at:new Date().toISOString()}}}
   function uidOf(req){const a=req.headers()['authorization']||'';const m=a.match(/Bearer ([^ ]+)/);if(!m)return null;try{return JSON.parse(Buffer.from(m[1].split('.')[1],'base64url').toString()).sub||null}catch(e){return null}}
   function emailOf(uid){const u=st.users.find(u=>u.id===uid);return u?u.email.toLowerCase():null}
-  function shareFor(owner,uid){return st.tables.shares.find(x=>x.owner_id===owner&&x.invitee_email.toLowerCase()===emailOf(uid))}
+  function shareFor(owner,uid,path,edit){return st.tables.shares.find(x=>x.owner_id===owner&&x.invitee_email.toLowerCase()===emailOf(uid)&&(!edit||x.role==='editor')&&(!x.space_id||(typeof path==='string'&&path.startsWith('sp/'+x.space_id+'/'))))}
   function visible(t,row,uid){
     if(t==='shares')return row.owner_id===uid||row.invitee_email.toLowerCase()===emailOf(uid);
-    if(t==='docs'&&row.user_id!==uid&&uid&&shareFor(row.user_id,uid))return true;
+    if(t==='docs'&&row.user_id!==uid&&uid&&shareFor(row.user_id,uid,row.path))return true;
     if(t==='profiles')return row.user_id===uid||row.is_public;
     if(OWNER.includes(t)&&row.user_id===uid)return true;
     if(t==='connections')return row.show_public&&row.kind==='own'&&st.tables.profiles.some(p=>p.user_id===row.user_id&&p.is_public);
@@ -43,7 +43,7 @@ module.exports=function(){
     if(p==='/auth/v1/logout')return route.fulfill({status:204,headers:{'access-control-allow-origin':'*'}});
     if(p==='/auth/v1/recover')return J(200,{});
     if(p.startsWith('/rest/v1/rpc/acquire_lease')){return J(200,true)}
-    if(p.startsWith('/rest/v1/rpc/list_workspaces')){return J(200,st.tables.shares.filter(x=>x.invitee_email.toLowerCase()===emailOf(uid)).map(x=>({owner_id:x.owner_id,owner_email:emailOf(x.owner_id),role:x.role})))}
+    if(p.startsWith('/rest/v1/rpc/list_workspaces')){return J(200,st.tables.shares.filter(x=>x.invitee_email.toLowerCase()===emailOf(uid)).map(x=>({owner_id:x.owner_id,owner_email:emailOf(x.owner_id),role:x.role,space_id:x.space_id||null,space_name:x.space_name||null})))}
     if(p.startsWith('/rest/v1/')){
       const t=p.slice('/rest/v1/'.length);if(!st.tables[t])return J(404,{message:'no table'});
       const rows=st.tables[t],prefer=req.headers()['prefer']||'',acc=req.headers()['accept']||'';
@@ -61,8 +61,8 @@ module.exports=function(){
         const arr=Array.isArray(body)?body:[body],oc=(url.searchParams.get('on_conflict')||'').split(',').filter(Boolean),res=[];
         for(const b of arr){
           let row={...b};
-          if(t==='shares'){if(row.owner_id!==uid)return J(403,{code:'42501',message:'rls'});row.id=row.id||crypto.randomUUID()}
-          if(OWNER.includes(t)||t==='profiles'){if(!row.user_id)row.user_id=uid;const sh=t==='docs'&&row.user_id!==uid?shareFor(row.user_id,uid):null;if(row.user_id!==uid&&!(sh&&sh.role==='editor'))return J(403,{code:'42501',message:'new row violates row-level security policy'})}
+          if(t==='shares'){if(row.owner_id!==uid)return J(403,{code:'42501',message:'rls'});row.id=row.id||crypto.randomUUID();row.space_id=row.space_id||null;row.space_key=row.space_id||''}
+          if(OWNER.includes(t)||t==='profiles'){if(!row.user_id)row.user_id=uid;const sh=t==='docs'&&row.user_id!==uid?shareFor(row.user_id,uid,row.path,true):null;if(row.user_id!==uid&&!sh)return J(403,{code:'42501',message:'new row violates row-level security policy'})}
           if(t==='cal_tokens'){row.token=row.token||crypto.randomUUID()}
           if(t==='connections'){row.id=row.id||crypto.randomUUID();row.kind=row.kind||'own';row.show_public=row.show_public||false;row.created_at=row.created_at||new Date().toISOString();row.source=row.source||'api';row.status=row.status||'ok'}
           if(t==='snapshots'){row.id=st.snapId++;row.ts=row.ts||new Date().toISOString()}
@@ -75,7 +75,7 @@ module.exports=function(){
         return route.fulfill({status:201,headers:{'access-control-allow-origin':'*'},body:''});
       }
       if(method==='PATCH'){pick().forEach(r=>Object.assign(r,body));return route.fulfill({status:204,headers:{'access-control-allow-origin':'*'}})}
-      if(method==='DELETE'){const del=pick().filter(r=>r.user_id===uid||r.owner_id===uid||(t==='shares'&&r.invitee_email.toLowerCase()===emailOf(uid)));del.forEach(r=>rows.splice(rows.indexOf(r),1));
+      if(method==='DELETE'){const del=pick().filter(r=>r.user_id===uid||r.owner_id===uid||(t==='shares'&&r.invitee_email.toLowerCase()===emailOf(uid))||(t==='docs'&&shareFor(r.user_id,uid,r.path,true)));del.forEach(r=>rows.splice(rows.indexOf(r),1));
         if(t==='connections')del.forEach(d=>{['snapshots','videos'].forEach(x=>{st.tables[x]=st.tables[x].filter(r=>r.connection_id!==d.id)})});
         return route.fulfill({status:204,headers:{'access-control-allow-origin':'*'}})}
     }
