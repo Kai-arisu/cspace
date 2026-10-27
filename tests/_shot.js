@@ -8,4 +8,4 @@ await p.goto('http://localhost:'+srv.address().port+'/');await p.waitForTimeout(
 seed(fake,'q@x.co');await p.reload();await p.waitForTimeout(2200);
 for(const step of process.argv[3].split(';;')){await p.evaluate(step);await p.waitForTimeout(500)}
 if(process.argv[6])await p.evaluate(y=>{document.querySelectorAll('*').forEach(e=>{if(e.scrollHeight>e.clientHeight+50&&getComputedStyle(e).overflowY!=='visible')e.scrollTop=+y});window.scrollTo(0,+y)},process.argv[6]);
-await p.waitForTimeout(300);await p.screenshot({path:process.argv[2]});if(errs.length)console.log('ERR',errs);await b.close();srv.close()})();
+await p.waitForTimeout(300);if(process.env.PRINT)console.log(await p.evaluate(process.env.PRINT));await p.screenshot({path:process.argv[2]});if(errs.length)console.log('ERR',errs);await b.close();srv.close()})();

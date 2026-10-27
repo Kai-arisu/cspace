@@ -45,6 +45,15 @@ module.exports=function seed(fake,email,opt){opt=opt||{};
   const cid=crypto.randomUUID();
   fake.st.tables.connections.push({id:cid,user_id:uid,platform:'youtube',kind:'own',handle:'@cashtea',external_id:'UC'+'a'.repeat(22),title:'Cash Tea',avatar_url:null,url:'https://youtube.com/@cashtea',source:'api',show_public:true,status:'ok',created_at:new Date().toISOString(),goal:10000});
   for(let i=0;i<8;i++)fake.st.tables.snapshots.push({id:fake.st.snapId++,connection_id:cid,user_id:uid,ts:new Date(Date.now()-(7-i)*864e5).toISOString(),followers:8200+i*130,views:210000+i*5200,posts:42+i,extra:{}});
+  // 24 videos over 12 weeks: Saturday uploads and Shorts do better, one breakout
+  const titles=['Ladakh in 7 days','Street food in Bhopal','Budget travel hacks','What I pack','Night train to Goa','Rishikesh on ₹2000','Cafe hopping in Delhi','Spiti road trip','Kerala backwaters','Varanasi at dawn','Solo travel tips','Mumbai street food'];
+  for(let i=0;i<24;i++){const d=new Date(Date.now()-(i*3.5+1)*864e5);d.setHours(i%3===0?18:(i%3===1?9:14),0,0,0);const short=i%3===1;const sat=d.getDay()===6;
+    const base=short?42000:18000;const v=Math.round(base*(sat?1.7:1)*(1+((i*37)%10)/20)*(i===5?4:1));
+    fake.st.tables.videos.push({connection_id:cid,video_id:'v'+i,user_id:uid,title:(short?'#Shorts ':'')+titles[i%12]+(i>=12?' (part 2)':''),thumb:null,published_at:d.toISOString(),views:v,likes:Math.round(v*(short?0.06:0.045)),comments:Math.round(v*0.004),duration_s:short?45:540+i*20,updated_at:new Date().toISOString()})}
+  const wid=crypto.randomUUID();
+  fake.st.tables.connections.push({id:wid,user_id:uid,platform:'youtube',kind:'watch',handle:'@wanderer',external_id:'UC'+'b'.repeat(22),title:'Wanderer',avatar_url:null,url:'https://youtube.com/@wanderer',source:'api',show_public:false,status:'ok',created_at:new Date().toISOString(),last_synced:new Date().toISOString()});
+  fake.st.tables.snapshots.push({id:fake.st.snapId++,connection_id:wid,user_id:uid,ts:new Date().toISOString(),followers:120000,views:9000000,posts:300,extra:{}});
+  for(let i=0;i<10;i++){const d=new Date(Date.now()-(i*7+2)*864e5);fake.st.tables.videos.push({connection_id:wid,video_id:'w'+i,user_id:uid,title:'Wanderer video '+i,thumb:null,published_at:d.toISOString(),views:90000+i*3000,likes:4000,comments:300,duration_s:900,updated_at:new Date().toISOString()})}
   const mid=crypto.randomUUID();
   fake.st.tables.team_members.push({id:mid,owner_id:uid,name:'Mia Editor',email:'mia@x.co',role_title:'Video editor',kind:'salary',amount:30000,start_date:day(-60),end_date:null,can_login:true,see_pay:true,notes:null,status:'active',created_at:new Date().toISOString()});
   fake.st.tables.team_work.push({id:crypto.randomUUID(),owner_id:uid,member_id:mid,title:'Edit Ladakh vlog',due:day(1),status:'doing',done_at:null,created_at:new Date().toISOString()});

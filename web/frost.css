@@ -91,7 +91,7 @@ button.status:hover{background:var(--flat)}
 .ftimer[data-run="true"]{background:var(--ink)!important;color:var(--on-ink)}
 .ftb{background:var(--ink)!important;color:var(--on-ink)!important}
 .ftimer[data-run="true"] .ftb{background:var(--on-ink)!important;color:var(--ink)!important}
-#today,.today{display:none}
+#today{display:none}
 .ico{background:var(--flat);border:0;border-radius:50%;box-shadow:none}
 .ico:hover{background:var(--flat2)}
 kbd,.kcmd{background:var(--flat);border:0;font-family:var(--f-body);color:var(--muted)}
