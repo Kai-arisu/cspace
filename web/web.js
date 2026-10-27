@@ -7,7 +7,7 @@ ICONS.trend='<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>';
   VIEWS.splice(i+1,0,{id:"aud",name:"Audience",ic:"trend",c:"var(--c-viz)",desc:"Real numbers from your channels and pages."});
   var bi=VIEWS.map(function(v){return v.id}).indexOf("biz");
   VIEWS.splice(bi+1,0,{id:"team",name:"Team",ic:"team",c:"var(--c-board)",desc:"The people who work with you: their work, progress and pay."});
-  VIEWS.push({id:"cp",g:"You",name:"Handles",ic:"globe",c:"var(--c-home)",desc:"Where people find you."});
+  VIEWS.push({id:"cp",g:"You",name:"Profile & settings",ic:"globe",c:"var(--c-home)",desc:"Your public page, handles, alerts and account."});
   if(window.__WS)VIEWS=VIEWS.filter(function(v){return v.id!=="aud"&&v.id!=="cp"&&v.id!=="team"});
 })();
 
@@ -123,7 +123,7 @@ async function audLoad(quiet){
     W.conns=conns;W.snaps=snaps;W.vids=vids;W.loaded=true;W.err="";
   }catch(e){W.err="Couldn't load your channels. "+((e&&e.message)||"");if(!W.loaded)W.loaded=true}
   W.loading=false;
-  if(S.view==="aud")audPaint();
+  if(S.view==="aud"){if(!W.painted){W.painted=1;render()}else audPaint()}else if(S.view==="home"&&!(document.activeElement&&document.activeElement.id==="qcin"))render();
 }
 async function audRefresh(force){
   if(W.busy)return;W.busy=true;audPaintBtn();
@@ -216,9 +216,9 @@ function audListHTML(){
   return h;
 }
 function audHTML(){
-  var h=hero("aud","Audience",null,'<button class="btn" data-act="aud_refresh"'+(W.busy?" disabled":"")+'>'+(W.busy?"Refreshing…":"Refresh numbers")+'</button>');
+  var h=hero("aud","Audience",null,(W.loaded&&W.conns.length?'<button class="btn" data-act="aud_toggleadd">'+(W.showAdd?"Close":"+ Add channel")+'</button>':'')+'<button class="btn" data-act="aud_refresh"'+(W.busy?" disabled":"")+'>'+(W.busy?"Refreshing…":"Refresh numbers")+'</button>');
   if(!W.cfg)h+=audSetup();
-  h+=audFormHTML();
+  if(!W.loaded||!W.conns.length||W.showAdd)h+=audFormHTML();
   h+='<div id="audmsg" class="aud-msg" role="status">'+esc(W.msg)+'</div><div id="audlist">'+audListHTML()+'</div>';
   return h;
 }
@@ -332,9 +332,9 @@ async function cpShareImage(){
   if(window.csShare)window.csShare({name:p.display_name||p.handle,handle:p.handle,tagline:p.tagline,accent:p.accent,look:p.look,avatar:p.avatar_url,stats:stats});
 }
 function cpHTML(){
-  if(!W.pLoaded){cpLoad();return hero("cp","Handles",null,"")+'<p class="muted">Loading…</p>'}
+  if(!W.pLoaded){cpLoad();return hero("cp","Profile & settings",null,"")+'<p class="muted">Loading…</p>'}
   var p=W.p,mode=themeMode();
-  var h=hero("cp","Handles",null,'<button class="btn pri" data-act="cp_save"'+(W.pSaving?" disabled":"")+'>'+(W.pSaving?"Saving…":"Save")+'</button>');
+  var h=hero("cp","Profile & settings",null,'<button class="btn pri" data-act="cp_save"'+(W.pSaving?" disabled":"")+'>'+(W.pSaving?"Saving…":"Save")+'</button>');
   if(W.pErr)h+='<p class="ac-errmsg">'+esc(W.pErr)+'</p>';
   h+='<div class="cp-grid"><div class="cp-form" style="display:flex;flex-direction:column;gap:14px">'+
     '<section class="panel cp-form"><h3>Your handles</h3><p class="muted" style="margin:-4px 0 6px;font-size:14px">Add the accounts people can find you on. They show on your public page.</p>'+hdRows()+'</section>'+
@@ -451,6 +451,8 @@ function webAct(a,b){
     case "tm_mail":tmMail(id);return true;
     case "tm_wadd":tmWorkAdd(id);return true;
     case "tm_wdel":tmWorkDel(id);return true;
+    case "tk_assign":tkAssignDlg(id);return true;
+    case "tk_assignto":tkAssign(b.dataset.task,id);return true;
     case "tm_padd":tmPayAdd(id,false);return true;
     case "tm_salary":tmPayAdd(id,true);return true;
     case "tm_pdel":tmPayDel(id);return true;
@@ -469,8 +471,9 @@ function webAct(a,b){
     case "aud_gedit":W.goalEd=id||null;audPaint();return true;
     case "aud_gsave":{var gi=$("ag-in"),gv=numOrNull(gi&&gi.value);if(gv!==null&&(isNaN(gv)||gv<1)){toast("Enter a whole number above zero");return true}
       WSB.from("connections").update({goal:gv}).eq("id",id).then(function(r){if(r.error){toast("Couldn't save the goal")}else{var c=W.conns.filter(function(x){return x.id===id})[0];if(c)c.goal=gv;W.goalEd=null;audPaint();toast(gv?"Goal saved":"Goal cleared")}});return true}
-    case "aud_plat":W.plat=id;render();return true;
-    case "aud_kind":W.kind=id;render();return true;
+    case "aud_plat":W.plat=id;W.showAdd=true;render();return true;
+    case "aud_kind":W.kind=id;W.showAdd=true;render();return true;
+    case "aud_toggleadd":W.showAdd=!W.showAdd;render();return true;
     case "aud_add":audAdd();return true;
     case "aud_addm":audAddManual();return true;
     case "aud_refresh":audRefresh(true);return true;
@@ -765,7 +768,7 @@ async function tmLoad(){
     if(!T.members.length&&T.my.length&&!T.tabSet){T.tab="mywork"}
     T.msg="";
   }catch(e){T.msg="Couldn't load your team. "+((e&&e.message)||"")}
-  T.loaded=true;T.loading=false;if(S.view==="team")render();
+  T.loaded=true;T.loading=false;tkSync();if(S.view==="team")render();
 }
 function tmProg(id){
   var w=T.work.filter(function(x){return x.member_id===id}),done=w.filter(function(x){return x.status==="done"}).length,td=ymd(new Date());
@@ -902,7 +905,7 @@ async function tmWorkDel(id){var r=await WSB.from("team_work").delete().eq("id",
 async function tmWorkStatus(id,st){
   var w=T.work.filter(function(x){return x.id===id})[0];if(!w)return;
   var patch={status:st,done_at:st==="done"?new Date().toISOString():null};
-  var r=await WSB.from("team_work").update(patch).eq("id",id);if(!r.error){Object.assign(w,patch);render()}
+  var r=await WSB.from("team_work").update(patch).eq("id",id);if(!r.error){Object.assign(w,patch);tkSync();render()}
 }
 async function tmPayAdd(id,salary){
   var m=tmM(id);if(!m)return;var pf=T.pf[id]||{},label,amt;
@@ -947,3 +950,39 @@ document.addEventListener("change",function(e){
     patch[f]=v;tmPatch(d.id,patch,t.type==="checkbox"||f==="amount"||f==="name"||f==="email");
   }
 });
+/* v11: load team in the background so late team work reaches the bell and Today */
+(function(){var tries=0;function go(){if(window.__WS){return}if(!window.__UID||!WSB){if(++tries<40)setTimeout(go,500);return}
+  try{if(!W.loaded&&!W.loading)audLoad(true)}catch(e){}
+  if(T.loaded||T.loading)return;tmLoad().then(function(){try{paintBell();if(S.view==="home"&&!(document.activeElement&&document.activeElement.id==="qcin"))render()}catch(e){}})}
+  setTimeout(go,1200)})();
+
+function todayAud(){
+  try{if(typeof W==="undefined"||!W.loaded)return "";var own=W.conns.filter(function(c){return c.kind==="own"});if(!own.length)return "";
+  return '<section class="panel td-aud"><h2>Audience<button class="btn sm" data-act="view" data-id="aud">Open</button></h2><div class="td-audl">'+own.slice(0,3).map(function(c){
+    var arr=W.snaps[c.id]||[],last=arr.length?arr[arr.length-1]:null,cur=last&&last.followers!=null?Number(last.followers):null,d7=deltaOf(arr,"followers",7*864e5);
+    var pc=c.goal&&cur!=null?Math.max(0,Math.min(100,Math.round(cur/c.goal*100))):null;
+    return '<button class="td-ac" data-act="view" data-id="aud" style="--c:'+platCol(c.platform)+'"><span class="tn"><i></i>'+esc(c.title||c.handle||platName(c.platform))+'</span><b>'+nf(cur)+'</b>'+(d7?'<em class="dl '+(d7>0?"up":"down")+'">'+(d7>0?"+":"-")+nf(Math.abs(d7))+' this week</em>':'<em class="muted">No change this week</em>')+
+      (pc!=null?'<span class="td-gl"><span style="width:'+pc+'%"></span></span><small>'+pc+'% of '+nf(c.goal)+' goal</small>':'')+'</button>'}).join("")+'</div></section>'}catch(e){return ""}
+}
+
+/* v11: board task <-> team work */
+function tkMembers(){return (typeof T!=="undefined"&&T.loaded&&!window.__WS)?T.members.filter(function(m){return m.status==="active"}):[]}
+function tkAssignDlg(taskId){
+  var t=S.tasks.filter(function(x){return x.id===taskId})[0];if(!t)return;var ms=tkMembers();
+  if(!ms.length){showInfo("Assign to a teammate",'<p style="margin:0 0 12px">Add people on the Team page first, then you can hand them tasks from the board.</p><button class="btn pri" data-act="view" data-id="team">Open Team</button>');return}
+  showInfo("Assign “"+t.title+"”",'<p class="muted" style="margin:0 0 10px">They see it under “My work”. When they mark it done, the task moves to Review here.</p><div class="tk-ms">'+ms.map(function(m){
+    return '<button class="tk-m" data-act="tk_assignto" data-id="'+m.id+'" data-task="'+t.id+'"><span class="av sm">'+esc((m.name||"?").slice(0,1).toUpperCase())+'</span><span><b>'+esc(m.name)+'</b><i>'+esc(m.role_title||"")+'</i></span></button>'}).join("")+'</div>');
+}
+async function tkAssign(taskId,mid){
+  var t=S.tasks.filter(function(x){return x.id===taskId})[0],m=tmM(mid);if(!t||!m)return;
+  var r=await WSB.from("team_work").insert({member_id:mid,title:t.title,due:t.due||null}).select("*").single();
+  if(r.error){toast("Couldn't assign. "+r.error.message);return}
+  T.work.unshift(r.data);t.tw=r.data.id;t.who=m.name;if(t.col==="i")t.col="m";touch();
+  try{infoHTML="";renderDialog()}catch(e){}render();toast("Assigned to "+m.name);
+}
+function tkSync(){
+  try{var ch=false;S.tasks.forEach(function(t){if(!t.tw)return;var w=T.work.filter(function(x){return x.id===t.tw})[0];
+    if(!w){delete t.tw;delete t.who;ch=true;return}
+    if(w.status==="done"&&(t.col==="i"||t.col==="m")){t.col="r";ch=true;toast((t.who||"A teammate")+" finished “"+t.title+"”")}});
+  if(ch){touch();render()}}catch(e){}
+}

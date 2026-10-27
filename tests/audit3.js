@@ -10,7 +10,7 @@ await p.goto('http://localhost:'+srv.address().port+'/');await p.waitForTimeout(
 const S=()=>p.evaluate(()=>JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k=>/^cs/.test(k)&&localStorage.getItem(k).startsWith('{"cur"'))||'')||'{}'));
 const view=()=>p.evaluate(()=>document.querySelector('.col-main').dataset.v||'');
 // share
-await p.click('#sharebtn');await p.waitForTimeout(300);ok((await p.textContent('.hero h1')||'').length>0&&await p.locator('.cp-grid,.hd-list').count()>0,'Share button opens handles/public page');
+await p.click('#sharebtn');await p.waitForTimeout(300);ok((await p.textContent('.hero h1,.td-head h1')||'').length>0&&await p.locator('.cp-grid,.hd-list').count()>0,'Share button opens handles/public page');
 // new space
 await p.click('[data-act="spaceadd"]');await p.waitForTimeout(300);console.log('spaceadd ->',await p.evaluate(()=>!!document.querySelector('.dlg input,.dlgbox input,#spname,input:focus')));
 await p.keyboard.press('Escape');

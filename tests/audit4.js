@@ -36,5 +36,5 @@ await p.click('[data-act="biztab"][data-id="income"]').catch(()=>{});await p.wai
 // writing helper
 await go('ai');await p.fill('#aitopic','coffee');await p.click('[data-act="aigo"], #main .btn.pri').catch(()=>{});await p.waitForTimeout(500);console.log('ai out',(await p.textContent('#aiout').catch(()=>'')||'').slice(0,60));
 // visualizer, progress, calendar, library render
-for(const v of ['cal','prog','viz','lib','aud','board']){await go(v).catch(()=>{});console.log(v,(await p.textContent('.hero h1').catch(()=>'-')).slice(0,30))}
+for(const v of ['cal','prog','viz','lib','aud','board']){await go(v).catch(()=>{});console.log(v,(await p.textContent('.hero h1,.td-head h1').catch(()=>'-')).slice(0,30))}
 console.log('errors',errs);console.log(fail?'FAILURES '+fail:'ALL PASSED');await b.close();srv.close()})();
