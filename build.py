@@ -32,7 +32,7 @@ head=pre[:head_end].replace('<meta name="claude:viewport-fit-sides" content="cov
 body=pre[head_end:]
 out='<!doctype html><html lang="en" class="authing"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#FAFAFA">'+head+'<style id="webcss">'+css+'</style></head><body>'
 out+='<div id="authgate" hidden></div><div id="pubpage" hidden></div>'+body
-out+='<script src="/supabase.js"></script><script>'+boot+'</script><script type="text/plain" id="appjs">'+js+'</script><script>if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})</script></body></html>'
+out+='<script src="/supabase.js"></script><script>'+boot+'</script><script type="text/plain" id="appjs">'+js+'</script><script>if("serviceWorker"in navigator){var hadSW=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener("controllerchange",function(){if(!hadSW){hadSW=true;return}if(document.getElementById("swup"))return;var d=document.createElement("div");d.id="swup";d.className="swup";d.innerHTML=\'<span>A new version of Creator Space is ready.</span><button onclick="location.reload()">Reload</button>\';document.body.appendChild(d)});addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").then(function(r){setInterval(function(){r.update().catch(function(){})},36e5)}).catch(function(){})})}</script></body></html>'
 out=re.sub(r'<link rel="stylesheet" href="https://fonts.googleapis.com/[^"]*">','<link rel="preload" href="/geist.woff2" as="font" type="font/woff2" crossorigin>',out,count=1)
 out=out.replace('<title>Creator Space</title>','<title>Creator Space</title><link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/icon-192.png"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%2317171A%27/%3E%3Cpath d=%27M21 11a7 7 0 1 0 0 10%27 fill=%27none%27 stroke=%27white%27 stroke-width=%273%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">',1)
 old='<div class="brand"><span class="logo" id="logo"></span><b>Creator Space</b></div>'
@@ -54,17 +54,27 @@ def icon(n,pad):
     return im
 icon(192,0.1).save(base+'public/icon-192.png');icon(512,0.1).save(base+'public/icon-512.png');icon(512,0.2).save(base+'public/icon-maskable.png')
 open(base+'public/manifest.webmanifest','w').write(json.dumps({"name":"Creator Space","short_name":"Creator","start_url":"/","scope":"/","display":"standalone","background_color":"#E9E9EC","theme_color":"#17171A","icons":[{"src":"/icon-192.png","sizes":"192x192","type":"image/png"},{"src":"/icon-512.png","sizes":"512x512","type":"image/png"},{"src":"/icon-maskable.png","sizes":"512x512","type":"image/png","purpose":"maskable"}]}))
-open(base+'public/sw.js','w').write("""const C='cs-shell-v1';
-self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(['/','/supabase.js','/591.supabase.js'])).then(()=>self.skipWaiting()))});
+import hashlib
+_ver=hashlib.sha1(out.encode()).hexdigest()[:10]
+open(base+'public/sw.js','w').write("""const C='cs-shell-"""+_ver+"""';
+const SHELL=['/','/supabase.js','/591.supabase.js','/geist.woff2','/manifest.webmanifest','/icon-192.png'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(SHELL.map(u=>new Request(u,{cache:'reload'})))).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{const r=e.request,u=new URL(r.url);
- if(r.method!=='GET'||u.origin!==location.origin||u.pathname.startsWith('/_blob/'))return;
- e.respondWith(fetch(r).then(x=>{if(x.ok){const y=x.clone();caches.open(C).then(c=>c.put(r,y))}return x}).catch(()=>caches.match(r).then(m=>m||caches.match('/'))))});
+ if(r.method!=='GET'||u.origin!==location.origin)return;
+ const p=u.pathname;
+ if(p.startsWith('/_blob/')||p.startsWith('/u/')||p.startsWith('/cal/')||p==='/sw.js')return;
+ // the app itself: open instantly from cache, a new version arrives with a new service worker
+ if(r.mode==='navigate'&&(p==='/'||p==='/index.html')){e.respondWith(caches.match('/').then(m=>m||fetch(r)));return}
+ // fonts, scripts and icons: cache first
+ if(/\\.(js|woff2|png|webmanifest)$/.test(p)){e.respondWith(caches.match(r).then(m=>m||fetch(r).then(x=>{if(x.ok){const y=x.clone();caches.open(C).then(c=>c.put(r,y))}return x})));return}
+ e.respondWith(fetch(r).catch(()=>caches.match(r).then(m=>m||caches.match('/'))))});
 self.addEventListener('push',e=>{let d={};try{d=e.data?e.data.json():{}}catch(_){}
  e.waitUntil(self.registration.showNotification(d.title||'Creator Space',{body:d.body||'',tag:d.tag||'cs',icon:'/icon-192.png',badge:'/icon-192.png',data:{url:d.url||'/'}}))});
 self.addEventListener('notificationclick',e=>{e.notification.close();const u=(e.notification.data&&e.notification.data.url)||'/';
  e.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(l=>{for(const c of l){if(c.url.startsWith(self.location.origin)&&'focus'in c)return c.focus()}return clients.openWindow(u)}))});
 """)
+
 # syntax check of the app js and boot
 os.makedirs(base+'build',exist_ok=True);open(base+'build/check-app.js','w').write(js);open(base+'build/check-boot.js','w').write(boot)
 print('built',len(out))

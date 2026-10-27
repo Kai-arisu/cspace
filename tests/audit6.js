@@ -12,7 +12,7 @@ const view=()=>p.evaluate(()=>document.querySelector('.col-main').dataset.v||'')
 await p.click('#nav .si-row[data-id="clips"]');await p.waitForTimeout(300);
 ok(await p.locator('#ffile').count()===1,'Clips page has the file upload');
 ok(await p.locator('#nav .si-row[data-id="library"]').count()===0,'Library gone from nav');
-await p.setInputFiles('#ffile',{name:'a.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.4 x')});await p.click('[data-act="upfile"]');await p.waitForTimeout(1200);
+await p.setInputFiles('#ffile',{name:'a.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.4 x')});await p.waitForTimeout(1200);
 ok(await p.locator('.file').count()===1,'file uploaded and listed');
 await p.click('[data-act="delfile"]');await p.waitForTimeout(200);await p.click('[data-act="delfile"]').catch(()=>{});await p.waitForTimeout(500);console.log('after delete',await p.locator('.file').count());
 await p.click('#nav .si-row[data-id="home"]');await p.waitForTimeout(300);

@@ -448,6 +448,7 @@ function webAct(a,b){
     case "tm_tab":T.tab=id;T.tabSet=true;render();return true;
     case "tm_add":T.form=!T.form;render();return true;
     case "tm_create":tmCreate();return true;
+    case "tm_det":T.detOpen=T.detOpen||{};T.detOpen[id]=!T.detOpen[id];render();return true;
     case "tm_open":T.sel=T.sel===id?null:id;render();return true;
     case "tm_del":arm(b,function(){tmDelete(id)});return true;
     case "tm_end":{var em1=tmM(id);if(em1)tmPatch(id,{status:em1.status==="ended"?"active":"ended"},true);return true}
@@ -476,6 +477,10 @@ function webAct(a,b){
       WSB.from("connections").update({goal:gv}).eq("id",id).then(function(r){if(r.error){toast("Couldn't save the goal")}else{var c=W.conns.filter(function(x){return x.id===id})[0];if(c)c.goal=gv;W.goalEd=null;audPaint();toast(gv?"Goal saved":"Goal cleared")}});return true}
     case "aud_plat":W.plat=id;W.showAdd=true;render();return true;
     case "aud_kind":W.kind=id;W.showAdd=true;render();return true;
+    case "ob_hide":S.cfg.obDone=true;touch();render();return true;
+    case "ob_sample":obSample();return true;
+    case "ob_focus":{var q=$("qcin");if(q){q.focus();q.placeholder="Your first idea… then press Idea"}return true}
+    case "ob_name":{var on=$("obname"),nv=on?on.value.trim():"";if(!nv){toast("Type a name first");return true}var sp=S.spaces.filter(function(x){return x.id===S.cur})[0];if(sp)sp.name=nv.slice(0,40);S.cfg.spNamed=true;touch();render();toast("Space renamed");return true}
     case "aud_toggleadd":W.showAdd=!W.showAdd;render();return true;
     case "aud_add":audAdd();return true;
     case "aud_addm":audAddManual();return true;
@@ -502,6 +507,7 @@ function webAct(a,b){
     case "sh_openiso":{var ix=(S.iso||[]).filter(function(x){return x.id===id})[0];
       try{localStorage.setItem(shWsKey(),JSON.stringify({owner:window.__UID,space:id,label:ix?ix.name:""}))}catch(e){}location.reload();return true}
     case "sh_mail":{var mx=SH.list[+id];if(!mx)return true;
+      if(!b.dataset.fallback){sendInvite(mx.invitee_email,function(){webAct("sh_mail",{dataset:{id:id,fallback:"1"}})},function(m){shMsg(m)});return true}
       var who=(S.profile&&S.profile.name)||String(window.__EMAIL||"").split("@")[0],role=mx.role==="editor"?"edit":"view";
       var body="Hi,\n\n"+who+" invited you to "+role+" their Creator Space.\n\n1. Open "+location.origin+"\n2. Sign in (or create an account) with this email: "+mx.invitee_email+"\n3. Open the Handles page and choose "+who+"'s workspace under \"Shared with you\".\n\nSee you there.";
       var href="mailto:"+encodeURIComponent(mx.invitee_email)+"?subject="+encodeURIComponent(who+" invited you to Creator Space")+"&body="+encodeURIComponent(body);
@@ -797,9 +803,9 @@ function tmHTML(){
   var act=T.members.filter(function(m){return m.status==="active"}),openW=0,overW=0,due=0,paidM=0,mon=ymd(new Date()).slice(0,7);
   act.forEach(function(m){var g=tmProg(m.id);openW+=g.open;overW+=g.over});
   T.pay.forEach(function(x){if(x.status==="due")due+=Number(x.amount);else if(x.paid_on&&x.paid_on.slice(0,7)===mon)paidM+=Number(x.amount)});
-  h+='<div class="stats tm-stats"><div class="stat"><b>'+act.length+'</b><span>Active members</span></div><div class="stat"><b>'+openW+'</b><span>Open work'+(overW?' · '+overW+' late':'')+'</span></div><div class="stat"><b>'+money(due)+'</b><span>To pay</span></div><div class="stat"><b>'+money(paidM)+'</b><span>Paid this month</span></div></div>';
+  if(T.members.length)h+='<div class="stats tm-stats"><div class="stat"><b>'+act.length+'</b><span>Active members</span></div><div class="stat"><b>'+openW+'</b><span>Open work'+(overW?' · '+overW+' late':'')+'</span></div><div class="stat"><b>'+money(due)+'</b><span>To pay</span></div><div class="stat"><b>'+money(paidM)+'</b><span>Paid this month</span></div></div>';
   if(T.form)h+=tmFormHTML();
-  if(!T.members.length&&!T.form)h+='<div class="panel tm-empty"><b>No team yet</b><p class="muted" style="margin:4px 0 12px">Add someone who works with you, like an editor or a designer. You choose whether they can sign in and see their own work and pay.</p><button class="btn pri" data-act="tm_add">Add your first member</button></div>';
+  if(!T.members.length&&!T.form)h+=emptyCard("users","No team yet","Add someone who works with you, like an editor or a designer. Give them work, track progress and keep a record of what you've paid. You choose whether they can sign in.",'<button class="btn pri sm" data-act="tm_add">Add your first member</button>');
   h+='<div class="tm-list">'+T.members.map(tmCardHTML).join("")+'</div>';
   return h;
 }
@@ -830,7 +836,7 @@ function tmCardHTML(m){
 }
 function tmDetailHTML(m){
   var id=m.id,temp=m.kind==="temp",td=ymd(new Date());
-  var h='<div class="tm-det"><h4>Details</h4><div class="tm-grid">'+
+  var det='<div class="tm-grid">'+
    '<label class="plab">Name<input class="in" data-tm="name" data-id="'+id+'" maxlength="80" value="'+esc(m.name)+'"></label>'+
    '<label class="plab">Role<input class="in" data-tm="role_title" data-id="'+id+'" maxlength="60" value="'+esc(m.role_title||"")+'"></label>'+
    '<label class="plab">Email<input class="in" type="email" data-tm="email" data-id="'+id+'" maxlength="120" value="'+esc(m.email||"")+'" autocapitalize="none"></label>'+
@@ -841,6 +847,7 @@ function tmDetailHTML(m){
    '<label class="cp-pub"><input type="checkbox" data-tm="see_pay" data-id="'+id+'"'+(m.see_pay?" checked":"")+'> Can see their own pay</label>'+
    '<label class="plab">Private notes (only you see these)<textarea class="in" rows="2" data-tm="notes" data-id="'+id+'" maxlength="2000">'+esc(m.notes||"")+'</textarea></label>'+
    '<div class="drow">'+(m.email?'<button class="btn sm" data-act="tm_mail" data-id="'+id+'">Email sign-in details</button>':'')+'<button class="btn sm" data-act="tm_end" data-id="'+id+'">'+(m.status==="ended"?"Bring back":"Mark as ended")+'</button><button class="btn sm" data-act="tm_del" data-id="'+id+'">Remove</button></div>';
+  var h='<div class="tm-det">';
   var w=T.work.filter(function(x){return x.member_id===id});
   h+='<h4>Work</h4><div class="tm-add"><input class="in" data-tmw="title" data-id="'+id+'" maxlength="200" placeholder="Give them a piece of work" value="'+esc((T.wf[id]||{}).title||"")+'"><input class="in" type="date" data-tmw="due" data-id="'+id+'" value="'+esc((T.wf[id]||{}).due||"")+'" aria-label="Due date"><button class="btn pri" data-act="tm_wadd" data-id="'+id+'">Add</button></div>';
   h+=w.length?'<div class="tm-rows">'+w.map(function(x){var late=x.status!=="done"&&x.due&&x.due<td;return '<div class="tm-row"><span class="tm-t'+(x.status==="done"?" done":"")+'">'+esc(x.title)+(x.due?'<small class="'+(late?"late":"")+'"> · '+(late?"late · ":"")+esc(fmtDue(x.due))+'</small>':'')+'</span><select class="wsel" data-tmws="'+x.id+'" aria-label="Status"><option value="todo"'+(x.status==="todo"?" selected":"")+'>To do</option><option value="doing"'+(x.status==="doing"?" selected":"")+'>Doing</option><option value="done"'+(x.status==="done"?" selected":"")+'>Done</option></select><button class="ico" data-act="tm_wdel" data-id="'+x.id+'" aria-label="Delete work">'+I("x")+'</button></div>'}).join("")+'</div>':'<p class="muted tm-none">Nothing assigned.</p>';
@@ -849,7 +856,8 @@ function tmDetailHTML(m){
   h+='<h4>Pay</h4><div class="tm-add"><input class="in" data-tmp="label" data-id="'+id+'" maxlength="80" placeholder="What for, e.g. Nov 2026" value="'+esc(pf.label||"")+'"><input class="in" inputmode="decimal" data-tmp="amount" data-id="'+id+'" maxlength="12" placeholder="Amount" value="'+esc(pf.amount||"")+'"><button class="btn pri" data-act="tm_padd" data-id="'+id+'">Add</button></div>'+
    (temp?'':'<div class="drow"><button class="btn sm" data-act="tm_salary" data-id="'+id+'">Add '+esc(tmMonth())+' salary ('+money(m.amount)+')</button></div>');
   h+=pr.length?'<div class="tm-rows">'+pr.map(function(x){return '<div class="tm-row"><span class="tm-t">'+esc(x.label)+'<small> · '+money(x.amount)+(x.status==="paid"&&x.paid_on?' · paid '+esc(fmtDue(x.paid_on)):'')+'</small></span><button class="btn sm'+(x.status==="paid"?"":" pri")+'" data-act="tm_ppaid" data-id="'+x.id+'">'+(x.status==="paid"?"Paid":"Mark paid")+'</button><button class="ico" data-act="tm_pdel" data-id="'+x.id+'" aria-label="Delete pay entry">'+I("x")+'</button></div>'}).join("")+'</div>':'<p class="muted tm-none">No pay records yet.</p>';
-  return h+'</div>';
+  var dop=!!(T.detOpen&&T.detOpen[id]);
+  return h+'<div class="tm-more"><button class="tm-mh" data-act="tm_det" data-id="'+id+'" aria-expanded="'+dop+'">'+I(dop?"chevu":"chevd")+'Details and access</button>'+(dop?det:'')+'</div></div>';
 }
 function tmMonth(){return new Date().toLocaleDateString("en-IN",{month:"short",year:"numeric"})}
 function tmMyHTML(){
@@ -889,8 +897,9 @@ async function tmDelete(id){
   T.members=T.members.filter(function(x){return x.id!==id});T.work=T.work.filter(function(x){return x.member_id!==id});T.pay=T.pay.filter(function(x){return x.member_id!==id});
   if(T.sel===id)T.sel=null;toast("Removed from your team");render();
 }
-function tmMail(id){
+function tmMail(id,fb){
   var m=tmM(id);if(!m||!m.email)return;
+  if(!fb){sendInvite(m.email,function(){tmMail(id,true)},function(t){toast(t)});return}
   var who=(S.profile&&S.profile.name)||String(window.__EMAIL||"").split("@")[0];
   var body="Hi "+m.name+",\n\nI added you to my team on Creator Space.\n\n1. Open "+location.origin+"\n2. Sign in, or create an account, with this email: "+m.email+"\n3. Open Team and choose \"My work for others\" to see your work"+(m.see_pay?", progress and pay":" and progress")+".\n\nThanks,\n"+who;
   var a=document.createElement("a");a.href="mailto:"+encodeURIComponent(m.email)+"?subject="+encodeURIComponent(who+" added you to their team")+"&body="+encodeURIComponent(body);
@@ -956,6 +965,8 @@ document.addEventListener("change",function(e){
 /* v11: load team in the background so late team work reaches the bell and Today */
 (function(){var tries=0;function go(){if(window.__WS){return}if(!window.__UID||!WSB){if(++tries<40)setTimeout(go,500);return}
   try{if(!W.loaded&&!W.loading)audLoad(true)}catch(e){}
+  try{isoLoad()}catch(e){}
+  try{Promise.all([W.pLoaded?0:cpLoad(),PUSH.ready?0:pushRefresh()]).then(function(){if(S.view==="home"&&!(document.activeElement&&document.activeElement.id==="qcin"))render()})}catch(e){}
   if(T.loaded||T.loading)return;tmLoad().then(function(){try{paintBell();if(S.view==="home"&&!(document.activeElement&&document.activeElement.id==="qcin"))render()}catch(e){}})}
   setTimeout(go,1200)})();
 
@@ -988,4 +999,83 @@ function tkSync(){
     if(!w){delete t.tw;delete t.who;ch=true;return}
     if(w.status==="done"&&(t.col==="i"||t.col==="m")){t.col="r";ch=true;toast((t.who||"A teammate")+" finished “"+t.title+"”")}});
   if(ch){touch();render()}}catch(e){}
+}
+
+/* v12: first-run checklist + sample space */
+function obSteps(){
+  var named=!!(S.cfg&&S.cfg.spNamed)||S.spaces.some(function(x){return x.name!=="My channel"&&!/^Sample/.test(x.name)});
+  var ch=typeof W!=="undefined"&&W.loaded&&W.conns.some(function(c){return c.kind==="own"});
+  var pg=typeof W!=="undefined"&&W.p&&W.p.exists;
+  var al=typeof PUSH!=="undefined"&&PUSH.on;
+  return [
+    {k:"name",done:named,t:"Name your space",d:"A space holds one channel or project. Call it what you call your channel."},
+    {k:"idea",done:S.ideas.length>0,t:"Capture your first idea",d:"Type it in the box above and press Idea. Add #tags to sort later.",a:'<button class="btn sm" data-act="ob_focus">Write an idea</button>'},
+    {k:"task",done:S.tasks.some(function(t){return t.due}),t:"Plan a task with a date",d:"Dated tasks show on your Calendar and in the bell when they're due.",a:'<button class="btn sm" data-act="view" data-id="cal">Open Calendar</button>'},
+    {k:"chan",done:ch,t:"Connect your channel",d:"Paste your YouTube link to track subscribers and set a goal.",a:'<button class="btn sm" data-act="view" data-id="aud">Connect</button>'},
+    {k:"page",done:pg,t:"Publish your creator page",d:"One link with your handles and live numbers, for your bio.",a:'<button class="btn sm" data-act="view" data-id="cp">Set up page</button>'},
+    {k:"push",done:al,t:"Turn on phone alerts",d:"A morning summary of what's due, and a ping when you hit a goal.",a:'<button class="btn sm" data-act="view" data-id="cp">Turn on</button>'}
+  ];
+}
+function obHTML(){
+  if(readOnly||window.__WS||(S.cfg&&S.cfg.obDone))return "";
+  var st=obSteps(),n=st.filter(function(x){return x.done}).length;if(n===st.length)return "";
+  var nextIdx=st.map(function(x){return x.done}).indexOf(false);
+  var h='<section class="panel ob"><div class="ob-h"><div><h2 style="margin:0">Get set up</h2><span class="muted">'+n+' of '+st.length+' done</span></div><div class="ob-acts">'+
+    (S.spaces.some(function(x){return /^Sample/.test(x.name)})?'':'<button class="btn sm" data-act="ob_sample">Explore with sample data</button>')+'<button class="btn sm" data-act="ob_hide">Hide</button></div></div>'+
+    '<div class="ob-bar"><i style="width:'+Math.round(n/st.length*100)+'%"></i></div><ol class="ob-l">';
+  st.forEach(function(x,i){
+    var open=i===nextIdx;
+    h+='<li class="'+(x.done?"done":"")+(open?" open":"")+'"><span class="ob-c">'+(x.done?I("check"):(i+1))+'</span><div class="ob-t"><b>'+x.t+'</b>'+(open?'<p>'+x.d+'</p>'+(x.k==="name"?'<div class="ob-name"><input class="in" id="obname" maxlength="40" value="'+esc(spaceName())+'" aria-label="Space name"><button class="btn pri sm" data-act="ob_name">Save</button></div>':(x.a||"")):'')+'</div></li>';
+  });
+  return h+'</ol></section>';
+}
+function obFresh(){return !mine("tasks").length&&!mine("ideas").length&&!mine("notes").length&&!mine("posts").length}
+function obSample(){
+  var id="s"+uid(),d=function(n){return ymd(new Date(Date.now()+n*864e5))},now=Date.now(),U=function(){return uid()};
+  S.spaces.push({id:id,name:"Sample: Travel vlog"});
+  var i1=U(),i2=U();
+  S.ideas.push({id:i1,sp:id,text:"Street food tour in Jaipur #food #vlog",tags:["food","vlog"],star:true,task:false,ts:now-36e5},{id:i2,sp:id,text:"Budget travel hacks for students #travel",tags:["travel"],star:false,task:false,ts:now-72e5},{id:U(),sp:id,text:"What I packed for 7 days in Ladakh #packing",tags:["packing"],star:false,task:false,ts:now-9e6});
+  S.tasks.push({id:U(),sp:id,title:"Design thumbnail",col:"i",due:d(-1),pri:2,ts:now-5e6},{id:U(),sp:id,title:"Edit Ladakh vlog",col:"m",due:d(1),pri:1,ts:now-4e6},{id:U(),sp:id,title:"Write captions for reels",col:"i",due:d(3),pri:0,ts:now-3e6},{id:U(),sp:id,title:"Reply to sponsor email",col:"s",due:d(-2),pri:0,ts:now-2e6,done:now-1e6});
+  S.notes.push({id:U(),sp:id,title:"Ladakh vlog script",body:"## Hook\n7 days, one backpack.\n\n## Checklist\n- [ ] Film the sunrise at Pangong\n- [ ] Record voiceover\n\n## Outro\nAsk people to subscribe.",pin:true,ts:now-3e6});
+  S.posts.push({id:U(),sp:id,title:"Jaipur street food reel",platform:"Instagram",date:d(0),status:"scheduled",ideaId:"",ts:now},{id:U(),sp:id,title:"Ladakh vlog: 7 days",platform:"YouTube",date:d(2),status:"editing",ideaId:"",ts:now},{id:U(),sp:id,title:"Budget travel tips short",platform:"YouTube",date:d(5),status:"script",ideaId:i2,ts:now});
+  S.clips.push({id:U(),sp:id,url:"https://example.com/great-intro",title:"Great travel intro",note:"Study the pacing",tags:["editing"],star:false,ts:now});
+  S.deals.push({id:U(),sp:id,brand:"Trail Bags Co.",amount:20000,status:"talking",due:d(10),ts:now});
+  S.income.push({id:U(),sp:id,date:d(-6),source:"YouTube AdSense",amount:8200,cat:"Ads"});
+  S.cur=id;touch();go("home");toast("Sample space added. Delete it any time from Space settings at the bottom of Today.");
+}
+
+/* v12: read private (isolated) spaces so the bell and search can see them */
+var ISO={loaded:false,loading:false,d:{}};
+async function isoLoad(){
+  if(window.__WS||!Array.isArray(S.iso)||!S.iso.length||ISO.loading)return;ISO.loading=true;
+  try{
+    for(var i=0;i<S.iso.length;i++){
+      var sp=S.iso[i],r=await WSB.from("docs").select("path,data").like("path","sp/"+sp.id+"/store/k_%");
+      if(r.error)continue;var parts={};
+      (r.data||[]).forEach(function(row){var m=row.path.match(/store\/k_(.+)_(\d+)$/);if(!m||!row.data)return;(parts[m[1]]=parts[m[1]]||[])[+m[2]]=row.data.s||""});
+      var out={name:sp.name};
+      Object.keys(parts).forEach(function(k){try{var v=JSON.parse(parts[k].join(""));if(Array.isArray(v))out[k]=v}catch(e){}});
+      ISO.d[sp.id]=out;
+    }
+    ISO.loaded=true;
+  }catch(e){}
+  ISO.loading=false;try{paintBell();if(S.view==="home"&&!(document.activeElement&&document.activeElement.id==="qcin"))render()}catch(e){}
+}
+function isoAll(k){
+  var out=[];if(!ISO.loaded)return out;
+  Object.keys(ISO.d).forEach(function(id){(ISO.d[id][k]||[]).forEach(function(x){var c=Object.assign({},x);c.sp=id;c._iso=1;out.push(c)})});
+  return out;
+}
+function isoName(id){var x=(S.iso||[]).filter(function(i){return i.id===id})[0];return x?x.name:""}
+
+/* v12: real invite emails, falling back to the email app */
+async function sendInvite(email,fallback,say){
+  say("Sending the invite…");
+  try{
+    var r=await WSB.functions.invoke("invite",{body:{email:email}});
+    if(!r.error){say(r.data&&r.data.kind==="login"?"They already have an account, so we emailed them a sign-in link.":"Invite email sent to "+email+".");return}
+    var info=null;try{info=await r.error.context.json()}catch(e){}
+    if(info&&(info.error==="already_sent"||info.error==="not_invited"||info.error==="bad_email"||info.error==="self")){say(info.message);return}
+  }catch(e){}
+  say("Couldn't send it from here, so your email app will open instead.");fallback();
 }

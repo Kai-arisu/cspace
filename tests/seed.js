@@ -1,6 +1,6 @@
 // Realistic demo data for screenshots and tests. seed(fake, email) fills the fake backend for that user.
 function hsh(s){var h=5381,i=s.length;while(i)h=(h*33)^s.charCodeAt(--i);return (h>>>0).toString(36)+"."+s.length.toString(36)}
-module.exports=function seed(fake,email){
+module.exports=function seed(fake,email,opt){opt=opt||{};
   const u=fake.st.users.find(x=>x.email===email);const uid=u.id;
   const day=n=>{const d=new Date(Date.now()+n*864e5);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
   const now=Date.now(),id=(p,i)=>p+i;
@@ -32,10 +32,15 @@ module.exports=function seed(fake,email){
     deals:[{id:'d1',sp:s1,brand:'Boat Audio',amount:25000,status:'talking',due:day(6),ts:now},{id:'d2',sp:s1,brand:'Nord VPN',amount:15000,status:'signed',due:day(10),ts:now}],
     income:[{id:'in1',sp:s1,date:day(-10),source:'YouTube AdSense',amount:8200,cat:'Ads'},{id:'in2',sp:s1,date:day(-4),source:'Brand deal',amount:20000,cat:'Sponsorship'}],
     invoices:[{id:'v1',sp:s1,no:'INV-001',client:'Boat Audio',date:day(-5),due:day(-1),items:[{d:'Integrated video',q:1,p:25000}],notes:'',paid:false,ts:now}],
-    cfg:{},kit:{},palette:{[s1]:['#F5A524','#111111','#F2F2F2'],[s2]:['#0091FF','#111111','#F2F2F2']},focus:{},bmeta:{},profile:{name:'Abhinav',role:'Creator'},edit:{},iso:[]};
+    cfg:{},kit:{},palette:{[s1]:['#F5A524','#111111','#F2F2F2'],[s2]:['#0091FF','#111111','#F2F2F2']},focus:{},bmeta:{},profile:{name:'Abhinav',role:'Creator'},edit:{},iso:opt.iso?[{id:'iso1',name:'Secret project'}]:[]};
   const keys={},put=(path,data)=>fake.st.tables.docs.push({user_id:uid,path,data,updated_at:new Date().toISOString()});
   Object.keys(S).forEach(k=>{const j=JSON.stringify(S[k]);keys[k]={n:1,h:hsh(j)};put('store/k_'+k+'_0',{s:j,i:0})});
   put('store/meta',{ts:Date.now(),dev:'seed',keys,v:2});
+  if(opt.iso){
+    put('sp/iso1/store/k_tasks_0',{s:JSON.stringify([{id:'it1',sp:'iso1',title:'Pitch deck for label',col:'m',due:day(-1),ts:now}]),i:0});
+    put('sp/iso1/store/k_notes_0',{s:JSON.stringify([{id:'in1',sp:'iso1',title:'Hidden pitch notes',body:'Talking points',pin:false,ts:now}]),i:0});
+    put('sp/iso1/store/k_spaces_0',{s:JSON.stringify([{id:'iso1',name:'Secret project'}]),i:0});
+  }
   // audience + team
   const cid=crypto.randomUUID();
   fake.st.tables.connections.push({id:cid,user_id:uid,platform:'youtube',kind:'own',handle:'@cashtea',external_id:'UC'+'a'.repeat(22),title:'Cash Tea',avatar_url:null,url:'https://youtube.com/@cashtea',source:'api',show_public:true,status:'ok',created_at:new Date().toISOString(),goal:10000});

@@ -8,7 +8,7 @@ async function mk(){const ctx=await b.newContext({viewport:{width:1280,height:90
 async function signup(p,email){await p.goto(base+'/');await p.waitForTimeout(500);await p.click('[data-ag="up"]');await p.fill('#agemail',email);await p.fill('#agpass','supersecret1');await p.click('#aggo');await p.waitForTimeout(2000)}
 const A=await mk();await signup(A,'a@x.co');
 await A.click('#nav .si-row[data-id="team"]');await A.waitForTimeout(800);
-ok(await A.locator('.tm-empty').count()===1,'empty Team page invites you to add someone');
+ok(await A.locator('.ecard').count()===1,'empty Team page invites you to add someone');
 await A.click('[data-act="tm_add"]');await A.fill('[data-tmf="name"]','Mia Editor');await A.fill('[data-tmf="role"]','Video editor');await A.fill('[data-tmf="email"]','mia@x.co');await A.fill('[data-tmf="amount"]','30000');
 await A.click('[data-act="tm_create"]');await A.waitForTimeout(800);
 ok((await A.textContent('.tm-list')).includes('Mia Editor')&&/30,000/.test(await A.textContent('.tm-list')),'salary member added');

@@ -13,7 +13,7 @@ async function run(tag,vp,scheme){
   const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
   await p.goto(origin+'/');await p.waitForTimeout(500);
   await p.click('[data-ag="up"]');await p.fill('#agemail',email);await p.fill('#agpass','supersecret1');await p.click('#aggo');await p.waitForTimeout(1800);
-  seed(fake,email);await p.reload();await p.waitForTimeout(2500);
+  if(!process.env.NOSEED){seed(fake,email);await p.reload();await p.waitForTimeout(2500)}
   const ids=(process.env.VIEWS||'home,notes,ideas,mood,wb,clips,cal,board,viz,aud,biz,team,cp').split(',');
   for(const id of ids){
     const ok=await p.evaluate(i=>{var b=document.querySelector('[data-act="view"][data-id="'+i+'"]');if(b){b.click();return true}return false},id);

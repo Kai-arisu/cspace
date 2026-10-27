@@ -1443,6 +1443,7 @@ function dataAct(a,b){
   }
   return false;
 }
+document.addEventListener("change",function(e){var t=e.target;if(t&&t.id==="ffile"&&t.files&&t.files[0]&&!readOnly)uploadFile({});});
 document.addEventListener("change",function(e){var t=e.target;if(t&&t.id==="dimp"){var f=t.files&&t.files[0];t.value="";onImportFile(f)}});
 
 /* ---------- connection awareness ---------- */
@@ -1464,7 +1465,7 @@ window.addEventListener("unhandledrejection",function(e){var r=e&&e.reason;if(r&
 function renderFail(e){
   try{console.error(e)}catch(x){}
   var w=$("wrap");if(!w)return;
-  w.innerHTML='<div class="panel rerr"><h2>This view hit a problem</h2><p>Your data is safe. You can try again, go back to Today, or restore a backup.</p><div class="drow"><button class="btn pri" data-act="rerr_retry">Try again</button><button class="btn" data-act="rerr_home">Go to Overview</button><button class="btn" data-act="datadlg">Data and backup</button></div></div>';
+  w.innerHTML='<div class="panel rerr"><h2>This view hit a problem</h2><p>Your data is safe. You can try again, go back to Today, or restore a backup.</p><div class="drow"><button class="btn pri" data-act="rerr_retry">Try again</button><button class="btn" data-act="rerr_home">Go to Today</button><button class="btn" data-act="datadlg">Data and backup</button></div></div>';
 }
 
 function mine(k){return S[k].filter(function(x){return x.sp===S.cur})}
@@ -1482,6 +1483,7 @@ function arm(btn,fn){
   btn.dataset.armed="1";var old=btn.innerHTML;btn.textContent="Confirm";btn.classList.add("danger");
   setTimeout(function(){if(btn.isConnected){delete btn.dataset.armed;btn.innerHTML=old;btn.classList.remove("danger")}},3000);
 }
+function emptyCard(ic,t,d,acts){return '<div class="ecard"><span class="ec-i">'+I(ic)+'</span><b>'+t+'</b><p>'+d+'</p>'+(acts?'<div class="ec-a">'+acts+'</div>':"")+'</div>'}
 function hero(v,title,sub,actions){
   var m=vmeta(v);
   return '<header class="hero"><span class="tile">'+I(m.ic)+'</span><div class="txt"><h1>'+esc(title)+'</h1><p>'+esc(sub||m.desc)+'</p></div><div class="acts">'+(actions||"")+'</div></header>';
@@ -1607,24 +1609,30 @@ function edLoadImg(src){return new Promise(function(res,rej){var im=new Image();
 function edRound(ctx,x,y,w,h,r){r=Math.max(0,Math.min(r||0,w/2,h/2));ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
 
 /* ---------- reminders and shortcuts ---------- */
-function bellItems(){
+function bellSrc(k){var a=(S[k]||[]).slice();if(typeof isoAll==="function")a=a.concat(isoAll(k));return a}
+function bellSpName(sp){var n=spLabel(sp);if(!n&&typeof isoName==="function")n=isoName(sp);return n}
+function bellItems(all){
   var today=ymd(new Date()),tm=ymd(new Date(Date.now()+86400000)),out=[];
-  function add(id,k,l,sub,v,ic){out.push({id:id,k:k,l:l,s:sub,v:v,ic:ic})}
-  mine("tasks").forEach(function(t){if(t.col==="s"||!t.due)return;
-    if(t.due<today)add("t:"+t.id+":o",0,t.title,"Task overdue · "+fmtDue(t.due),"board","check");
-    else if(t.due===today)add("t:"+t.id+":d",1,t.title,"Task due today","board","check");
-    else if(t.due===tm)add("t:"+t.id+":m",2,t.title,"Task due tomorrow","board","check")});
-  mine("posts").forEach(function(p){if(p.status==="published"||!p.date)return;
-    if(p.date<today)add("p:"+p.id+":o",0,p.title,"Post overdue · "+fmtDue(p.date),"cal","calendar");
-    else if(p.date===today)add("p:"+p.id+":d",1,p.title,"Post goes out today","cal","calendar");
-    else if(p.date===tm)add("p:"+p.id+":m",2,p.title,"Post goes out tomorrow","cal","calendar")});
-  mine("invoices").forEach(function(v){if(v.paid||!v.due)return;var nm=(v.no||"Invoice")+(v.client?" · "+v.client:"");
-    if(v.due<today)add("i:"+v.id+":o",0,nm,"Invoice overdue · "+fmtDue(v.due),"biz","wallet");
-    else if(v.due<=tm)add("i:"+v.id+":d",1,nm,"Invoice due "+(v.due===today?"today":"tomorrow"),"biz","wallet")});
-  try{if(typeof T!=="undefined"&&T.loaded&&T.work){T.work.forEach(function(w){if(w.status==="done"||!w.due||w.due>=today)return;var m=T.members.filter(function(x){return x.id===w.member_id})[0];add("w:"+w.id+":o",0,w.title,(m?m.name+" · ":"")+"Team work late · "+fmtDue(w.due),"team","users")})}}catch(e){}
+  function add(x,id,k,l,sub,v,ic){if(!all&&x.sp!==S.cur)return;out.push({id:id,k:k,l:l,s:sub+(x.sp!==S.cur?" · "+bellSpName(x.sp):""),v:v,ic:ic,sp:x.sp,iso:!!x._iso})}
+  bellSrc("tasks").forEach(function(t){if(t.col==="s"||!t.due)return;
+    if(t.due<today)add(t,"t:"+t.id+":o",0,t.title,"Task overdue · "+fmtDue(t.due),"board","check");
+    else if(t.due===today)add(t,"t:"+t.id+":d",1,t.title,"Task due today","board","check");
+    else if(t.due===tm)add(t,"t:"+t.id+":m",2,t.title,"Task due tomorrow","board","check")});
+  bellSrc("posts").forEach(function(p){if(p.status==="published"||!p.date)return;
+    if(p.date<today)add(p,"p:"+p.id+":o",0,p.title,"Post overdue · "+fmtDue(p.date),"cal","calendar");
+    else if(p.date===today)add(p,"p:"+p.id+":d",1,p.title,"Post goes out today","cal","calendar");
+    else if(p.date===tm)add(p,"p:"+p.id+":m",2,p.title,"Post goes out tomorrow","cal","calendar")});
+  bellSrc("invoices").forEach(function(v){if(v.paid||!v.due)return;var nm=(v.no||"Invoice")+(v.client?" · "+v.client:"");
+    if(v.due<today)add(v,"i:"+v.id+":o",0,nm,"Invoice overdue · "+fmtDue(v.due),"biz","wallet");
+    else if(v.due<=tm)add(v,"i:"+v.id+":d",1,nm,"Invoice due "+(v.due===today?"today":"tomorrow"),"biz","wallet")});
+  bellSrc("deals").forEach(function(d){if(!d.due||["delivered","paid"].indexOf(d.status)>-1)return;var nm=(d.brand||"Sponsor")+" deliverable";
+    if(d.due<today)add(d,"d:"+d.id+":o",0,nm,"Sponsor deliverable overdue · "+fmtDue(d.due),"biz","wallet");
+    else if(d.due===today)add(d,"d:"+d.id+":d",1,nm,"Sponsor deliverable due today","biz","wallet");
+    else if(d.due===tm)add(d,"d:"+d.id+":m",2,nm,"Sponsor deliverable due tomorrow","biz","wallet")});
+  try{if(typeof T!=="undefined"&&T.loaded&&T.work){T.work.forEach(function(w){if(w.status==="done"||!w.due||w.due>=today)return;var m=T.members.filter(function(x){return x.id===w.member_id})[0];out.push({id:"w:"+w.id+":o",k:0,l:w.title,s:(m?m.name+" · ":"")+"Team work late · "+fmtDue(w.due),v:"team",ic:"users",sp:S.cur})})}}catch(e){}
   return out.sort(function(a,b){return a.k-b.k});
 }
-function bellUnread(){var r=S.nread||{};return bellItems().filter(function(x){return !r[x.id]})}
+function bellUnread(){var r=S.nread||{};return bellItems(true).filter(function(x){return !r[x.id]})}
 function paintBell(){
   var b=$("bellbtn");if(!b)return;var n=bellUnread().length;
   b.setAttribute("aria-label",n?n+" unread notifications":"Notifications");
@@ -1632,19 +1640,19 @@ function paintBell(){
 }
 function bellMark(ids){
   if(!S.nread||typeof S.nread!=="object")S.nread={};
-  var live={};bellItems().forEach(function(x){live[x.id]=1});
+  var live={};bellItems(true).forEach(function(x){live[x.id]=1});
   Object.keys(S.nread).forEach(function(k){if(!live[k])delete S.nread[k]});
   ids.forEach(function(i){S.nread[i]=1});touch();
 }
 function bellHTML(){
-  var it=bellItems(),r=S.nread||{},un=it.filter(function(x){return !r[x.id]}).length;
+  var it=bellItems(true),r=S.nread||{},un=it.filter(function(x){return !r[x.id]}).length;
   var h='<div class="bhd"><span>Notifications</span>'+(un?'<button class="btn sm" data-act="bellall">Mark all read</button>':"")+'</div>';
   if(!it.length)return h+'<div class="bempty"><b>All caught up</b><span>Overdue tasks, posts, invoices and late team work show up here.</span></div>';
   var groups=[[0,"Needs attention"],[1,"Today"],[2,"Coming up"]];
   groups.forEach(function(g){
     var l=it.filter(function(x){return x.k===g[0]});if(!l.length)return;
     h+='<div class="bgrp">'+g[1]+'</div>'+l.slice(0,6).map(function(x){
-      return '<button class="bit'+(r[x.id]?" read":"")+'" data-act="bellgo" data-id="'+esc(x.id)+'" data-v="'+x.v+'"><span class="bic k'+x.k+'">'+I(x.ic)+'</span><span class="bt"><b>'+esc(x.l)+'</b><i>'+esc(x.s)+'</i></span>'+(r[x.id]?"":'<span class="bun"></span>')+'</button>'}).join("");
+      return '<button class="bit'+(r[x.id]?" read":"")+'" data-act="bellgo" data-id="'+esc(x.id)+'" data-v="'+x.v+'" data-sp="'+esc(x.sp||"")+'" data-iso="'+(x.iso?1:"")+'"><span class="bic k'+x.k+'">'+I(x.ic)+'</span><span class="bt"><b>'+esc(x.l)+'</b><i>'+esc(x.s)+'</i></span>'+(r[x.id]?"":'<span class="bun"></span>')+'</button>'}).join("");
   });
   return h+'<div class="bft"><button class="btn sm" data-act="view" data-id="cp">Phone alerts and settings</button></div>';
 }
@@ -1781,6 +1789,9 @@ function vHome(){
   var sum=over?pl(over,"thing")+" overdue":(dueT?pl(dueT,"thing")+" due today":(open.length?"Nothing urgent. "+pl(open.length,"task")+" in progress.":"You're all clear."));
   var h='<header class="td-head"><div><div class="td-eyebrow">'+esc(new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long"}))+' · '+esc(spaceName())+'</div><h1>'+greet+(nm?", "+esc(nm):"")+'</h1><p>'+esc(sum)+'</p></div></header>';
   if(!readOnly)h+='<div class="td-cap"><input class="in" id="qcin" placeholder="Capture anything… an idea, a task, a note" maxlength="240" aria-label="Quick capture"><button type="button" class="btn" data-act="qcap" data-id="idea">'+I("bulb")+'Idea</button><button type="button" class="btn" data-act="qcap" data-id="task">'+I("check")+'Task</button><button type="button" class="btn" data-act="qcap" data-id="note">'+I("notes")+'Note</button></div>';
+  var obh=typeof obHTML==="function"?obHTML():"",fresh=typeof obFresh==="function"&&obFresh();
+  if(obh&&fresh)return h+obh+(typeof todayAud==="function"?todayAud():"");
+  h+=obh;
   function stat(n,l,v,c){return '<button class="td-stat'+(c?" "+c:"")+'" data-act="view" data-id="'+v+'"><b>'+n+'</b><span>'+l+'</span></button>'}
   h+='<div class="td-stats">'+stat(over,"Overdue","board",over?"warn":"")+stat(dueT,"Due today","board","")+stat(posts.length,"Posts this week","cal","")+'<div class="td-stat td-ft" id="tdfocus">'+tdFocusInner()+'</div></div>';
   h+='<div class="td-cols"><section class="panel"><h2>Needs attention'+(items.length>5?'<span class="muted" style="font-size:12px;font-weight:500">+'+(items.length-5)+' more in the bell</span>':"")+'</h2>'+
@@ -1808,6 +1819,7 @@ function vNotes(){
   var list=mine("notes");
   if(!list.some(function(n){return n.id===selNote}))selNote=list.length?list[0].id:null;
   var h=hero("notes","Notes",null,'<button class="btn pri" data-act="newnote"'+(readOnly?" disabled":"")+'>'+I("plus")+'New note</button>');
+  if(!list.length)return h+emptyCard("notes","Write your first note","Scripts, outlines, briefs and pitches live here. Start from a template so you're never facing a blank page.",readOnly?"":NTPL.map(function(t){return '<button class="btn sm" data-act="ntpl" data-id="'+t[0]+'">'+t[1]+'</button>'}).join(""));
   if(!readOnly)h+='<div class="ntpl"><span>Start from</span>'+NTPL.map(function(t){return '<button class="chip" data-act="ntpl" data-id="'+t[0]+'">'+t[1]+'</button>'}).join("")+'</div>';
   h+='<div class="notes"><div><input class="in" id="nsearch" placeholder="Filter notes" aria-label="Filter notes" style="margin-bottom:10px"><div class="nlist" id="nlist"></div></div><div id="neditor"></div></div>';
   return h;
@@ -1838,7 +1850,8 @@ function vIdeas(){
   h+='<div class="chips" role="group" aria-label="Filter ideas"><button class="chip" data-act="ifilter" data-id="all" aria-pressed="'+(ideaFilter==="all")+'">All '+all.length+'</button><button class="chip" data-act="ifilter" data-id="star" aria-pressed="'+(ideaFilter==="star")+'">Starred</button>'+
     Object.keys(tags).sort().map(function(t){return '<button class="chip" data-act="ifilter" data-id="'+esc(t)+'" aria-pressed="'+(ideaFilter===t)+'">#'+esc(t)+'</button>'}).join("")+'</div>';
   var shown=all.filter(function(i){return ideaFilter==="all"||(ideaFilter==="star"?i.star:(i.tags||[]).indexOf(ideaFilter)>-1)}).sort(function(a,b){return b.ts-a.ts});
-  if(!shown.length)h+='<div class="empty">Nothing here yet.</div>';
+  if(!all.length)h+=emptyCard("bulb","Catch your first idea","Type it above and press Add. Use #tags like #vlog to sort them. Any idea becomes a task or a planned post in one click.","");
+  else if(!shown.length)h+='<div class="empty">No ideas match this filter.</div>';
   h+=shown.map(function(i){
     return '<div class="idea"><button class="ico star" data-act="staridea" data-id="'+i.id+'" aria-pressed="'+!!i.star+'" aria-label="Star idea">'+I("star")+'</button><div class="body">'+esc(i.text)+'<div style="margin-top:6px">'+(i.tags||[]).map(function(t){return '<span class="tag">#'+esc(t)+'</span>'}).join("")+'<span class="muted" style="font-size:12px">'+ago(i.ts)+'</span></div></div><div class="acts">'+
       (i.task?'<span class="muted" style="font-size:12px;padding:4px">on board</span>':'<button class="btn sm" data-act="idea2task" data-id="'+i.id+'"'+(readOnly?" disabled":"")+'>Make task</button>')+(S.posts.some(function(p){return p.ideaId===i.id})?'<span class="muted" style="font-size:12px;padding:4px">planned</span>':'<button class="btn sm" data-act="idea2post" data-id="'+i.id+'"'+(readOnly?" disabled":"")+'>Plan post</button>')+
@@ -1850,6 +1863,7 @@ function vIdeas(){
 function vBoard(){
   var t=mine("tasks"),today=ymd(new Date());
   var h=hero("board","Progress",null,'');
+  if(!t.length)h+=emptyCard("board","Nothing on your board yet","Work moves left to right, from Idea to Shipped. Add a task in any column below, or turn one of your ideas into a task.",'<button class="btn sm" data-act="view" data-id="ideas">Go to Ideas</button>');
   h+='<div class="board">'+STAGES.map(function(s,si){
     var cards=t.filter(function(x){return x.col===s.id}).sort(function(a,b){return (b.pri||0)-(a.pri||0)});
     return '<section class="col" data-col="'+s.id+'" aria-label="'+s.name+'" style="--sc:'+STCOL[s.id]+'"><h3><span>'+s.name+'</span><span class="cn">'+cards.length+'</span></h3>'+
@@ -1949,7 +1963,7 @@ function mForm(sec){
   var f='<div class="form mb-form">';
   if(moodForm==="color")f+='<label class="fix">Colour<input type="color" id="mcolor" value="#3F5370"></label><label>Name<input class="in" id="mlabel" placeholder="Midnight" maxlength="40"></label>';
   if(moodForm==="note")f+='<label>Note<textarea class="in" id="mtext" placeholder="Tone, rules, things to remember" maxlength="400"></textarea></label>';
-  if(moodForm==="quote")f+='<label>Quote<textarea class="in" id="mtext" placeholder="The words that sum up the feel" maxlength="240"></textarea></label><label>Who said it<input class="in" id="mlabel" placeholder="Optional" maxlength="60"></label>';
+  if(moodForm==="quote")f+='<label>Quote<textarea class="in" id="mtext" placeholder="The words that sum up the feel" maxlength="240"></textarea></label><label>Who said it<input class="in" id="mlabel" placeholder="Title (optional)" maxlength="60"></label>';
   if(moodForm==="link")f+='<label>Link<input class="in" id="murl" placeholder="https://" maxlength="300"></label><label>Label<input class="in" id="mlabel" placeholder="Reference video" maxlength="60"></label>';
   if(moodForm==="pattern")f+='<label>Pattern<select class="in" id="mpat">'+PATS.map(function(p){return '<option value="'+p[0]+'">'+p[1]+'</option>'}).join("")+'</select></label><label>Name<input class="in" id="mlabel" placeholder="Optional" maxlength="40"></label><p class="note-hint" style="margin:0;flex-basis:100%">Uses the first colours of your palette.</p>';
   if(moodForm==="icon")f+='<label>Icon<select class="in" id="mico">'+MICONS.map(function(n){return '<option value="'+n+'">'+n+'</option>'}).join("")+'</select></label><label>Label<input class="in" id="mlabel" placeholder="Wisdom" maxlength="30"></label>';
@@ -1985,10 +1999,11 @@ function vMood(){
       var its=items.filter(function(x){return secOf(x)===s.id});
       var adds=readOnly?"":s.add.map(function(a){return '<button class="btn sm" data-act="mform" data-id="'+a[0]+'" data-sec="'+s.id+'">+ '+a[1]+'</button>'}).join("")+
         "";
-      h+='<section class="mb-sec s-'+s.id+'"><div class="mb-lbl"><h3>'+s.name+'</h3><p>'+s.hint+'</p><div class="mb-add">'+adds+'</div></div><div class="mb-body">';
+      var emp=!its.length&&s.id!=="type";
+      h+='<section class="mb-sec s-'+s.id+(emp?" empty":"")+'"><div class="mb-lbl"><h3>'+s.name+'</h3><p>'+s.hint+'</p>'+(emp?'':'<div class="mb-add">'+adds+'</div>')+'</div><div class="mb-body">';
       if(moodForm&&moodSec===s.id)h+=mForm(s.id);
       if(s.id==="type")h+=mTypeHTML(m);
-      else h+=its.length?'<div class="mb-wrap">'+its.map(mItem).join("")+'</div>':'<div class="mb-none">Nothing here yet</div>';
+      else h+=its.length?'<div class="mb-wrap">'+its.map(mItem).join("")+'</div>':'<div class="mb-none">'+(readOnly?'<span>Nothing here yet</span>':adds)+'</div>';
       h+='</div></section>';
     });
   }else{
@@ -2082,7 +2097,7 @@ function vFiles(){
   var files=mine("files");
   var h='<section class="sec" style="margin-top:26px"><h2>Files</h2>';
   if(assets&&!readOnly){
-    h+='<div class="form"><label>Upload images, video, PDFs or fonts<input class="in" type="file" id="ffile" accept="image/*,video/mp4,video/webm,application/pdf,.woff,.woff2,.ttf,.otf"></label><button class="btn pri" data-act="upfile">Upload</button></div>';
+    h+='<label class="fdrop"><input type="file" id="ffile" accept="image/*,video/mp4,video/webm,application/pdf,.woff,.woff2,.ttf,.otf"><span class="ec-i">'+I("plus")+'</span><span><b>Upload a file</b><small>Images, video, PDFs or fonts. Drop it here or click to choose.</small></span></label>';
   }else{
     h+='<p class="note-hint">File uploads are not available right now.</p>';
   }
@@ -2621,11 +2636,11 @@ function ytId(u){var m=String(u).match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|e
 function clipHost(u){try{return new URL(u).hostname.replace(/^www\./,"")}catch(e){return u}}
 function clipListHTML(){
   var q=clipQ.toLowerCase(),list=mine("clips").slice().sort(function(a,b){return (b.star-a.star)||(b.ts-a.ts)}).filter(function(c){return (clipTag==="all"||(c.tags||[]).indexOf(clipTag)>-1)&&(!q||(c.title+" "+c.note+" "+c.url).toLowerCase().indexOf(q)>-1)});
-  if(!list.length)return '<div class="empty">'+(mine("clips").length?"No clips match.":"Nothing saved yet. Paste a link above to start your reference library.")+'</div>';
+  if(!list.length)return mine("clips").length?'<div class="empty">No clips match.</div>':emptyCard("link","Build your reference library","Paste a video, an article or any link you want to learn from. Add a note like #lighting to find it later, or send it to your moodboard.","");
   return '<div class="clips">'+list.map(function(c){
     var y=ytId(c.url),host=clipHost(c.url),hue=0;for(var i=0;i<host.length;i++)hue=(hue*31+host.charCodeAt(i))%360;
     var th=y?'<img src="https://i.ytimg.com/vi/'+y+'/hqdefault.jpg" alt="" loading="lazy" onerror="this.remove()">':"";
-    return '<article class="clip"><a class="cl-th" href="'+esc(c.url)+'" target="_blank" rel="noopener noreferrer" style="background:linear-gradient(135deg,hsl('+hue+' 60% 55%),hsl('+((hue+50)%360)+' 60% 40%))" aria-label="Open '+esc(c.title||host)+'"><span>'+esc(host.slice(0,1).toUpperCase())+'</span>'+th+'</a><div class="cl-b"><b>'+esc(c.title||host)+'</b><small class="muted">'+esc(host)+' · '+ago(c.ts)+'</small>'+(c.note?'<p>'+esc(c.note)+'</p>':"")+((c.tags||[]).length?'<div class="cl-tags">'+c.tags.map(function(t){return '<span class="mb-chip" style="font-size:11px;letter-spacing:.04em;text-transform:none">#'+esc(t)+'</span>'}).join("")+'</div>':"")+
+    return '<article class="clip"><a class="cl-th'+(y?"":" noimg")+'" href="'+esc(c.url)+'" target="_blank" rel="noopener noreferrer" style="background:linear-gradient(135deg,hsl('+hue+' 60% 55%),hsl('+((hue+50)%360)+' 60% 40%))" aria-label="Open '+esc(c.title||host)+'"><span>'+esc(host.slice(0,1).toUpperCase())+'</span>'+th+'</a><div class="cl-b"><b>'+esc(c.title||host)+'</b><small class="muted">'+esc(host)+' · '+ago(c.ts)+'</small>'+(c.note?'<p>'+esc(c.note)+'</p>':"")+((c.tags||[]).length?'<div class="cl-tags">'+c.tags.map(function(t){return '<span class="mb-chip" style="font-size:11px;letter-spacing:.04em;text-transform:none">#'+esc(t)+'</span>'}).join("")+'</div>':"")+
       '<div class="cl-a"><button class="ico" data-act="clipstar" data-id="'+c.id+'" aria-label="Star" aria-pressed="'+!!c.star+'"'+(readOnly?" disabled":"")+'>'+I("star")+'</button><button class="btn sm" data-act="clipmood" data-id="'+c.id+'"'+(readOnly?" disabled":"")+'>To moodboard</button><button class="btn sm" data-act="clipidea" data-id="'+c.id+'"'+(readOnly?" disabled":"")+'>To ideas</button><button class="ico danger" data-act="clipdel" data-id="'+c.id+'" aria-label="Delete clip"'+(readOnly?" disabled":"")+'>'+I("x")+'</button></div></div></article>';
   }).join("")+'</div>';
 }
@@ -2751,8 +2766,10 @@ function v10act(a,b){
       else{var qn={id:uid(),sp:S.cur,title:qt.slice(0,60),body:qt.length>60?qt:"",pin:false,ts:Date.now()};S.notes.push(qn);selNote=qn.id;touch();go("notes")}
       return true}
     case "caltask":{var ci=$("planin"),cv=ci?ci.value.trim():"";if(!cv){toast("Type the task first");if(ci)ci.focus();return true}planAdd(cv);return true}
-    case "bellall":bellMark(bellItems().map(function(x){return x.id}));paintBell();var bm=$("bellm");if(bm)bm.innerHTML=bellHTML();return true;
-    case "bellgo":bellMark([b.dataset.id]);closeMenus();go(b.dataset.v);return true;
+    case "bellall":bellMark(bellItems(true).map(function(x){return x.id}));paintBell();var bm=$("bellm");if(bm)bm.innerHTML=bellHTML();return true;
+    case "bellgo":{bellMark([b.dataset.id]);closeMenus();var bsp=b.dataset.sp;
+      if(b.dataset.iso&&typeof webAct==="function"){webAct("sh_openiso",{dataset:{id:bsp}});return true}
+      if(bsp&&bsp!==S.cur&&S.spaces.some(function(x){return x.id===bsp})){S.cur=bsp;touch()}go(b.dataset.v);return true}
     case "shortcuts":showShortcuts();return true;
     case "sharehelp":showShare();return true;
     case "comment":commentOn(b.dataset.sel);return true;
@@ -2864,13 +2881,13 @@ function render0(){
   if(v==="home")html=vHome();else if(v==="notes")html=vNotes();else if(v==="ideas")html=vIdeas();
   else if(v==="board")html=vBoard();else if(v==="plan")html=vPlan();else if(v==="cal")html=vCal();else if(v==="biz")html=vBiz();else if(v==="clips")html=vClips();else if(v==="ai")html=vAi();else if(v==="wb")html=vWb();else if(v==="viz")html=vViz();else if(v==="mood")html=vMood();else html=vClips();
   $("wrap").innerHTML=html;
-  if(v==="notes"){$("nlist").innerHTML=noteListHTML("");$("neditor").innerHTML=noteEditorHTML()}
+  if(v==="notes"&&$("nlist")){$("nlist").innerHTML=noteListHTML("");$("neditor").innerHTML=noteEditorHTML()}
   if(v==="wb"){wbMount();wbBgApply()}
   renderDialog();
 }
 
 /* ---------- search ---------- */
-function spLabel(id){var s=S.spaces.filter(function(x){return x.id===id})[0];return s?s.name:""}
+function spLabel(id){var s=S.spaces.filter(function(x){return x.id===id})[0];return s?s.name:((typeof isoName==="function"&&isoName(id))||"")}
 function searchResults(q){
   q=q.toLowerCase();var r=[];
   function has(t){return String(t||"").toLowerCase().indexOf(q)>-1}
@@ -2883,6 +2900,13 @@ function searchResults(q){
   (S.mood||[]).forEach(function(x){if(has(x.label)||has(x.value)&&x.kind!=="image")add({k:"Mood",c:"var(--c-mood)",l:x.label||x.value,sp:x.sp,v:"mood",id:x.id},x.label)});
   (S.deals||[]).forEach(function(x){var t=x.brand||x.title||x.name;if(has(t))add({k:"Deal",c:"var(--c-notes)",l:t,sp:x.sp,v:"biz",id:x.id},t)});
   S.spaces.forEach(function(x){if(has(x.name))add({k:"Space",c:"var(--c-home)",l:x.name,sp:x.id,v:"home",id:x.id},x.name)});
+  if(typeof isoAll==="function"){
+    isoAll("notes").forEach(function(n){if(has(n.title)||has(n.body))add({k:"Note",c:"var(--c-notes)",l:n.title||"Untitled",sp:n.sp,v:"notes",id:n.id,iso:1},n.title)});
+    isoAll("ideas").forEach(function(i){if(has(i.text))add({k:"Idea",c:"var(--c-ideas)",l:i.text,sp:i.sp,v:"ideas",id:i.id,iso:1},i.text)});
+    isoAll("tasks").forEach(function(t){if(has(t.title))add({k:"Task",c:"var(--c-board)",l:t.title,sp:t.sp,v:"board",id:t.id,iso:1},t.title)});
+    isoAll("posts").forEach(function(x){if(has(x.title))add({k:"Post",c:"var(--c-viz)",l:x.title,sp:x.sp,v:"cal",id:x.id,iso:1},x.title)});
+    (S.iso||[]).forEach(function(x){if(has(x.name))add({k:"Space",c:"var(--c-home)",l:x.name+" (private)",sp:x.id,v:"home",id:x.id,iso:1},x.name)});
+  }
   r.sort(function(a,b){return a.rank-b.rank});
   return r.slice(0,14);
 }
@@ -2963,7 +2987,7 @@ function act0(a,b){
     case "ftoggle":ftToggle();break;
     case "ftmode":ftSwitch();break;
     case "ftreset":ftReset();break;
-    case "gores":{var rr=$("sres")._r[+b.dataset.i];if(rr){S.cur=rr.sp;S.view=rr.v;if(rr.v==="notes")selNote=rr.id;$("gsearch").value="";touch();render()}break}
+    case "gores":{var rr=$("sres")._r[+b.dataset.i];if(rr&&rr.iso&&typeof webAct==="function"){webAct("sh_openiso",{dataset:{id:rr.sp}});break}if(rr){S.cur=rr.sp;S.view=rr.v;if(rr.v==="notes")selNote=rr.id;$("gsearch").value="";touch();render()}break}
     /* whiteboard */
     case "wbhelp":showInfo("Whiteboard help",'<ul style="margin:0 0 12px;padding-left:20px;display:flex;flex-direction:column;gap:6px"><li><b>Move around:</b> drag empty space, and scroll to zoom.</li><li><b>Pen, sticky note, text:</b> pick a tool, then click or drag on the board.</li><li><b>Edit text:</b> double-click a note, text or frame title.</li><li><b>Frame:</b> open Shapes, pick Frame and drag a box. Dragging a frame carries what is inside it.</li><li><b>Connect:</b> pick Connect, then click two items.</li><li><b>Delete:</b> select something, then press Delete or use the bin.</li><li><b>Undo:</b> Ctrl+Z, redo with Ctrl+Shift+Z.</li></ul>');break;
     case "wbhint":try{localStorage.setItem("cs-wbhint","1")}catch(e){}wbPaint();break;

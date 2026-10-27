@@ -1,0 +1,17 @@
+const {chromium}=require('playwright');const http=require('http');const fs=require('fs');const path=require('path');
+const fake=require('./fakesb.js')();const seed=require('./seed.js');const site=path.join(process.cwd(),'public');
+const srv=http.createServer((req,res)=>{let u=req.url.split('?')[0];if(u==='/')u='/index.html';const f=path.join(site,u);if(!fs.existsSync(f)){res.writeHead(404);return res.end()}res.writeHead(200,{'content-type':u.endsWith('.html')?'text/html':u.endsWith('.js')?'application/javascript':u.endsWith('.woff2')?'font/woff2':'text/plain'});res.end(fs.readFileSync(f))});
+(async()=>{await new Promise(r=>srv.listen(0,r));const b=await chromium.launch();const ctx=await b.newContext({viewport:{width:390,height:844}});
+await ctx.route('https://ohkecamneutxggqwhend.supabase.co/**',fake.handle);const p=await ctx.newPage();
+await p.goto('http://localhost:'+srv.address().port+'/');await p.waitForTimeout(500);await p.click('[data-ag="up"]');await p.fill('#agemail','q@x.co');await p.fill('#agpass','supersecret1');await p.click('#aggo');await p.waitForTimeout(1800);
+seed(fake,'q@x.co');
+const cdp=await ctx.newCDPSession(p);await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});
+const t0=Date.now();await p.reload();await p.waitForSelector('.td-head',{timeout:30000});console.log('load to Today (ms)',Date.now()-t0);
+await p.waitForTimeout(2500);
+const res=await p.evaluate(async()=>{const out={};for(const v of ['home','notes','ideas','board','cal','biz','team','viz','clips','mood','home']){const b=document.querySelector('#nav [data-id="'+v+'"]');const t=performance.now();b.click();await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));out[v]=Math.round(performance.now()-t)}return out});
+console.log('view switch (ms, incl. 2 frames)',JSON.stringify(res));
+await p.evaluate(()=>document.querySelector('#nav [data-id="notes"]').click());await p.waitForTimeout(500);
+const typ=await p.evaluate(async()=>{const el=document.getElementById('nbody');const ts=[];for(let i=0;i<20;i++){const t=performance.now();el.value+='x';el.dispatchEvent(new Event('input',{bubbles:true}));ts.push(performance.now()-t)}return Math.round(ts.reduce((a,b)=>a+b)/ts.length*10)/10});
+console.log('notes keystroke handler (ms avg)',typ);
+const sz=fs.statSync(site+'/index.html').size;console.log('index.html KB',Math.round(sz/1024));
+await b.close();srv.close()})();

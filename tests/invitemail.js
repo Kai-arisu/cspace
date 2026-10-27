@@ -13,6 +13,7 @@ await p.fill('[data-w="sh.email"]','mate@x.co');await p.click('[data-act="sh_inv
 ok(/Email invite/.test(await p.textContent('#shmsg')),'invite message points to Email invite');
 ok(await p.locator('[data-act="sh_mail"]').count()===1,'row has Email invite button');
 await p.click('[data-act="sh_mail"]');await p.waitForTimeout(300);
-ok(/opened|copied/i.test(await p.textContent('#shmsg')),'email action reports back');
+ok(/Invite email sent/i.test(await p.textContent('#shmsg')),'invite email sent from the app');
+await p.click('[data-act="sh_mail"]');await p.waitForTimeout(400);ok(/already went/i.test(await p.textContent('#shmsg')),'second invite the same day is held back');
 ok(errs.length===0,'no page errors '+errs.join('|'));
 console.log(fail?'FAILURES '+fail:'ALL PASSED');await b.close();srv.close();process.exit(fail?1:0)})();

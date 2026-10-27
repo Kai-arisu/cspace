@@ -95,6 +95,13 @@ module.exports=function(){
         return route.fulfill({status:204,headers:{'access-control-allow-origin':'*'}})}
     }
     if(p.startsWith('/storage/v1/object/assets/')){st.files[p]=true;return J(200,{Key:p.replace('/storage/v1/object/','')})}
+    if(p==='/functions/v1/invite'){
+      if(!uid)return J(401,{error:'unauthorized'});const em=String(body.email||'').toLowerCase();
+      const known=st.tables.shares.some(x=>x.owner_id===uid&&x.invitee_email.toLowerCase()===em)||st.tables.team_members.some(x=>x.owner_id===uid&&String(x.email||'').toLowerCase()===em);
+      if(!known)return J(403,{error:'not_invited',message:'Add this person first, then send the invite.'});
+      st.invites=(st.invites||[]);if(st.invites.includes(uid+em))return J(429,{error:'already_sent',message:'An invite already went to this email today.'});
+      st.invites.push(uid+em);return J(200,{ok:true,kind:'invite'});
+    }
     if(p==='/functions/v1/youtube-sync'){
       if(!st.ytConfigured)return J(503,{error:'not_configured',message:'The YouTube API key has not been added yet.'});
       if(body.refresh)return J(200,{ok:true,refreshed:0,skipped:0});
