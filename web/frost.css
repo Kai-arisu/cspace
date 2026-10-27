@@ -569,3 +569,31 @@ html.pubpage[data-look="tint"] .pp-card,html.pubpage[data-look="glow"] .pp-card{
 @media print{.pp-share,.kit-top{display:none!important}}
 .sh-btns{display:flex;gap:6px}
 @media (max-width:560px){.sh-row{grid-template-columns:minmax(0,1fr) auto}.sh-btns{grid-column:1/-1}}
+
+/* ===== team ===== */
+.tm-tabs{margin:0 0 14px}
+.tm-stats{margin-bottom:14px}
+.tm-list{display:flex;flex-direction:column;gap:12px}
+.tm-card{display:flex;flex-direction:column;gap:8px}
+.tm-card.ended{opacity:.65}
+.tm-top{display:flex;align-items:center;gap:12px}
+.tm-av{flex:none}
+.tm-id{display:flex;flex-direction:column;min-width:0;flex:1}.tm-id b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:16px}
+.tm-badge{flex:none;font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;background:var(--flat)}
+.tm-badge.temp{background:color-mix(in srgb,#F5A524 22%,transparent)}
+.tm-badge.sal{background:color-mix(in srgb,#30A46C 20%,transparent)}
+.tm-meta{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}.tm-meta b{color:var(--fg)}
+.tm-prog{display:flex;justify-content:space-between;font-size:13px;margin-top:2px}
+.late{color:#E5484D;font-weight:600}
+.tm-none{margin:0;font-size:13px}
+.tm-form{margin-bottom:14px;display:flex;flex-direction:column;gap:10px}
+.tm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.tm-det{border-top:1px solid var(--line);margin-top:8px;padding-top:6px;display:flex;flex-direction:column;gap:10px}
+.tm-det h4{margin:10px 0 0;font:700 13px var(--f-display);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.tm-add{display:grid;grid-template-columns:minmax(0,1fr) 150px auto;gap:8px}
+.tm-rows{display:flex;flex-direction:column}
+.tm-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}.tm-row:last-child{border-bottom:0}
+.tm-t{overflow:hidden;text-overflow:ellipsis}.tm-t.done{text-decoration:line-through;color:var(--muted)}.tm-t small{color:var(--muted)}
+.tm-row .wsel{height:36px;background:var(--flat);border:0;border-radius:10px;padding:0 8px}
+.tm-empty{text-align:left}
+@media (max-width:560px){.tm-add{grid-template-columns:minmax(0,1fr) auto}.tm-add input[type=date]{grid-column:1/2}.tm-top{flex-wrap:wrap}}

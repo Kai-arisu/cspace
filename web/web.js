@@ -1,11 +1,14 @@
 /* ---------- website only: audience numbers, creator page, account ---------- */
 ICONS.globe='<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/>';
+ICONS.team='<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M16.5 14.2c2.6.2 4.5 2.3 4.5 4.8"/>';
 ICONS.trend='<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>';
 (function(){
   var i=VIEWS.map(function(v){return v.id}).indexOf("viz");
   VIEWS.splice(i+1,0,{id:"aud",name:"Audience",ic:"trend",c:"var(--c-viz)",desc:"Real numbers from your channels and pages."});
+  var bi=VIEWS.map(function(v){return v.id}).indexOf("biz");
+  VIEWS.splice(bi+1,0,{id:"team",name:"Team",ic:"team",c:"var(--c-board)",desc:"The people who work with you: their work, progress and pay."});
   VIEWS.push({id:"cp",g:"You",name:"Handles",ic:"globe",c:"var(--c-home)",desc:"Where people find you."});
-  if(window.__WS)VIEWS=VIEWS.filter(function(v){return v.id!=="aud"&&v.id!=="cp"});
+  if(window.__WS)VIEWS=VIEWS.filter(function(v){return v.id!=="aud"&&v.id!=="cp"&&v.id!=="team"});
 })();
 
 /* ---------- sidebar rail, sounds, breadcrumb (website only) ---------- */
@@ -439,6 +442,20 @@ function webAct(a,b){
     case "push_on":pushOn();return true;
     case "push_off":pushOff();return true;
     case "push_test":pushTest();return true;
+    case "tm_tab":T.tab=id;T.tabSet=true;render();return true;
+    case "tm_add":T.form=!T.form;render();return true;
+    case "tm_create":tmCreate();return true;
+    case "tm_open":T.sel=T.sel===id?null:id;render();return true;
+    case "tm_del":arm(b,function(){tmDelete(id)});return true;
+    case "tm_end":{var em1=tmM(id);if(em1)tmPatch(id,{status:em1.status==="ended"?"active":"ended"},true);return true}
+    case "tm_mail":tmMail(id);return true;
+    case "tm_wadd":tmWorkAdd(id);return true;
+    case "tm_wdel":tmWorkDel(id);return true;
+    case "tm_padd":tmPayAdd(id,false);return true;
+    case "tm_salary":tmPayAdd(id,true);return true;
+    case "tm_pdel":tmPayDel(id);return true;
+    case "tm_ppaid":tmPayToggle(id);return true;
+    case "tm_kind":T.f.kind=id;render();return true;
     case "calsync":calSync(false);return true;
     case "calnew":calSync(true);return true;
     case "calcopy":copy(CAL.url);return true;
@@ -563,6 +580,7 @@ document.addEventListener("keydown",function(e){if(e.key==="Escape")moreClose()}
 function webView(v){
   if(v==="aud"){if(!W.loaded&&!W.loading)audLoad();return audHTML()}
   if(v==="cp")return cpHTML();
+  if(v==="team"){if(!T.loaded&&!T.loading)tmLoad();return tmHTML()}
   return null;
 }
 function webMount(v){
@@ -727,3 +745,205 @@ async function isolateSpace(id){
     return true;
   }catch(e){return false}
 }
+
+
+/* ---------------- Team: people who work with you ---------------- */
+var T={loaded:false,loading:false,members:[],work:[],pay:[],my:[],sel:null,tab:"team",form:false,msg:"",f:{name:"",role:"",email:"",kind:"salary",amount:"",start:"",end:"",login:true,seepay:true},wf:{},pf:{}};
+function tmM(id){return T.members.filter(function(x){return x.id===id})[0]}
+function tmErr(e){T.msg=(e&&e.message)||"Something went wrong. Try again.";render()}
+async function tmLoad(){
+  T.loading=true;
+  try{
+    var uid=window.__UID;
+    var r=await Promise.all([
+      WSB.from("team_members").select("*").eq("owner_id",uid).order("created_at"),
+      WSB.from("team_work").select("*").eq("owner_id",uid).order("created_at",{ascending:false}),
+      WSB.from("team_pay").select("*").eq("owner_id",uid).order("created_at",{ascending:false}),
+      WSB.rpc("my_team")]);
+    if(r[0].error)throw r[0].error;
+    T.members=r[0].data||[];T.work=r[1].data||[];T.pay=r[2].data||[];T.my=Array.isArray(r[3].data)?r[3].data:[];
+    if(!T.members.length&&T.my.length&&!T.tabSet){T.tab="mywork"}
+    T.msg="";
+  }catch(e){T.msg="Couldn't load your team. "+((e&&e.message)||"")}
+  T.loaded=true;T.loading=false;if(S.view==="team")render();
+}
+function tmProg(id){
+  var w=T.work.filter(function(x){return x.member_id===id}),done=w.filter(function(x){return x.status==="done"}).length,td=ymd(new Date());
+  var over=w.filter(function(x){return x.status!=="done"&&x.due&&x.due<td}).length;
+  return {total:w.length,done:done,open:w.length-done,over:over,pct:w.length?Math.round(done/w.length*100):0};
+}
+function tmPayInfo(id){
+  var p=T.pay.filter(function(x){return x.member_id===id}),due=0,paid=0;
+  p.forEach(function(x){if(x.status==="paid")paid+=Number(x.amount);else due+=Number(x.amount)});
+  return {due:due,paid:paid,n:p.length};
+}
+function tmBar(pct,c){return '<span class="vtrack" style="margin:6px 0"><span class="vfill" style="--c:'+(c||"var(--st-s)")+';width:'+pct+'%"></span></span>'}
+function tmKind(m){return m.kind==="temp"?"Temporary":"Salary"}
+function tmAmt(m){return m.kind==="temp"?money(m.amount)+" total":money(m.amount)+" / month"}
+function tmHTML(){
+  var own=T.tab!=="mywork"||!T.my.length;
+  var h=hero("team","Team",own?"The people who work with you. Add work for them, see how it is going, and keep track of what you owe and have paid.":"Work other creators have given you, and how it is going.",
+    own?'<button class="btn pri" data-act="tm_add">'+(T.form?"Close":"Add member")+'</button>':'');
+  if(T.my.length)h+='<div class="hd-seg tm-tabs" role="group" aria-label="Team pages"><button data-act="tm_tab" data-id="team" aria-pressed="'+own+'">My team</button><button data-act="tm_tab" data-id="mywork" aria-pressed="'+!own+'">My work for others</button></div>';
+  if(!T.loaded)return h+'<p class="muted">Loading…</p>';
+  if(T.msg)h+='<p class="ac-errmsg">'+esc(T.msg)+'</p>';
+  if(T.tab==="mywork"&&T.my.length)return h+tmMyHTML();
+  var act=T.members.filter(function(m){return m.status==="active"}),openW=0,overW=0,due=0,paidM=0,mon=ymd(new Date()).slice(0,7);
+  act.forEach(function(m){var g=tmProg(m.id);openW+=g.open;overW+=g.over});
+  T.pay.forEach(function(x){if(x.status==="due")due+=Number(x.amount);else if(x.paid_on&&x.paid_on.slice(0,7)===mon)paidM+=Number(x.amount)});
+  h+='<div class="stats tm-stats"><div class="stat"><b>'+act.length+'</b><span>Active members</span></div><div class="stat"><b>'+openW+'</b><span>Open work'+(overW?' · '+overW+' late':'')+'</span></div><div class="stat"><b>'+money(due)+'</b><span>To pay</span></div><div class="stat"><b>'+money(paidM)+'</b><span>Paid this month</span></div></div>';
+  if(T.form)h+=tmFormHTML();
+  if(!T.members.length&&!T.form)h+='<div class="panel tm-empty"><b>No team yet</b><p class="muted" style="margin:4px 0 12px">Add someone who works with you, like an editor or a designer. You choose whether they can sign in and see their own work and pay.</p><button class="btn pri" data-act="tm_add">Add your first member</button></div>';
+  h+='<div class="tm-list">'+T.members.map(tmCardHTML).join("")+'</div>';
+  return h;
+}
+function tmFormHTML(){
+  var f=T.f,temp=f.kind==="temp";
+  return '<section class="panel tm-form"><h3>New team member</h3>'+
+   '<div class="tm-grid"><label class="plab">Name<input class="in" data-tmf="name" maxlength="80" value="'+esc(f.name)+'" placeholder="Their name"></label>'+
+   '<label class="plab">Role<input class="in" data-tmf="role" maxlength="60" value="'+esc(f.role)+'" placeholder="Video editor, designer…"></label>'+
+   '<label class="plab">Email (so they can sign in)<input class="in" type="email" data-tmf="email" maxlength="120" value="'+esc(f.email)+'" placeholder="name@email.com" autocapitalize="none" spellcheck="false"></label>'+
+   '<div class="plab">How you pay them<div class="hd-seg" role="group"><button data-act="tm_kind" data-id="salary" aria-pressed="'+(!temp)+'">Monthly salary</button><button data-act="tm_kind" data-id="temp" aria-pressed="'+temp+'">Temporary hire</button></div></div>'+
+   '<label class="plab">'+(temp?"Total fee":"Salary per month")+'<input class="in" inputmode="decimal" data-tmf="amount" maxlength="12" value="'+esc(f.amount)+'" placeholder="0"></label>'+
+   '<label class="plab">Starts<input class="in" type="date" data-tmf="start" value="'+esc(f.start)+'"></label>'+
+   (temp?'<label class="plab">Ends<input class="in" type="date" data-tmf="end" value="'+esc(f.end)+'"></label>':'')+'</div>'+
+   '<label class="cp-pub"><input type="checkbox" data-tmf="login"'+(f.login?" checked":"")+'> Can sign in and see their own work</label>'+
+   '<label class="cp-pub"><input type="checkbox" data-tmf="seepay"'+(f.seepay?" checked":"")+'> Can see their own pay</label>'+
+   '<div class="drow"><button class="btn pri" data-act="tm_create">Add to team</button></div></section>';
+}
+function tmCardHTML(m){
+  var g=tmProg(m.id),pi=tmPayInfo(m.id),open=T.sel===m.id,ended=m.status==="ended";
+  var h='<article class="panel tm-card'+(ended?" ended":"")+'"><div class="tm-top"><span class="av lg tm-av">'+esc((m.name||"?").slice(0,1).toUpperCase())+'</span><div class="tm-id"><b>'+esc(m.name)+'</b><span class="muted">'+esc(m.role_title||"No role set")+'</span></div>'+
+   '<span class="tm-badge '+(m.kind==="temp"?"temp":"sal")+'">'+tmKind(m)+(ended?" · ended":"")+'</span></div>'+
+   '<div class="tm-meta"><span>'+tmAmt(m)+'</span><span>'+(m.can_login&&m.email?"Can sign in":"No sign-in")+'</span><span>'+(m.see_pay?"Sees own pay":"Pay hidden from them")+'</span></div>'+
+   (g.total?'<div class="tm-prog"><span>'+g.done+' of '+g.total+' done'+(g.over?' · <b class="late">'+g.over+' late</b>':'')+'</span><span>'+g.pct+'%</span></div>'+tmBar(g.pct):'<p class="muted tm-none">No work assigned yet.</p>')+
+   '<div class="tm-meta"><span>To pay: <b>'+money(pi.due)+'</b></span><span>Paid: <b>'+money(pi.paid)+'</b></span></div>'+
+   '<div class="drow"><button class="btn sm" data-act="tm_open" data-id="'+m.id+'">'+(open?"Close":"Open")+'</button></div>';
+  if(open)h+=tmDetailHTML(m);
+  return h+'</article>';
+}
+function tmDetailHTML(m){
+  var id=m.id,temp=m.kind==="temp",td=ymd(new Date());
+  var h='<div class="tm-det"><h4>Details</h4><div class="tm-grid">'+
+   '<label class="plab">Name<input class="in" data-tm="name" data-id="'+id+'" maxlength="80" value="'+esc(m.name)+'"></label>'+
+   '<label class="plab">Role<input class="in" data-tm="role_title" data-id="'+id+'" maxlength="60" value="'+esc(m.role_title||"")+'"></label>'+
+   '<label class="plab">Email<input class="in" type="email" data-tm="email" data-id="'+id+'" maxlength="120" value="'+esc(m.email||"")+'" autocapitalize="none"></label>'+
+   '<label class="plab">'+(temp?"Total fee":"Salary per month")+'<input class="in" inputmode="decimal" data-tm="amount" data-id="'+id+'" maxlength="12" value="'+esc(m.amount)+'"></label>'+
+   '<label class="plab">Starts<input class="in" type="date" data-tm="start_date" data-id="'+id+'" value="'+esc(m.start_date||"")+'"></label>'+
+   (temp?'<label class="plab">Ends<input class="in" type="date" data-tm="end_date" data-id="'+id+'" value="'+esc(m.end_date||"")+'"></label>':'')+'</div>'+
+   '<label class="cp-pub"><input type="checkbox" data-tm="can_login" data-id="'+id+'"'+(m.can_login?" checked":"")+'> Can sign in and see their own work</label>'+
+   '<label class="cp-pub"><input type="checkbox" data-tm="see_pay" data-id="'+id+'"'+(m.see_pay?" checked":"")+'> Can see their own pay</label>'+
+   '<label class="plab">Private notes (only you see these)<textarea class="in" rows="2" data-tm="notes" data-id="'+id+'" maxlength="2000">'+esc(m.notes||"")+'</textarea></label>'+
+   '<div class="drow">'+(m.email?'<button class="btn sm" data-act="tm_mail" data-id="'+id+'">Email sign-in details</button>':'')+'<button class="btn sm" data-act="tm_end" data-id="'+id+'">'+(m.status==="ended"?"Bring back":"Mark as ended")+'</button><button class="btn sm" data-act="tm_del" data-id="'+id+'">Remove</button></div>';
+  var w=T.work.filter(function(x){return x.member_id===id});
+  h+='<h4>Work</h4><div class="tm-add"><input class="in" data-tmw="title" data-id="'+id+'" maxlength="200" placeholder="Give them a piece of work" value="'+esc((T.wf[id]||{}).title||"")+'"><input class="in" type="date" data-tmw="due" data-id="'+id+'" value="'+esc((T.wf[id]||{}).due||"")+'" aria-label="Due date"><button class="btn pri" data-act="tm_wadd" data-id="'+id+'">Add</button></div>';
+  h+=w.length?'<div class="tm-rows">'+w.map(function(x){var late=x.status!=="done"&&x.due&&x.due<td;return '<div class="tm-row"><span class="tm-t'+(x.status==="done"?" done":"")+'">'+esc(x.title)+(x.due?'<small class="'+(late?"late":"")+'"> · '+(late?"late · ":"")+esc(fmtDue(x.due))+'</small>':'')+'</span><select class="wsel" data-tmws="'+x.id+'" aria-label="Status"><option value="todo"'+(x.status==="todo"?" selected":"")+'>To do</option><option value="doing"'+(x.status==="doing"?" selected":"")+'>Doing</option><option value="done"'+(x.status==="done"?" selected":"")+'>Done</option></select><button class="ico" data-act="tm_wdel" data-id="'+x.id+'" aria-label="Delete work">'+I("x")+'</button></div>'}).join("")+'</div>':'<p class="muted tm-none">Nothing assigned.</p>';
+  var pr=T.pay.filter(function(x){return x.member_id===id});
+  var pf=T.pf[id]||{};
+  h+='<h4>Pay</h4><div class="tm-add"><input class="in" data-tmp="label" data-id="'+id+'" maxlength="80" placeholder="What for, e.g. Nov 2026" value="'+esc(pf.label||"")+'"><input class="in" inputmode="decimal" data-tmp="amount" data-id="'+id+'" maxlength="12" placeholder="Amount" value="'+esc(pf.amount||"")+'"><button class="btn pri" data-act="tm_padd" data-id="'+id+'">Add</button></div>'+
+   (temp?'':'<div class="drow"><button class="btn sm" data-act="tm_salary" data-id="'+id+'">Add '+esc(tmMonth())+' salary ('+money(m.amount)+')</button></div>');
+  h+=pr.length?'<div class="tm-rows">'+pr.map(function(x){return '<div class="tm-row"><span class="tm-t">'+esc(x.label)+'<small> · '+money(x.amount)+(x.status==="paid"&&x.paid_on?' · paid '+esc(fmtDue(x.paid_on)):'')+'</small></span><button class="btn sm'+(x.status==="paid"?"":" pri")+'" data-act="tm_ppaid" data-id="'+x.id+'">'+(x.status==="paid"?"Paid":"Mark paid")+'</button><button class="ico" data-act="tm_pdel" data-id="'+x.id+'" aria-label="Delete pay entry">'+I("x")+'</button></div>'}).join("")+'</div>':'<p class="muted tm-none">No pay records yet.</p>';
+  return h+'</div>';
+}
+function tmMonth(){return new Date().toLocaleDateString("en-IN",{month:"short",year:"numeric"})}
+function tmMyHTML(){
+  var td=ymd(new Date());
+  return '<div class="tm-list">'+T.my.map(function(m,mi){
+    var w=m.work||[],done=w.filter(function(x){return x.status==="done"}).length,pct=w.length?Math.round(done/w.length*100):0;
+    var h='<article class="panel tm-card"><div class="tm-top"><span class="av lg tm-av">'+esc((m.owner_email||"?").slice(0,1).toUpperCase())+'</span><div class="tm-id"><b>Working for '+esc(m.owner_email||"")+'</b><span class="muted">'+esc(m.role_title||"Team member")+'</span></div><span class="tm-badge '+(m.kind==="temp"?"temp":"sal")+'">'+tmKind(m)+'</span></div>';
+    if(m.see_pay&&m.amount!=null)h+='<div class="tm-meta"><span>'+tmAmt(m)+'</span>'+(m.start_date?'<span>From '+esc(fmtDue(m.start_date))+'</span>':'')+(m.end_date?'<span>Until '+esc(fmtDue(m.end_date))+'</span>':'')+'</div>';
+    h+=(w.length?'<div class="tm-prog"><span>'+done+' of '+w.length+' done</span><span>'+pct+'%</span></div>'+tmBar(pct):'<p class="muted tm-none">No work assigned to you yet.</p>');
+    h+=w.length?'<h4>Your work</h4><div class="tm-rows">'+w.map(function(x){var late=x.status!=="done"&&x.due&&x.due<td;return '<div class="tm-row"><span class="tm-t'+(x.status==="done"?" done":"")+'">'+esc(x.title)+(x.due?'<small class="'+(late?"late":"")+'"> · '+(late?"late · ":"")+esc(fmtDue(x.due))+'</small>':'')+'</span><select class="wsel" data-tmmy="'+x.id+'" aria-label="Status"><option value="todo"'+(x.status==="todo"?" selected":"")+'>To do</option><option value="doing"'+(x.status==="doing"?" selected":"")+'>Doing</option><option value="done"'+(x.status==="done"?" selected":"")+'>Done</option></select></div>'}).join("")+'</div>':'';
+    if(m.see_pay&&Array.isArray(m.pay)){h+='<h4>Your pay</h4>'+(m.pay.length?'<div class="tm-rows">'+m.pay.map(function(x){return '<div class="tm-row"><span class="tm-t">'+esc(x.label)+'<small> · '+money(x.amount)+'</small></span><span class="tm-badge '+(x.status==="paid"?"sal":"temp")+'">'+(x.status==="paid"?"Paid"+(x.paid_on?" "+esc(fmtDue(x.paid_on)):""):"Due")+'</span></div>'}).join("")+'</div>':'<p class="muted tm-none">No pay records yet.</p>')}
+    else h+='<p class="muted tm-none" style="margin-top:10px">Pay details are not shared with you here.</p>';
+    return h+'</article>'}).join("")+'</div>';
+}
+async function tmCreate(){
+  var f=T.f,name=(f.name||"").trim(),em=(f.email||"").trim().toLowerCase(),amt=Number(String(f.amount||"0").replace(/,/g,""));
+  if(!name){T.msg="Add a name first.";render();return}
+  if(em&&!/^\S+@\S+\.\S+$/.test(em)){T.msg="That email doesn't look right.";render();return}
+  if(em&&em===String(window.__EMAIL||"").toLowerCase()){T.msg="That is your own email.";render();return}
+  if(!isFinite(amt)||amt<0){T.msg="Enter the amount as a number.";render();return}
+  var row={name:name,role_title:(f.role||"").trim()||null,email:em||null,kind:f.kind,amount:amt,start_date:f.start||null,end_date:f.kind==="temp"?(f.end||null):null,can_login:!!(f.login&&em),see_pay:!!f.seepay};
+  var r=await WSB.from("team_members").insert(row).select("*").single();
+  if(r.error){T.msg=r.error.code==="23505"?"You already added someone with that email.":"Couldn't add them. "+r.error.message;render();return}
+  T.members.push(r.data);T.form=false;T.sel=r.data.id;T.msg="";
+  T.f={name:"",role:"",email:"",kind:"salary",amount:"",start:"",end:"",login:true,seepay:true};
+  toast(name+" added to your team");render();
+}
+async function tmPatch(id,patch,rerender){
+  var m=tmM(id);if(!m)return;
+  var r=await WSB.from("team_members").update(patch).eq("id",id);
+  if(r.error){T.msg=r.error.code==="23505"?"Someone with that email is already on your team.":"Couldn't save. "+r.error.message;render();return}
+  Object.assign(m,patch);T.msg="";if(rerender)render();
+}
+async function tmDelete(id){
+  var r=await WSB.from("team_members").delete().eq("id",id);
+  if(r.error){T.msg="Couldn't remove them.";render();return}
+  T.members=T.members.filter(function(x){return x.id!==id});T.work=T.work.filter(function(x){return x.member_id!==id});T.pay=T.pay.filter(function(x){return x.member_id!==id});
+  if(T.sel===id)T.sel=null;toast("Removed from your team");render();
+}
+function tmMail(id){
+  var m=tmM(id);if(!m||!m.email)return;
+  var who=(S.profile&&S.profile.name)||String(window.__EMAIL||"").split("@")[0];
+  var body="Hi "+m.name+",\n\nI added you to my team on Creator Space.\n\n1. Open "+location.origin+"\n2. Sign in, or create an account, with this email: "+m.email+"\n3. Open Team and choose \"My work for others\" to see your work"+(m.see_pay?", progress and pay":" and progress")+".\n\nThanks,\n"+who;
+  var a=document.createElement("a");a.href="mailto:"+encodeURIComponent(m.email)+"?subject="+encodeURIComponent(who+" added you to their team")+"&body="+encodeURIComponent(body);
+  document.body.appendChild(a);a.click();a.remove();
+  try{navigator.clipboard&&navigator.clipboard.writeText(body).catch(function(){})}catch(e){}
+  toast("Your email app opened. The text is also copied.");
+}
+async function tmWorkAdd(id){
+  var f=T.wf[id]||{},t=(f.title||"").trim();if(!t){toast("Type what the work is first");return}
+  var r=await WSB.from("team_work").insert({member_id:id,title:t,due:f.due||null}).select("*").single();
+  if(r.error){T.msg="Couldn't add the work. "+r.error.message;render();return}
+  T.work.unshift(r.data);T.wf[id]={};render();
+}
+async function tmWorkDel(id){var r=await WSB.from("team_work").delete().eq("id",id);if(!r.error){T.work=T.work.filter(function(x){return x.id!==id});render()}}
+async function tmWorkStatus(id,st){
+  var w=T.work.filter(function(x){return x.id===id})[0];if(!w)return;
+  var patch={status:st,done_at:st==="done"?new Date().toISOString():null};
+  var r=await WSB.from("team_work").update(patch).eq("id",id);if(!r.error){Object.assign(w,patch);render()}
+}
+async function tmPayAdd(id,salary){
+  var m=tmM(id);if(!m)return;var pf=T.pf[id]||{},label,amt;
+  if(salary){label=tmMonth()+" salary";amt=Number(m.amount)}
+  else{label=(pf.label||"").trim();amt=Number(String(pf.amount||"").replace(/,/g,""))}
+  if(!label){toast("Say what the payment is for");return}
+  if(!isFinite(amt)||amt<=0){toast("Enter an amount above zero");return}
+  var r=await WSB.from("team_pay").insert({member_id:id,label:label,amount:amt}).select("*").single();
+  if(r.error){T.msg="Couldn't add the payment. "+r.error.message;render();return}
+  T.pay.unshift(r.data);T.pf[id]={};render();
+}
+async function tmPayToggle(id){
+  var p=T.pay.filter(function(x){return x.id===id})[0];if(!p)return;
+  var patch=p.status==="paid"?{status:"due",paid_on:null}:{status:"paid",paid_on:ymd(new Date())};
+  var r=await WSB.from("team_pay").update(patch).eq("id",id);if(!r.error){Object.assign(p,patch);render()}
+}
+async function tmPayDel(id){var r=await WSB.from("team_pay").delete().eq("id",id);if(!r.error){T.pay=T.pay.filter(function(x){return x.id!==id});render()}}
+async function tmMyStatus(id,st){
+  var r=await WSB.rpc("my_work_update",{p_id:id,p_status:st});
+  if(r.error||r.data!==true){toast("Couldn't update that");return}
+  T.my.forEach(function(m){(m.work||[]).forEach(function(x){if(x.id===id){x.status=st;x.done_at=st==="done"?new Date().toISOString():null}})});render();
+}
+document.addEventListener("input",function(e){
+  var t=e.target;if(!t||!t.dataset)return;var d=t.dataset;
+  if(d.tmf){T.f[d.tmf]=t.type==="checkbox"?t.checked:t.value}
+  else if(d.tmw){(T.wf[d.id]=T.wf[d.id]||{})[d.tmw]=t.value}
+  else if(d.tmp){(T.pf[d.id]=T.pf[d.id]||{})[d.tmp]=t.value}
+});
+document.addEventListener("change",function(e){
+  var t=e.target;if(!t||!t.dataset)return;var d=t.dataset;
+  if(d.tmf&&t.type==="checkbox"){T.f[d.tmf]=t.checked}
+  else if(d.tmf==="start"||d.tmf==="end"){T.f[d.tmf]=t.value}
+  else if(d.tmws){tmWorkStatus(d.tmws,t.value)}
+  else if(d.tmmy){tmMyStatus(d.tmmy,t.value)}
+  else if(d.tm){
+    var f=d.tm,v=t.type==="checkbox"?t.checked:t.value,patch={};
+    if(f==="amount"){v=Number(String(v).replace(/,/g,""));if(!isFinite(v)||v<0){toast("Enter the amount as a number");return}}
+    else if(f==="email"){v=String(v).trim().toLowerCase()||null;if(v&&!/^\S+@\S+\.\S+$/.test(v)){toast("That email doesn't look right");return}}
+    else if(f==="start_date"||f==="end_date"){v=v||null}
+    else if(f==="name"){v=String(v).trim();if(!v){toast("A name is needed");return}}
+    else if(f==="role_title"||f==="notes"){v=String(v).trim()||null}
+    patch[f]=v;tmPatch(d.id,patch,t.type==="checkbox"||f==="amount"||f==="name"||f==="email");
+  }
+});
