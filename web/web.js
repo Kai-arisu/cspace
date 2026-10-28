@@ -341,6 +341,18 @@ async function socSync(force){
   })();
 })();
 
+/* the name typed on the landing page becomes the first space */
+(function(){
+  var n;try{n=localStorage.getItem("cs-new-space")}catch(e){return}if(!n)return;
+  var tries=0;(function wait(){
+    if(typeof S==="undefined"||!S||!S.spaces||!S.spaces.length||!window.__UID){if(++tries<80)setTimeout(wait,250);return}
+    try{localStorage.removeItem("cs-new-space")}catch(e){}
+    if(window.__WS)return;
+    var sp=S.spaces.filter(function(x){return x.id===S.cur})[0]||S.spaces[0];
+    if(S.spaces.length===1&&sp&&sp.name==="My channel"){sp.name=String(n).slice(0,40);S.cfg=S.cfg||{};S.cfg.spNamed=true;touch();render()}
+  })();
+})();
+
 /* ---------- setup guide, shown until a platform's developer app is added ---------- */
 var SOCG={
   instagram:{t:"Instagram",what:"followers, reach, views, accounts engaged, link taps, and views, likes and saves for each post and reel",

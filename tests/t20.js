@@ -13,7 +13,7 @@ async function mkctx(){const ctx=await b.newContext({viewport:{width:1200,height
 const ctx=await mkctx();const p=await ctx.newPage();const errs=[],csps=[];
 p.on('pageerror',e=>errs.push(e.message));p.on('console',m=>{const t=m.text();if(/Content Security Policy|Refused to/.test(t))csps.push(t)});
 await p.goto(origin+'/');await p.waitForTimeout(700);
-ok(await p.locator('#authgate .ag-card').isVisible(),'login gate shows');
+ok(await p.locator('#landing').isVisible(),'landing shows first');ok((await p.textContent('.lp-hero h1')).includes('in one space'),'landing headline');await p.click('.lp-nav [data-ag="in"]');await p.waitForTimeout(400);ok(!(await p.locator('#landing').isVisible()),'landing hides for sign in');ok(await p.locator('#authgate .ag-card').isVisible(),'login gate shows');
 ok(!(await p.locator('#nav').isVisible()),'app hidden behind gate');
 await p.screenshot({path:'f-login.png'});
 // wrong password
@@ -87,7 +87,7 @@ ok(!(await p.textContent('#nav')).includes('Video editor'),'video editor removed
 await p.click('[data-act="cp_save"]');await p.waitForTimeout(800);
 ok(st.tables.profiles.some(r=>(r.links||[]).some(l=>l.label==='Instagram'&&l.url==='https://instagram.com/mygram')),'handle saved as link');
 await tab(p,'settings');await p.click('main [data-act="signout"]');await p.click('main [data-act="signout"]');await p.waitForTimeout(1500);
-ok(await p.locator('#authgate .ag-card').isVisible(),'back at login after sign out');
+ok(await p.locator('#landing').isVisible(),'back at landing after sign out');await p.click('.lp-nav [data-ag="in"]');await p.waitForTimeout(400);ok(await p.locator('#authgate .ag-card').isVisible(),'back at login after sign out');
 // sign in again keeps data
 await p.fill('#agemail','creator@example.com');await p.fill('#agpass','supersecret1');await p.click('#aggo');await p.waitForTimeout(2500);
 await p.click('[data-act="view"][data-id="notes"]');await p.waitForTimeout(400);

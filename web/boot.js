@@ -8,6 +8,8 @@ function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){retur
 function fmt(n){if(n==null)return "Hidden";n=Number(n);if(!isFinite(n))return "-";return new Intl.NumberFormat("en",{notation:"compact",maximumFractionDigits:n<10000?1:0}).format(n)}
 
 if(!window.supabase||!window.supabase.createClient){
+  /* the landing page is static, so a visitor still sees it; only signing in waits for the connection */
+  if(root.classList.contains("landing")&&$("landing")){$("landing").hidden=false;window.__lpGate=function(){alert("Couldn't reach the sign-in service. Check your connection and reload.")};return}
   root.className="";document.body.innerHTML='<p style="padding:32px;font:16px system-ui">Could not load the sign-in library. Check your connection and reload.</p>';
   return;
 }
@@ -123,7 +125,7 @@ function gateHTML(){
     '<label id="agpwrap">Password<input id="agpass" type="password" minlength="8" required></label>'+
     '<p class="ag-msg" id="agmsg" role="alert"></p>'+
     '<button class="btn pri ag-go" id="aggo" type="submit"></button></form>'+
-    '<div class="ag-foot"><button type="button" class="ag-link" id="agforgot">Forgot your password?</button></div></div>';
+    '<div class="ag-foot"><button type="button" class="ag-link" id="agforgot">Forgot your password?</button>'+(document.getElementById("landing")?'<button type="button" class="ag-link" id="agback">Back to the start</button>':'')+'</div></div>';
 }
 function setMode(m){
   mode=m;
@@ -148,12 +150,19 @@ function friendly(e){
   if(/fetch|network/i.test(m))return "No connection. Check your internet and try again.";
   return m||"Something went wrong. Try again.";
 }
+function showLanding(){
+  var l=$("landing");if(!l){showGate("in");return}
+  root.className="landing";l.hidden=false;$("authgate").hidden=true;window.scrollTo(0,0);
+}
+window.__lpGate=function(m){showGate(m||"up");window.scrollTo(0,0);setTimeout(function(){var e=$("agemail");if(e)e.focus()},50)};
+document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("#landing [data-ag]");if(b){e.preventDefault();window.__lpGate(b.dataset.ag)}});
 function showGate(startMode){
-  root.className="authing";
+  root.className="authing";var lg=$("landing");if(lg)lg.hidden=true;
   var g=$("authgate");g.hidden=false;g.innerHTML=gateHTML();setMode(startMode||"in");
   g.addEventListener("click",function(e){
     var b=e.target.closest("[data-ag]");if(b)setMode(b.dataset.ag);
     if(e.target.id==="agforgot")setMode("forgot");
+    if(e.target.id==="agback")showLanding();
   });
   $("agform").addEventListener("submit",async function(e){
     e.preventDefault();
@@ -300,7 +309,7 @@ async function startApp(session){
   window.claude={use:async function(n){
     if(n==="db")return db;if(n==="assets")return assets;if(n==="user")return user;return null;
   }};
-  root.className="";$("authgate").hidden=true;
+  root.className="";$("authgate").hidden=true;if($("landing"))$("landing").hidden=true;
   var src=$("appjs").textContent.replace('var LS="creator-space-v1";','var LS="creator-space-v1-'+u.id+(ws?'-via-'+ws.owner+(ws.space?'-sp-'+ws.space:''):'')+'";');
   var s=document.createElement("script");s.textContent=src;document.body.appendChild(s);
 }
@@ -317,7 +326,7 @@ window.__signOut=async function(){try{await SB.auth.signOut()}catch(e){}location
     if(session&&!started&&ev!=="PASSWORD_RECOVERY"){started=true;startApp(session)}
   });
   var r=await SB.auth.getSession();
-  if(!r.data.session&&!started){showGate("in")}
+  if(!r.data.session&&!started){var q=location.search;if(/[?&]signup\b/.test(q))showGate("up");else if(/[?&]signin\b/.test(q)||location.pathname!=="/")showGate("in");else showLanding()}
   else if(r.data.session&&!started){started=true;startApp(r.data.session)}
 })();
 })();
