@@ -6,3 +6,5 @@ f-*.png
 test-copy.html
 desktop/node_modules/
 desktop/dist/
+.playwright-cli/
+.taste-skill/
