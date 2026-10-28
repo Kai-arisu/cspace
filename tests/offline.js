@@ -18,7 +18,7 @@ await p.click('[data-ag="up"]');await p.fill('#agemail','o@x.co');await p.fill('
 seed(fake,'o@x.co');await p.reload();await p.waitForTimeout(2500);
 ok(await p.evaluate(()=>navigator.serviceWorker.ready.then(()=>!!navigator.serviceWorker.controller)),'service worker controls the page');
 const cached=await p.evaluate(()=>caches.keys().then(k=>Promise.all(k.map(n=>caches.open(n).then(c=>c.keys()).then(r=>r.map(x=>new URL(x.url).pathname))))).then(a=>a.flat()));
-ok(cached.includes('/')&&cached.includes('/geist.woff2'),'app shell cached');
+ok(cached.includes('/')&&cached.includes('/is.woff2'),'app shell cached');
 // offline
 await ctx.setOffline(true);
 await p.reload();await p.waitForTimeout(2500);

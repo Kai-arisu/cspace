@@ -58,7 +58,8 @@ function wsBar(){
 function webCrumb(){wsBar();var sb=document.getElementById("sharebtn");if(sb){sb.title="Share your public page";sb.setAttribute("aria-label","Share your public page")}
   var v=vmeta(S.view),el=$("crumb");if(!v)return;
   var g="";for(var i=0;i<VIEWS.length;i++){if(VIEWS[i].g)g=VIEWS[i].g;if(VIEWS[i].id===v.id)break}
-  if(!el){var top=document.querySelector(".top .search");if(!top)return;el=document.createElement("div");el.id="crumb";el.className="crumb";top.parentNode.insertBefore(el,top)}
+  if(!el){var tb=document.querySelector(".top");if(!tb)return;el=document.createElement("div");el.id="crumb";el.className="crumb";var mb=tb.querySelector(".mbrand");tb.insertBefore(el,mb?mb.nextSibling:tb.firstChild)}
+  placeChrome();
   el.innerHTML=(g?'<span>'+esc(g)+'</span><i>/</i>':'')+'<b>'+esc(v.name)+'</b>';
   document.querySelectorAll("#nav .si-row,#spaces .si-row").forEach(function(r){var n=r.querySelector(".nm");if(n)r.setAttribute("title",n.textContent)});
 }
@@ -1036,9 +1037,9 @@ document.addEventListener("change",function(e){
   if(T.loaded||T.loading)return;tmLoad().then(function(){try{paintBell();if(S.view==="home"&&!(document.activeElement&&document.activeElement.id==="qcin"))render()}catch(e){}})}
   setTimeout(go,1200)})();
 
-function todayAud(){
-  try{if(typeof W==="undefined"||!W.loaded)return "";var own=W.conns.filter(function(c){return c.kind==="own"});if(!own.length)return "";
-  return '<section class="panel td-aud"><h2>Audience<button class="btn sm" data-act="view" data-id="aud">Open</button></h2><div class="td-audl">'+own.slice(0,3).map(function(c){
+function todayAud(many){
+  try{if(typeof W==="undefined"||!W.loaded)return "";var own=W.conns.filter(function(c){return c.kind==="own"});if(!own.length||(many&&own.length<2))return "";
+  return '<section class="panel td-aud"><h2>Audience <span class="cnt">'+own.length+'</span><button class="lnk" data-act="view" data-id="aud">View all</button></h2><div class="td-audl">'+own.slice(0,3).map(function(c){
     var arr=W.snaps[c.id]||[],last=arr.length?arr[arr.length-1]:null,cur=last&&last.followers!=null?Number(last.followers):null,d7=deltaOf(arr,"followers",7*864e5);
     var pc=c.goal&&cur!=null?Math.max(0,Math.min(100,Math.round(cur/c.goal*100))):null;
     return '<button class="td-ac" data-act="view" data-id="aud" style="--c:'+audCol(c.platform)+'"><span class="tn"><i></i>'+esc(c.title||c.handle||platName(c.platform))+'</span><b>'+nf(cur)+'</b>'+(d7?'<em class="dl '+(d7>0?"up":"down")+'">'+(d7>0?"+":"-")+nf(Math.abs(d7))+' this week</em>':'<em class="muted">No change this week</em>')+
@@ -1104,7 +1105,7 @@ function obSample(){
   S.tasks.push({id:U(),sp:id,title:"Design thumbnail",col:"i",due:d(-1),pri:2,ts:now-5e6},{id:U(),sp:id,title:"Edit Ladakh vlog",col:"m",due:d(1),pri:1,ts:now-4e6},{id:U(),sp:id,title:"Write captions for reels",col:"i",due:d(3),pri:0,ts:now-3e6},{id:U(),sp:id,title:"Reply to sponsor email",col:"s",due:d(-2),pri:0,ts:now-2e6,done:now-1e6});
   S.notes.push({id:U(),sp:id,title:"Ladakh vlog script",body:"## Hook\n7 days, one backpack.\n\n## Checklist\n- [ ] Film the sunrise at Pangong\n- [ ] Record voiceover\n\n## Outro\nAsk people to subscribe.",pin:true,ts:now-3e6});
   S.posts.push({id:U(),sp:id,title:"Jaipur street food reel",platform:"Instagram",date:d(0),status:"scheduled",ideaId:"",ts:now},{id:U(),sp:id,title:"Ladakh vlog: 7 days",platform:"YouTube",date:d(2),status:"editing",ideaId:"",ts:now},{id:U(),sp:id,title:"Budget travel tips short",platform:"YouTube",date:d(5),status:"script",ideaId:i2,ts:now});
-  S.clips.push({id:U(),sp:id,url:"https://example.com/great-intro",title:"Great travel intro",note:"Study the pacing",tags:["editing"],star:false,ts:now});
+  S.clips.push({id:U(),sp:id,url:"https://www.youtube.com/@NatGeo",title:"Great travel intro",note:"Study the pacing",tags:["editing"],star:false,ts:now});
   S.deals.push({id:U(),sp:id,brand:"Trail Bags Co.",amount:20000,status:"talking",due:d(10),ts:now});
   S.income.push({id:U(),sp:id,date:d(-6),source:"YouTube AdSense",amount:8200,cat:"Ads"});
   S.cur=id;touch();go("home");toast("Sample space added. Delete it any time from Space settings at the bottom of Today.");
@@ -1204,8 +1205,8 @@ function bankHTML(){
   var L=bkList(),ed=BK.edit?L.filter(function(x){return x.id===BK.edit})[0]:null,kind=ed?ed.kind:BK.kind;
   var h=hero("bank","Caption bank",null,"");
   if(!readOnly)h+='<section class="panel bk-form"><div class="hd-seg" role="group" aria-label="Type">'+BKK.map(function(k){return '<button data-act="bk_kind" data-id="'+k[0]+'" aria-pressed="'+(kind===k[0])+'"'+(ed?" disabled":"")+'>'+k[1]+'</button>'}).join("")+'</div>'+
-    '<input class="in" id="bktitle" maxlength="60" placeholder="Name it, e.g. Travel reel caption" value="'+esc(ed?ed.title||"":"")+'">'+
-    '<textarea class="in" id="bktext" rows="4" maxlength="2200" placeholder="'+(kind==="tags"?"#travel #vlog #india …":kind==="hook"?"The first line that stops the scroll…":"Your caption. Use {topic} where the topic changes.")+'">'+esc(ed?ed.text:"")+'</textarea>'+
+    '<input class="in" id="bktitle" aria-label="Caption name" maxlength="60" placeholder="Name it, e.g. Travel reel caption" value="'+esc(ed?ed.title||"":"")+'">'+
+    '<textarea class="in" id="bktext" aria-label="Caption text" rows="4" maxlength="2200" placeholder="'+(kind==="tags"?"#travel #vlog #india …":kind==="hook"?"The first line that stops the scroll…":"Your caption. Use {topic} where the topic changes.")+'">'+esc(ed?ed.text:"")+'</textarea>'+
     '<div class="bk-fa"><span class="muted" id="bkcount"></span>'+(ed?'<button class="btn sm" data-act="bk_cancel">Cancel</button>':'')+'<button class="btn pri sm" data-act="bk_save">'+(ed?"Save changes":"Save to bank")+'</button></div></section>';
   if(!L.length)return h+emptyCard("text","Build your caption bank","Keep the captions, hashtag sets and opening hooks you use again and again. Copy them with one tap, or drop them into a planned post from the Calendar.",readOnly?"":'<button class="btn sm" data-act="bk_starter">Add a starter set</button>');
   var cnt={all:L.length};BKK.forEach(function(k){cnt[k[0]]=L.filter(function(x){return x.kind===k[0]}).length});
@@ -1457,7 +1458,7 @@ function impHTML(){
   if(IMP.step==="map")return h+impMapHTML();
   if(IMP.step==="notes")return h+'<section class="panel"><h3>'+IMP.notes.length+' notes ready</h3>'+IMP.notes.slice(0,8).map(function(n){return '<div class="im-pv"><b>'+esc(n.title)+'</b><span class="muted">'+esc(n.body.slice(0,90))+'</span></div>'}).join("")+'<div class="row im-go"><button class="btn" data-act="imp_reset">Cancel</button><button class="btn pri" data-act="imp_notes">Import '+IMP.notes.length+' notes</button></div></section>';
   h+='<label class="fdrop im-drop"><input type="file" id="impfile" accept=".csv,.tsv,.txt,.md,text/csv,text/plain" multiple><span class="ec-i">'+I("upload")+'</span><span><b>Drop a CSV file here, or click to choose</b><small>Export as CSV from Google Sheets, Excel, Notion, Trello, Asana, YouTube Studio, your bank or payment app. Markdown and text files become notes.</small></span></label>';
-  h+='<section class="panel im-paste"><h3>Or paste from a spreadsheet</h3><textarea class="in" id="imppaste" rows="4" placeholder="Copy cells in Google Sheets or Excel (with the header row) and paste here"></textarea><div class="row"><button class="btn" data-act="imp_paste">Continue</button></div></section>';
+  h+='<section class="panel im-paste"><h3>Or paste from a spreadsheet</h3><textarea class="in" id="imppaste" aria-label="Pasted rows" rows="4" placeholder="Copy cells in Google Sheets or Excel (with the header row) and paste here"></textarea><div class="row"><button class="btn" data-act="imp_paste">Continue</button></div></section>';
   if(IMP.msg)h+='<p class="cp-note">'+esc(IMP.msg)+'</p>';
   h+='<section class="panel"><h3>Works well with</h3><div class="im-src">'+[
     ["YouTube Studio","Advanced mode → Content → Export → CSV. Becomes video stats for Video insights."],
@@ -1543,3 +1544,17 @@ document.addEventListener("change",function(e){
 });
 
 async function audFresh(){for(var i=0;i<50&&W.loading;i++)await new Promise(function(r){setTimeout(r,100)});W.loaded=false;W.painted=0;await audLoad(true)}
+
+/* v15: open-plane shell. On desktop there is no top bar: New, search, notifications and a running timer sit at the top of the sidebar. */
+var CHROME_AT=null;
+function placeChrome(){
+  var desk=window.matchMedia("(min-width: 821px)").matches;if(CHROME_AT===desk)return;
+  var side=document.querySelector(".side"),top=document.querySelector(".top"),topr=document.querySelector(".topr");if(!side||!top||!topr)return;
+  var st=$("sidetools");
+  if(!st){st=document.createElement("div");st.id="sidetools";st.className="sidetools";var br=side.querySelector(".brand");side.insertBefore(st,br?br.nextSibling:side.firstChild)}
+  var search=document.querySelector(".search"),bell=document.querySelector(".bellwrap"),newb=document.querySelector('[data-act="qtoggle"]'),ft=$("ftimer");newb=newb&&newb.parentNode;
+  if(desk){[newb,search,bell,ft].forEach(function(n){if(n)st.appendChild(n)})}
+  else{if(search)top.insertBefore(search,topr);[ft,bell,newb].forEach(function(n){if(n)topr.insertBefore(n,topr.firstChild)});if(newb)topr.appendChild(newb)}
+  CHROME_AT=desk;
+}
+window.addEventListener("resize",function(){placeChrome()});

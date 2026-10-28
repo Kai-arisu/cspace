@@ -16,7 +16,7 @@ seed(fake,'n@x.co',{iso:true});await p.reload();await p.waitForTimeout(3500);
 await p.click('#bellbtn');await p.waitForTimeout(300);
 const txt=await p.textContent('#bellm');
 ok(txt.includes('Pitch deck for label')&&txt.includes('Secret project'),'private-space task shows in the bell with its space name');
-await p.keyboard.press('Escape');await p.click('body',{position:{x:600,y:400}}).catch(()=>{});
+await p.keyboard.press('Escape');await p.mouse.click(1275,6);
 await p.fill('#gsearch','Hidden pitch');await p.waitForTimeout(400);
 ok((await p.textContent('#sres')).includes('Hidden pitch notes'),'search finds notes in private spaces');
 // Today stays focused on the current space

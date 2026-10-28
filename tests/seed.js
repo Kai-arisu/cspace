@@ -28,7 +28,7 @@ module.exports=function seed(fake,email,opt){opt=opt||{};
       {id:'p2',sp:s1,title:'Bhopal street food reel',platform:'instagram',date:day(0),status:'scheduled',ideaId:'i1',ts:now},
       {id:'p3',sp:s1,title:'Budget travel tips short',platform:'youtube',date:day(5),status:'script',ideaId:'i2',ts:now},
       {id:'p4',sp:s1,title:'Channel update',platform:'youtube',date:day(-3),status:'published',ideaId:'',ts:now}],
-    clips:[{id:'c1',sp:s1,url:'https://example.com/ref',title:'Great travel intro',note:'Study the pacing',ts:now}],
+    clips:[{id:'c1',sp:s1,url:'https://www.youtube.com/@NatGeo',title:'Great travel intro',note:'Study the pacing',ts:now}],
     deals:[{id:'d1',sp:s1,brand:'Boat Audio',amount:25000,status:'talking',due:day(6),ts:now},{id:'d2',sp:s1,brand:'Nord VPN',amount:15000,status:'signed',due:day(10),ts:now}],
     income:[{id:'in1',sp:s1,date:day(-10),source:'YouTube AdSense',amount:8200,cat:'Ads'},{id:'in2',sp:s1,date:day(-4),source:'Brand deal',amount:20000,cat:'Sponsorship'}],
     invoices:[{id:'v1',sp:s1,no:'INV-001',client:'Boat Audio',date:day(-5),due:day(-1),items:[{d:'Integrated video',q:1,p:25000}],notes:'',paid:false,ts:now}],

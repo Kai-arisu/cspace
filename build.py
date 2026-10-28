@@ -3,7 +3,7 @@ base=os.path.dirname(os.path.abspath(__file__))+'/'
 src=open(base+'creator-space.html').read()
 web=open(base+'web/web.js').read()
 boot=open(base+'web/boot.js').read()
-css=open(base+'web/web.css').read()+'\n'+open(base+'web/frost.css').read()+'\n'+open(base+'web/studio.css').read()
+css=open(base+'web/web.css').read()+'\n'+open(base+'web/frost.css').read()+'\n'+open(base+'web/studio.css').read()+'\n'+open(base+'web/editorial.css').read()
 # split
 i=src.index('<script>');j=src.rindex('</script>')
 pre=src[:i];js=src[i+len('<script>'):j]
@@ -30,10 +30,10 @@ rep('paintTheme();ftPaint();paintProfile();paintBell();\n}','paintTheme();ftPain
 m=re.search(r'</style>',pre);head_end=m.end()
 head=pre[:head_end].replace('<meta name="claude:viewport-fit-sides" content="cover">','')
 body=pre[head_end:]
-out='<!doctype html><html lang="en" class="authing"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#FAFAFA">'+head+'<style id="webcss">'+css+'</style></head><body>'
+out='<!doctype html><html lang="en" class="authing"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">'+head+'<style id="webcss">'+css+'</style></head><body>'
 out+='<div id="authgate" hidden></div><div id="pubpage" hidden></div>'+body
 out+='<script src="/supabase.js"></script><script>'+boot+'</script><script type="text/plain" id="appjs">'+js+'</script><script>if("serviceWorker"in navigator){var hadSW=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener("controllerchange",function(){if(!hadSW){hadSW=true;return}if(document.getElementById("swup"))return;var d=document.createElement("div");d.id="swup";d.className="swup";d.innerHTML=\'<span>A new version of Creator Space is ready.</span><button onclick="location.reload()">Reload</button>\';document.body.appendChild(d)});addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").then(function(r){setInterval(function(){r.update().catch(function(){})},36e5)}).catch(function(){})})}</script></body></html>'
-out=re.sub(r'<link rel="stylesheet" href="https://fonts.googleapis.com/[^"]*">','<link rel="preload" href="/geist.woff2" as="font" type="font/woff2" crossorigin>',out,count=1)
+out=re.sub(r'<link rel="stylesheet" href="https://fonts.googleapis.com/[^"]*">','<link rel="preload" href="/is.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/iserif.woff2" as="font" type="font/woff2" crossorigin>',out,count=1)
 out=out.replace('<title>Creator Space</title>','<title>Creator Space</title><link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/icon-192.png"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%2317171A%27/%3E%3Cpath d=%27M21 11a7 7 0 1 0 0 10%27 fill=%27none%27 stroke=%27white%27 stroke-width=%273%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">',1)
 old='<div class="brand"><span class="logo" id="logo"></span><b>Creator Space</b></div>'
 assert out.count(old)==1
@@ -44,6 +44,9 @@ shutil.copy(base+'vendor/supabase.js',base+'public/supabase.js')
 shutil.copy(base+'vendor/591.supabase.js',base+'public/591.supabase.js')
 
 shutil.copy(base+'vendor/fonts/geist-latin-wght-normal.woff2',base+'public/geist.woff2')
+shutil.copy(base+'vendor/fonts/instrument-sans-latin-wght-normal.woff2',base+'public/is.woff2')
+shutil.copy(base+'vendor/fonts/instrument-sans-latin-ext-wght-normal.woff2',base+'public/is-ext.woff2')
+shutil.copy(base+'vendor/fonts/instrument-serif-latin-400-normal.woff2',base+'public/iserif.woff2')
 # ---- PWA ----
 import json
 from PIL import Image, ImageDraw
@@ -57,7 +60,7 @@ open(base+'public/manifest.webmanifest','w').write(json.dumps({"name":"Creator S
 import hashlib
 _ver=hashlib.sha1(out.encode()).hexdigest()[:10]
 open(base+'public/sw.js','w').write("""const C='cs-shell-"""+_ver+"""';
-const SHELL=['/','/supabase.js','/591.supabase.js','/geist.woff2','/manifest.webmanifest','/icon-192.png'];
+const SHELL=['/','/supabase.js','/591.supabase.js','/is.woff2','/iserif.woff2','/manifest.webmanifest','/icon-192.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(SHELL.map(u=>new Request(u,{cache:'reload'})))).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{const r=e.request,u=new URL(r.url);

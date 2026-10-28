@@ -11,7 +11,7 @@ await p.goto('http://localhost:'+srv.address().port+'/');await p.waitForTimeout(
 const w0=(await p.locator('.side').boundingBox()).width;
 await p.click('#railbtn');await p.waitForTimeout(700);
 const w1=(await p.locator('.side').boundingBox()).width;
-ok(w0>240&&w1<100,'sidebar shrinks to a rail ('+Math.round(w0)+' to '+Math.round(w1)+')');
+ok(w0>=220&&w1<100,'sidebar shrinks to a rail ('+Math.round(w0)+' to '+Math.round(w1)+')');
 ok(await p.locator('.app.rail').count()===1,'rail class set');
 ok(!(await p.locator('.side .nm').first().isVisible().catch(()=>false))||(await p.locator('.side .nm').first().evaluate(e=>getComputedStyle(e).opacity))==='0','labels hidden in rail');
 await p.screenshot({path:'/tmp/rail.png'});

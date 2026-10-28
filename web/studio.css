@@ -29,7 +29,6 @@
   --ink:#F4F4F5; --on-ink:#0C0C0E; --ink-bg:#F4F4F5;
   --shadow:none; --lift:none; --pop:0 16px 40px -10px rgba(0,0,0,.7),0 0 0 1px var(--line2);
 }
-:root[data-theme="dark"],:root:not([data-theme="light"]),:root[data-theme="light"]{--surface:var(--surface);--shadow:var(--shadow)}
 
 html,body{background:var(--bg)!important;color:var(--fg)}
 body{font-size:14px;letter-spacing:-.003em}
