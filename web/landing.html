@@ -1,31 +1,47 @@
 <header class="lp-nav">
-  <a class="lp-word" href="/" aria-label="Creator Space, home"><span class="lp-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M17.2 8.4a6 6 0 1 0 0 7.2"/></svg></span>Creator Space</a>
+  <a class="lp-word" href="/" aria-label="Creator Space, home"><span class="lp-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M17.2 8.4a6 6 0 1 0 0 7.2"/></svg></span>Creator Space</a>
+  <nav class="lp-menu-links" aria-label="On this page"><a href="#lp-features">Features</a><a href="#lp-how">How it works</a><a href="#lp-menu">What's included</a><a href="#lp-faq">Questions</a></nav>
   <nav class="lp-links" aria-label="Account"><button type="button" class="lp-link" data-ag="in">Sign in</button><button type="button" class="lp-link lp-strong" data-ag="up">Create account</button></nav>
 </header>
 
 <main id="lp-main">
 <section class="lp-hero" aria-labelledby="lp-h1">
-  <h1 id="lp-h1" class="lp-sent"><span class="lp-l1"><span>All your</span><span class="lp-strip" role="img" aria-label="plans, tasks, ideas and brand, shown as screens from the app" data-ui><img src="/lp/today.webp" alt="" width="1600" height="326" fetchpriority="high"><img src="/lp/board.webp" alt="" width="1600" height="320"><img src="/lp/ideas.webp" alt="" width="1600" height="320"><img src="/lp/mood.webp" alt="" width="1600" height="320"></span><span class="vh"> work</span></span><span class="lp-l2">in one space.</span></h1>
-  <div class="lp-lead">
-    <p>Creator Space is a free workspace for YouTube and Instagram creators. Write scripts, plan posts, watch your live numbers and run sponsor deals, without ten different apps.</p>
+  <div class="lp-hero-t">
+    <h1 id="lp-h1" class="lp-sent"><span>Your channel,</span> <span>in one space.</span></h1>
+    <p class="lp-lead">Creator Space is a free workspace for YouTube and Instagram creators. Catch ideas, write scripts, plan posts, watch your live numbers and run sponsor deals, without ten different apps.</p>
     <div class="lp-acts"><button type="button" class="lp-btn" data-ag="up">Create your space</button><span>Free, with an email. No card.</span></div>
   </div>
-</section>
-
-<section class="lp-show" aria-labelledby="lp-show-h">
-  <h2 id="lp-show-h" class="lp-h2">Catch it as you think it.</h2>
-  <label class="lp-type" data-ui><span class="vh">Type an idea with a #tag</span><input id="lp-in" value="Street food tour in Bhopal #vlog" maxlength="80" autocomplete="off" spellcheck="false"><i class="lp-caret" aria-hidden="true"></i></label>
-  <div class="lp-show-grid">
-    <div class="lp-answer" aria-live="polite">
-      <div class="lp-idea" data-ui><span class="lp-star" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.8z"/></svg></span><span class="lp-ib"><b id="lp-it">Street food tour in Bhopal</b><span class="lp-im" id="lp-tags"><span class="lp-tag">#vlog</span><span>just now</span></span></span><span class="lp-ia"><span class="lp-mini">Make task</span><span class="lp-mini">Plan post</span></span></div>
-      <p class="lp-said" id="lp-said">Saved to Ideas, sorted under #vlog. One press turns it into a card on your board or a post on your calendar.</p>
-      <div class="lp-ex"><span>Try</span><button type="button" data-ex="Ladakh in 7 days on ₹20,000 #travel">Ladakh in 7 days on ₹20,000</button><button type="button" data-ex="Best phones under 20k #tech #review">Best phones under 20k</button><button type="button" data-ex="Chai at 5 am, one take #shorts">Chai at 5 am, one take</button></div>
+  <div class="lp-stage">
+    <div class="lp-disc">{{ill:hero}}</div>
+    <div class="lp-cap" data-ui>
+      <label class="lp-cap-in"><span class="vh">Type an idea with a #tag</span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.8z"/></svg><input id="lp-in" value="Street food tour in Bhopal #vlog" maxlength="80" autocomplete="off" spellcheck="false"></label>
+      <div class="lp-idea" aria-live="polite"><span class="lp-st">Loose</span><b id="lp-it">Street food tour in Bhopal</b><span class="lp-im" id="lp-tags"><span class="lp-tag">#vlog</span></span>
+        <span class="lp-ia"><span class="lp-mini">Make task</span><span class="lp-mini">Plan post</span></span></div>
+      <p class="lp-said" id="lp-said">Try it: type an idea with a #tag.</p>
     </div>
-    <figure class="lp-fig"><img src="/lp/notes.webp" alt="A video script in Notes, read mode, with tick-off checklist and a Teleprompter button" width="1200" height="600" loading="lazy"><figcaption>When an idea is ready, its script lives in Notes, and the teleprompter reads it back while you film.</figcaption></figure>
   </div>
 </section>
 
-<section class="lp-how" aria-labelledby="lp-how-h">
+<section class="lp-feat" id="lp-features" aria-labelledby="lp-feat-h">
+  <div class="lp-mosaic">
+    <div class="lp-t t-h c-stone"><h2 id="lp-feat-h" class="lp-h2">Everything a channel needs.</h2><p>Nine tools that already know about each other. An idea becomes a task, a task becomes a post, a post brings in numbers.</p></div>
+    <div class="lp-t t-num c-ink"><div class="lp-x x-num" data-ui><b>9.1K</b><span>+910 this month</span></div><div class="lp-tc"><h3>Live numbers</h3><p>YouTube and Instagram, refreshed every morning.</p></div></div>
+    <div class="lp-t t-idea c-yel"><div class="lp-x x-idea" data-ui><div class="xi-card"><span class="xi-st">Planned</span><b>Street food tour in Bhopal</b><span class="xi-tags"><i>#food</i><i>#vlog</i></span></div></div><div class="lp-tc"><h3>Ideas</h3><p>Type it with a #tag and it sorts itself. Star the good ones.</p></div></div>
+    <div class="lp-t t-notes c-stone"><div class="lp-x x-notes" data-ui><div class="xn-r on"><i></i><span>Write the hook</span></div><div class="xn-r on"><i></i><span>Film at the market</span></div><div class="xn-r"><i></i><span>Record voiceover</span></div></div><div class="lp-tc"><h3>Notes and scripts</h3><p>Checklists you tick, and a teleprompter that reads them back.</p></div></div>
+    <div class="lp-t t-mood c-ink"><div class="lp-x x-mood" data-ui><i style="background:#B5651D"></i><i style="background:#F4EDE1"></i><i style="background:#6B8E4E"></i></div><div class="lp-tc"><h3>Moodboard</h3><p>Drop images, colours and links on an open canvas.</p></div></div>
+    <div class="lp-t t-board c-yel"><div class="lp-x x-board" data-ui><span class="xb"><i></i>Making</span></div><div class="lp-tc"><h3>Progress board</h3><p>Idea to Shipped, left to right.</p></div></div>
+    <div class="lp-t t-cal c-stone"><div class="lp-x x-cal" data-ui><b>31</b><span>Fri · Reel goes out</span></div><div class="lp-tc"><h3>Calendar</h3><p>Syncs to Google or Apple Calendar.</p></div></div>
+    <div class="lp-t t-deal c-ink"><div class="lp-x x-deal" data-ui><b>₹45,000</b><span>Signed</span></div><div class="lp-tc"><h3>Sponsor deals</h3><p>From lead to paid, with invoices.</p></div></div>
+    <div class="lp-t t-team c-yel"><div class="lp-x x-team" data-ui><i>A</i><i>M</i><i>R</i></div><div class="lp-tc"><h3>Team</h3><p>Hand out work, see it come back.</p></div></div>
+  </div>
+</section>
+
+<section class="lp-timer" id="lp-timer" aria-labelledby="lp-timer-h">
+  <div class="lp-timer-t"><h2 id="lp-timer-h" class="lp-h2"><span id="lp-tw">Ready</span> to film.</h2><p>A 25-minute focus timer is built in. Press start, and everything else can wait until the take is done.</p></div>
+  <button type="button" class="lp-dial" id="lp-dial" data-ui aria-pressed="false" aria-label="Start the focus timer"><span class="ld-ring" aria-hidden="true"></span><b id="lp-tt">25:00</b><span class="ld-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z"/></svg></span><small>Focus timer</small></button>
+</section>
+
+<section class="lp-how" id="lp-how" aria-labelledby="lp-how-h">
   <div class="lp-how-l">
     <h2 id="lp-how-h" class="lp-h2 lp-clause" aria-live="polite">Start with the idea.</h2>
     <p class="lp-clause-s" id="lp-clause-s">Every idea you save waits in the first column until you are ready for it.</p>
@@ -37,62 +53,79 @@
   <div class="lp-how-r"><div class="lp-col" id="lp-col" data-ui></div></div>
 </section>
 
-<section class="lp-feat" aria-label="What it does for you">
-  <div class="lp-band"><h2 class="lp-bs">Pull my channel numbers every day</h2><p class="lp-bc">Subscribers, followers and views from YouTube and Instagram, refreshed each morning, with your progress to the next goal.</p><figure class="lp-bf"><img src="/lp/ig.webp" alt="A channel card in Audience: subscribers, views and progress to the next goal" width="900" height="766" loading="lazy"></figure><button type="button" class="lp-sw" role="switch" aria-checked="true" aria-label="Pull my channel numbers every day" data-ui><i></i></button></div>
-  <div class="lp-band"><h3 class="lp-bs">Turn my script into a teleprompter</h3><p class="lp-bc">Full screen, a 3-2-1 countdown, and the arrow keys change the speed while you read.</p><figure class="lp-bf"><img src="/lp/tp.webp" alt="The teleprompter reading a script full screen" width="1200" height="750" loading="lazy"></figure><button type="button" class="lp-sw" role="switch" aria-checked="false" aria-label="Turn my script into a teleprompter" data-ui><i></i></button></div>
-  <div class="lp-band"><h3 class="lp-bs">Tell me what's due each morning</h3><p class="lp-bc">One notification after 8 am: tasks due, posts going out, sponsor deliverables and late invoices.</p><figure class="lp-bf"><img src="/lp/bell.webp" alt="The notification list: overdue tasks, today's post, what's coming up" width="760" height="1106" loading="lazy"></figure><button type="button" class="lp-sw" role="switch" aria-checked="true" aria-label="Tell me what's due each morning" data-ui><i></i></button></div>
-  <div class="lp-band"><h3 class="lp-bs">Give brands one link to my numbers</h3><p class="lp-bc">A public page and media kit at /u/yourname, with live follower counts and your rates.</p><figure class="lp-bf"><img src="/lp/page.webp" alt="A public creator page: the name set large and live subscriber numbers" width="1200" height="740" loading="lazy"></figure><button type="button" class="lp-sw" role="switch" aria-checked="false" aria-label="Give brands one link to my numbers" data-ui><i></i></button></div>
-  <div class="lp-band"><h3 class="lp-bs">Let my editor see one space only</h3><p class="lp-bc">Invite someone to a single channel's space. Your other spaces stay private.</p><figure class="lp-bf"><img src="/lp/team.webp" alt="The Team screen: members, open work and pay" width="1100" height="428" loading="lazy"></figure><button type="button" class="lp-sw" role="switch" aria-checked="false" aria-label="Let my editor see one space only" data-ui><i></i></button></div>
-</section>
-
-<section class="lp-list" aria-labelledby="lp-list-h">
-  <h2 id="lp-list-h" class="lp-h2 lp-ind">Run the business side,<br>in the same place.</h2>
-  <div class="lp-list-g">
-    <figure class="lp-pic"><img src="/lp/biz.webp" alt="The Business screen: income this month and sponsorship deals by stage" width="1200" height="578" loading="lazy"></figure>
-    <span class="lp-tname">Included</span>
-    <table class="lp-tbl">
-      <caption class="vh">Business tools included</caption>
-      <tbody>
-        <tr><th scope="row">Sponsors</th><td>Deals from lead to paid</td><td>5 stages</td></tr>
-        <tr><th scope="row">Sponsors</th><td>Deliverable dates</td><td>On your calendar</td></tr>
-        <tr><th scope="row">Income</th><td>Every payment logged</td><td>By month and source</td></tr>
-        <tr class="g"><th scope="row">Income</th><td>Your currency</td><td>₹ $ € £ ¥</td></tr>
-        <tr><th scope="row">Invoices</th><td>Numbered invoices</td><td>Overdue alerts</td></tr>
-        <tr><th scope="row">Media kit</th><td>Live numbers and rates</td><td>One link</td></tr>
-        <tr><th scope="row">Team</th><td>Members, roles and pay</td><td>Salary or per project</td></tr>
-        <tr class="g"><th scope="row">Team</th><td>Work handed out</td><td>Back to you in Review</td></tr>
-        <tr><th scope="row">Import</th><td>Trello, Notion, Sheets, CSV</td><td>Paste or drop a file</td></tr>
-      </tbody>
-    </table>
+<section class="lp-tour" aria-labelledby="lp-tour-h">
+  <div class="lp-tour-h"><h2 id="lp-tour-h" class="lp-h2">The real screens.</h2><p>No mock-ups. This is the app, with a sample channel loaded.</p></div>
+  <div class="lp-shots">
+    <figure class="w"><img src="/lp/today.webp" alt="Today: the greeting, what goes out today and what is overdue" width="1600" height="326" loading="lazy"><figcaption><b>Today</b> What goes out, what's late, what's next.</figcaption></figure>
+    <figure><img src="/lp/notes.webp" alt="A video script in Notes, in read mode with a checklist" width="1200" height="600" loading="lazy"><figcaption><b>Notes</b> Scripts with checklists and a teleprompter.</figcaption></figure>
+    <figure><img src="/lp/page.webp" alt="A public creator page with the name set large and live numbers" width="1200" height="740" loading="lazy"><figcaption><b>Public page</b> One link for brands, with live numbers.</figcaption></figure>
+    <figure class="w"><img src="/lp/ideas.webp" alt="Ideas as cards, the starred one in yellow" width="1600" height="320" loading="lazy"><figcaption><b>Ideas</b> A wall of cards, sorted by tag.</figcaption></figure>
+    <figure><img src="/lp/biz.webp" alt="The Business screen: income and sponsorship deals" width="1200" height="578" loading="lazy"><figcaption><b>Business</b> Deals, income and invoices.</figcaption></figure>
+    <figure><img src="/lp/tp.webp" alt="The teleprompter reading a script full screen" width="1200" height="750" loading="lazy"><figcaption><b>Teleprompter</b> Your script, read back while you film.</figcaption></figure>
+    <figure class="w"><img src="/lp/mood.webp" alt="The moodboard canvas with colour swatches placed by hand" width="1600" height="319" loading="lazy"><figcaption><b>Moodboard</b> An open canvas for your look.</figcaption></figure>
   </div>
 </section>
 
-<section class="lp-faq" aria-labelledby="lp-faq-h">
+<section class="lp-menu" id="lp-menu" aria-labelledby="lp-menu-h">
+  <div class="lp-desk">{{ill:desk}}</div>
+  <div class="lp-sheet">
+    <h2 id="lp-menu-h" class="lp-h2">What's included</h2>
+    <p class="lp-sheet-n">Everything on this card is free. Sign up with an email.</p>
+    <div class="lp-g"><h3>Create</h3>
+      <div class="lp-i"><span>Ideas<small>Capture with #tags, star, repurpose</small></span><b>Free</b></div>
+      <div class="lp-i"><span>Notes and scripts<small>Templates, checklists, read mode</small></span><b>Free</b></div>
+      <div class="lp-i"><span>Teleprompter<small>Full screen, 3-2-1, speed keys</small></span><b>Free</b></div>
+      <div class="lp-i"><span>Moodboard<small>Poster, collage or open canvas</small></span><b>Free</b></div>
+      <div class="lp-i"><span>Whiteboard, clips and captions<small>Sketch, save links, keep hooks</small></span><b>Free</b></div></div>
+    <div class="lp-g"><h3>Plan</h3>
+      <div class="lp-i"><span>Progress board<small>Idea, Making, Review, Shipped</small></span><b>Free</b></div>
+      <div class="lp-i"><span>Calendar<small>Syncs to Google and Apple</small></span><b>Free</b></div>
+      <div class="lp-i"><span>Morning summary<small>One notification after 8 am</small></span><b>Free</b></div></div>
+    <div class="lp-g"><h3>Grow</h3>
+      <div class="lp-i"><span>Live channel numbers<small>YouTube, plus Instagram sign-in</small></span><b>Free</b></div>
+      <div class="lp-i"><span>Public page and media kit<small>One link at /u/yourname</small></span><b>Free</b></div></div>
+    <div class="lp-g"><h3>Business and team</h3>
+      <div class="lp-i"><span>Sponsor deals and income<small>Pipeline, payments, invoices</small></span><b>Free</b></div>
+      <div class="lp-i"><span>Team and pay<small>Invite to one space or all</small></span><b>Free</b></div></div>
+    <div class="lp-g lp-soon"><h3>Coming next</h3>
+      <div class="lp-i"><span>Bring your own AI<small>Connect Claude, ChatGPT or Gemini</small></span><b>Soon</b></div>
+      <div class="lp-i"><span>Team daily agenda<small>The day's plan, filling up live</small></span><b>Soon</b></div>
+      <div class="lp-i"><span>Discord and Telegram<small>Updates and ticks from chat</small></span><b>Soon</b></div></div>
+    <p class="lp-sheet-f">Works in your browser and on your phone.<br>Add it to your home screen like an app.</p>
+  </div>
+</section>
+
+<section class="lp-faq" id="lp-faq" aria-labelledby="lp-faq-h">
   <h2 id="lp-faq-h" class="lp-h2">Questions, answered.</h2>
-  <div class="lp-qs">
-    <details><summary>Is Creator Space free?</summary><p>Yes. Sign up with an email and everything on this page is yours to use. There is no card to enter.</p></details>
-    <details><summary>Which platforms can it read?</summary><p>Any public YouTube channel, by its link. Live sign-in for Instagram, TikTok, Facebook Pages and X is opening platform by platform. Until yours is ready, type your numbers and you still see growth over time.</p></details>
-    <details><summary>Where is my data kept?</summary><p>In your own account, synced across your devices. Platform sign-ins are stored encrypted and can't be read from the browser. Other people see only what you share with them.</p></details>
-    <details><summary>Does it work on my phone?</summary><p>Yes. It runs in your phone's browser, can be added to the home screen, opens without a connection, and sends the morning summary as a notification if you allow it.</p></details>
-    <details><summary>Can my editor or team use it?</summary><p>Invite people by email to your whole workspace or to one space. Teammates get their own My work list, and when they finish something it moves to Review on your board.</p></details>
-    <details><summary>Can I bring my stuff from other apps?</summary><p>Drop a CSV or Excel file, or paste rows from Google Sheets, Trello or Notion, and match the columns to tasks, ideas, notes, posts, income, deals or audience numbers.</p></details>
+  <div class="lp-cards">
+    <details open><summary><span class="lp-tab">Price</span><span class="lp-q">Is Creator Space free?</span></summary><p>Yes. Sign up with an email and everything on the card above is yours to use. There is no card to enter.</p></details>
+    <details><summary><span class="lp-tab">Platforms</span><span class="lp-q">Which platforms can it read?</span></summary><p>Any public YouTube channel, by its link. Live sign-in for Instagram is open, and TikTok, Facebook Pages and X follow platform by platform. Until yours is ready, type your numbers and you still see growth over time.</p></details>
+    <details><summary><span class="lp-tab">Privacy</span><span class="lp-q">Where is my data kept?</span></summary><p>In your own account, synced across your devices. Platform sign-ins are stored encrypted and can't be read from the browser. Other people see only what you share with them.</p></details>
+    <details><summary><span class="lp-tab">Phone</span><span class="lp-q">Does it work on my phone?</span></summary><p>Yes. It runs in your phone's browser, can be added to the home screen, opens without a connection, and sends the morning summary as a notification if you allow it.</p></details>
+    <details><summary><span class="lp-tab">Team</span><span class="lp-q">Can my editor or team use it?</span></summary><p>Invite people by email to your whole workspace or to one space. Teammates get their own My work list, and when they finish something it moves to Review on your board.</p></details>
+    <details><summary><span class="lp-tab">AI</span><span class="lp-q">Can I use my own AI with it?</span></summary><p>That is coming next. You will connect the AI you already pay for, such as Claude, ChatGPT or Gemini, with a one-time sign-in, and it will read your numbers and help plan your day.</p></details>
   </div>
 </section>
 
 <section class="lp-cta" aria-labelledby="lp-cta-h">
-  <h2 id="lp-cta-h" class="vh">Start your space</h2>
-  <form class="lp-sent2" id="lp-cta" novalidate>
-    <span>Name your space:</span><label class="lp-blank"><span class="vh">Your channel or project name</span><input id="lp-name" placeholder="your channel" maxlength="40" autocomplete="off"></label><button type="submit" class="lp-go">Start</button>
-  </form>
-  <p class="lp-after">You create an account next. The name becomes your first space, and you can change it any time.</p>
+  <div class="lp-cta-t">
+    <h2 id="lp-cta-h" class="vh">Start your space</h2>
+    <form class="lp-sent2" id="lp-cta" novalidate>
+      <span>Name your space:</span><label class="lp-blank"><span class="vh">Your channel or project name</span><input id="lp-name" placeholder="your channel" maxlength="40" autocomplete="off"></label><button type="submit" class="lp-go">Start</button>
+    </form>
+    <p class="lp-after">You create an account next. The name becomes your first space, and you can change it any time.</p>
+  </div>
+  <div class="lp-cta-a">{{ill:cta}}</div>
 </section>
 </main>
 
 <footer class="lp-foot">
-  <div class="lp-foot-top">
-    <div class="lp-inv"><h2 class="lp-h2">Your next video<br>starts here.</h2><button type="button" class="lp-btn lp-inv-b" data-ag="up">Create your space</button></div>
-    <ul class="lp-flinks"><li><button type="button" data-ag="in">Sign in</button></li><li><button type="button" data-ag="up">Create account</button></li><li><a href="#lp-main">Back to the top</a></li></ul>
+  <div class="lp-big" aria-hidden="true"><span class="lp-bigc"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="100" fill="#ffc21a"/><path d="M146 66a56 56 0 1 0 0 68" fill="none" stroke="#1c1a17" stroke-width="26" stroke-linecap="round"/></svg></span><span class="lp-bigw">Creator<br>Space</span></div>
+  <div class="lp-foot-row">
+    <ul class="lp-flinks"><li><button type="button" data-ag="up">Create account</button></li><li><button type="button" data-ag="in">Sign in</button></li></ul>
+    <ul class="lp-flinks"><li><a href="#lp-features">Features</a></li><li><a href="#lp-how">How it works</a></li></ul>
+    <ul class="lp-flinks"><li><a href="#lp-menu">What's included</a></li><li><a href="#lp-faq">Questions</a></li></ul>
+    <button type="button" class="lp-btn lp-inv-b" data-ag="up">Create your space</button>
   </div>
-  <div class="lp-legal"><span>© 2026 Creator Space</span><span>Free to use</span></div>
-  <div class="lp-big" aria-hidden="true">Creator Space</div>
+  <div class="lp-legal"><span>© 2026 Creator Space</span><a href="#lp-main">Back to the top</a></div>
 </footer>

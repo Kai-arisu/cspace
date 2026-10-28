@@ -1,40 +1,45 @@
-/* Creator Space landing: the strip, the idea you can type, the stage slider, the switches, the named space */
+/* Creator Space landing: the disc shutter, the idea you can type, the focus timer, the stage slider, the named space */
 (function(){
 var L=document.getElementById("landing");if(!L||L.__init)return;L.__init=1;
 function $(id){return document.getElementById(id)}
 function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 var RM=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;
 
-/* the strip inside the headline: a shutter opens once, then the four screens take turns */
-var strip=L.querySelector(".lp-strip"),imgs=strip?strip.querySelectorAll("img"):[],k=0;
-if(imgs.length){imgs[0].classList.add("on");
-  if(!RM){strip.classList.add("shut");requestAnimationFrame(function(){requestAnimationFrame(function(){strip.classList.add("open");strip.classList.remove("shut")})})}
-  setInterval(function(){if(document.hidden)return;imgs[k].classList.remove("on");k=(k+1)%imgs.length;imgs[k].classList.add("on")},RM?5000:2600);
-}
+/* the hero disc opens like a lens, once */
+var disc=L.querySelector(".lp-disc");
+if(disc&&!RM){disc.classList.add("shut");setTimeout(function(){requestAnimationFrame(function(){disc.classList.add("open");disc.classList.remove("shut")})},120)}
 
 /* the idea you can type: tags come out of the sentence, like in the app */
 var inp=$("lp-in");
 function paintIdea(){
   var v=(inp.value||"").slice(0,80),tags=(v.match(/#[\w-]+/g)||[]).map(function(t){return t.toLowerCase()}),txt=v.replace(/\s*#[\w-]+/g,"").trim();
   $("lp-it").textContent=txt||"Your idea";
-  $("lp-tags").innerHTML=tags.map(function(t){return '<span class="lp-tag">'+esc(t)+'</span>'}).join("")+"<span>just now</span>";
-  $("lp-said").textContent=tags.length?"Saved to Ideas, sorted under "+tags.join(" and ")+". One press turns it into a card on your board or a post on your calendar."
-    :"Saved to Ideas. Add a #tag to sort it, then one press turns it into a card on your board or a post on your calendar.";
+  $("lp-tags").innerHTML=tags.map(function(t){return '<span class="lp-tag">'+esc(t)+'</span>'}).join("");
+  $("lp-said").textContent=tags.length?"Saved to Ideas under "+tags.join(" and ")+". One press makes it a task or a post.":"Add a #tag and it sorts itself.";
 }
-if(inp){inp.addEventListener("input",paintIdea);
-  L.querySelectorAll("[data-ex]").forEach(function(b){b.addEventListener("click",function(){inp.value=b.dataset.ex;paintIdea();inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length)})});
-  paintIdea();}
+if(inp){inp.addEventListener("input",paintIdea);paintIdea();$("lp-said").textContent="Try it: type your own idea with a #tag."}
+
+/* the focus timer, blown up: it really counts down */
+var dial=$("lp-dial"),sec=$("lp-timer"),tt=$("lp-tt"),tw=$("lp-tw"),left=25*60,tick=null;
+function show(){tt.textContent=String(Math.floor(left/60)).padStart(2,"0")+":"+String(left%60).padStart(2,"0")}
+if(dial)dial.addEventListener("click",function(){
+  var on=!tick;
+  if(on){tick=setInterval(function(){left=left>0?left-1:25*60;show()},1000)}else{clearInterval(tick);tick=null}
+  sec.classList.toggle("run",on);dial.setAttribute("aria-pressed",String(on));dial.setAttribute("aria-label",on?"Pause the focus timer":"Start the focus timer");
+  tw.textContent=on?"Time":"Ready";
+  dial.querySelector(".ld-play").innerHTML=on?'<svg viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>':'<svg viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z"/></svg>';
+});
 
 /* drag through the stages: one card moves from Idea to Shipped */
 var ST=[
-  {n:"Idea",dot:"#8c8c88",c:"Start with the idea.",s:"Every idea you save waits in the first column until you are ready for it.",
+  {n:"Idea",dot:"#b8b5ad",c:"Start with the idea.",s:"Every idea you save waits in the first column until you are ready for it.",
    h:'<b>Street food tour in Bhopal</b><div class="lp-row"><span class="lp-chip">#vlog</span><span class="lp-chip">Fri 31 Oct</span></div><div class="lp-row"><span class="lp-mini">Plan post</span><span class="lp-mini">Repurpose</span></div>'},
-  {n:"Making",dot:"#1f201d",c:"Script it, shoot it.",s:"The script sits in Notes, the checklist ticks off as you go, and the teleprompter reads it back.",
+  {n:"Making",dot:"#1c1a17",c:"Script it, shoot it.",s:"The script sits in Notes, the checklist ticks off as you go, and the teleprompter reads it back.",
    h:'<b>Street food tour in Bhopal</b><ul class="lp-chk"><li class="d"><i></i>Write the script</li><li class="d"><i></i>Film at the night market</li><li><i></i>Record the voiceover</li></ul><div class="lp-row"><span class="lp-chip">2 of 3 done</span><span class="lp-mini">Teleprompter</span></div>'},
-  {n:"Review",dot:"#a86b12",c:"Hand it over, get it back.",s:"Assign the edit to a teammate. When they mark it done, it lands back here for your check.",
+  {n:"Review",dot:"#ffc21a",c:"Hand it over, get it back.",s:"Assign the edit to a teammate. When they mark it done, it lands back here for your check.",
    h:'<b>Street food tour in Bhopal</b><div class="lp-row"><span class="lp-chip">Mia · Editor</span><span class="lp-chip warn">Due tomorrow</span></div><div class="lp-row"><span class="lp-mini">Open the cut</span><span class="lp-mini">Approve</span></div>'},
-  {n:"Shipped",dot:"#1b6e66",c:"Ship it, watch it land.",s:"Published posts move to Shipped, and their views come in with your live numbers.",
-   h:'<b>Street food tour in Bhopal</b><div class="lp-row"><span class="lp-chip ok">Published · Instagram</span></div><div class="lp-row" style="align-items:baseline;gap:10px"><span class="lp-num">5.2K</span><span style="font-size:13px;color:#636361">views in the first two days</span></div>'}
+  {n:"Shipped",dot:"#ffc21a",c:"Ship it, watch it land.",s:"Published posts move to Shipped, and their views come in with your live numbers.",
+   h:'<b>Street food tour in Bhopal</b><div class="lp-row"><span class="lp-chip ok">Published · Instagram</span></div><div class="lp-row" style="align-items:baseline;gap:10px"><span class="lp-num">5.2K</span><span style="font-size:14px;color:#5c5850">views in the first two days</span></div>'}
 ];
 var rg=$("lp-stage"),col=$("lp-col"),stops=L.querySelectorAll(".lp-stops li"),clause=L.querySelector(".lp-clause"),sub=$("lp-clause-s");
 function stage(i,instant){
@@ -51,13 +56,9 @@ function stage(i,instant){
 }
 if(rg){rg.addEventListener("input",function(){stage(+rg.value)});stops.forEach(function(li,j){li.addEventListener("click",function(){stage(j)})});stage(0,true)}
 
-/* sentences with switches */
-L.querySelectorAll(".lp-band").forEach(function(b){
-  var sw=b.querySelector(".lp-sw");
-  function set(on){sw.setAttribute("aria-checked",String(on));b.classList.toggle("on",on)}
-  set(sw.getAttribute("aria-checked")==="true");
-  sw.addEventListener("click",function(){set(sw.getAttribute("aria-checked")!=="true")});
-});
+/* one question card open at a time */
+var cards=L.querySelectorAll(".lp-cards details");
+cards.forEach(function(d){d.addEventListener("toggle",function(){if(d.open)cards.forEach(function(o){if(o!==d)o.open=false})})});
 
 /* a sentence with a blank: the name becomes the first space after sign-up */
 var f=$("lp-cta");
@@ -66,9 +67,13 @@ if(f)f.addEventListener("submit",function(e){e.preventDefault();var n=($("lp-nam
   if(window.__lpGate)window.__lpGate("up");});
 
 /* the parts of each section rise in as it arrives */
-var parts=L.querySelectorAll(".lp-show>*,.lp-how-l>*,.lp-how-r>*,.lp-band,.lp-list .lp-h2,.lp-pic,.lp-tbl,.lp-faq .lp-h2,.lp-qs details,.lp-cta>*,.lp-inv,.lp-flinks");
+var parts=L.querySelectorAll(".lp-hero-t>*,.lp-cap,.lp-t,.lp-timer-t>*,.lp-how-l>*,.lp-col,.lp-tour-h>*,.lp-shots figure,.lp-desk,.lp-sheet,.lp-faq .lp-h2,.lp-cards details,.lp-cta-a");
 if(!RM&&"IntersectionObserver" in window){
-  var io=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting){en.target.classList.add("lp-seen");io.unobserve(en.target)}})},{rootMargin:"0px 0px -8% 0px"});
-  parts.forEach(function(el,i){var sib=el.parentNode?Array.prototype.indexOf.call(el.parentNode.children,el):0;el.classList.add("lp-rise");el.style.transitionDelay=Math.min(sib,6)*75+"ms";io.observe(el)});
+  var io=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting){en.target.classList.add("lp-seen");io.unobserve(en.target)}})},{rootMargin:"0px 0px -6% 0px"});
+  parts.forEach(function(el){var sib=el.parentNode?Array.prototype.indexOf.call(el.parentNode.children,el):0;el.classList.add("lp-rise");el.style.transitionDelay=Math.min(sib,6)*80+"ms";io.observe(el)});
+  /* a belt and braces check on scroll and resize, so nothing stays hidden after a jump */
+  var sweep=function(){var h=innerHeight,end=scrollY+h>=document.documentElement.scrollHeight-40;
+    parts.forEach(function(el){if(!el.classList.contains("lp-seen")&&(end||el.getBoundingClientRect().top<h))el.classList.add("lp-seen")})};
+  addEventListener("scroll",sweep,{passive:true});addEventListener("resize",sweep);setTimeout(sweep,300);
 }
 })();

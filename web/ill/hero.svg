@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="ill ill-hero" role="img" aria-label="Illustration: a creator filming herself with a phone on a ring light, a plant and a cup of chai beside her">
+  <defs>
+    <pattern id="dots" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="5" cy="5" r="2.1" fill="#1c1a17"/></pattern>
+    <pattern id="dotsY" width="9" height="9" patternUnits="userSpaceOnUse"><circle cx="4.5" cy="4.5" r="2" fill="#e0a400"/></pattern>
+    <clipPath id="disc"><circle cx="320" cy="320" r="320"/></clipPath>
+  </defs>
+  <g clip-path="url(#disc)">
+    <rect width="640" height="640" fill="#ffc21a"/>
+    <!-- sun / window circle with halftone -->
+    <circle cx="470" cy="150" r="96" fill="url(#dotsY)"/>
+    <!-- floor -->
+    <rect x="0" y="520" width="640" height="120" fill="#1c1a17"/>
+    <rect x="0" y="520" width="640" height="12" fill="#ffffff"/>
+    <!-- rug ellipse halftone -->
+    <ellipse cx="300" cy="580" rx="230" ry="26" fill="url(#dotsY)" opacity=".9"/>
+  </g>
+
+  <!-- tripod + ring light -->
+  <g class="ill-ring">
+    <circle cx="440" cy="250" r="96" fill="none" stroke="#ffffff" stroke-width="22"/>
+    <circle cx="440" cy="250" r="96" fill="none" stroke="#1c1a17" stroke-width="3" stroke-dasharray="2 10"/>
+    <rect x="414" y="200" width="52" height="96" rx="10" fill="#1c1a17"/>
+    <rect x="420" y="208" width="40" height="72" rx="5" fill="#ffffff"/>
+    <circle class="ill-rec" cx="440" cy="232" r="9" fill="#ffc21a" stroke="#1c1a17" stroke-width="3"/>
+    <rect x="428" y="250" width="24" height="5" rx="2.5" fill="#1c1a17"/>
+    <rect x="428" y="261" width="16" height="5" rx="2.5" fill="#1c1a17"/>
+  </g>
+  <g stroke="#1c1a17" stroke-width="8" stroke-linecap="round">
+    <line x1="440" y1="346" x2="440" y2="430"/>
+    <line x1="440" y1="430" x2="392" y2="540"/>
+    <line x1="440" y1="430" x2="488" y2="540"/>
+    <line x1="440" y1="430" x2="440" y2="540"/>
+  </g>
+  <rect x="428" y="420" width="24" height="20" rx="5" fill="#1c1a17"/>
+
+  <!-- the creator -->
+  <g class="ill-person">
+    <!-- legs -->
+    <path d="M168 400 L156 532 L188 532 L204 420 Z" fill="#1c1a17"/>
+    <path d="M214 400 L232 532 L264 532 L246 404 Z" fill="#1c1a17"/>
+    <ellipse cx="170" cy="534" rx="26" ry="10" fill="#ffffff"/>
+    <ellipse cx="250" cy="534" rx="26" ry="10" fill="#ffffff"/>
+    <!-- kurta / long shirt -->
+    <path d="M150 262 Q206 236 262 262 L284 432 Q206 452 128 432 Z" fill="#ffffff"/>
+    <path d="M206 250 L206 440" stroke="#1c1a17" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round"/>
+    <circle cx="206" cy="282" r="4" fill="#1c1a17"/><circle cx="206" cy="304" r="4" fill="#1c1a17"/>
+    <!-- dupatta / scarf in yellow halftone -->
+    <path d="M154 262 Q186 300 172 380 L150 372 Q160 306 140 270 Z" fill="url(#dots)" opacity=".85"/>
+    <!-- left arm down holding notebook -->
+    <path d="M152 270 Q122 330 136 392 L156 388 Q148 334 172 286 Z" fill="#a8693f"/>
+    <rect x="112" y="368" width="58" height="72" rx="6" fill="#1c1a17" transform="rotate(-8 141 404)"/>
+    <rect x="120" y="378" width="42" height="6" rx="3" fill="#ffc21a" transform="rotate(-8 141 404)"/>
+    <!-- right arm waving to camera -->
+    <path class="ill-wave" d="M252 268 Q300 250 318 196 L338 204 Q322 270 262 300 Z" fill="#a8693f"/>
+    <g class="ill-hand"><circle cx="330" cy="190" r="17" fill="#a8693f"/>
+      <rect x="320" y="160" width="7" height="22" rx="3.5" fill="#a8693f"/><rect x="330" y="156" width="7" height="24" rx="3.5" fill="#a8693f"/><rect x="340" y="162" width="7" height="22" rx="3.5" fill="#a8693f"/></g>
+    <!-- neck + head -->
+    <rect x="193" y="214" width="26" height="40" rx="10" fill="#8f5634"/>
+    <circle cx="206" cy="182" r="50" fill="#a8693f"/>
+    <!-- hair: a half circle and a bun (the motif again) -->
+    <path d="M154 184 A52 52 0 0 1 258 176 Q236 150 204 152 Q170 154 160 196 Z" fill="#1c1a17"/>
+    <circle cx="176" cy="128" r="22" fill="#1c1a17"/>
+    <path d="M154 184 Q150 230 172 250 L178 210 Z" fill="#1c1a17"/>
+    <!-- face: eye, smile, bindi -->
+    <circle cx="228" cy="182" r="5" fill="#1c1a17"/>
+    <path d="M220 206 Q234 214 244 202" fill="none" stroke="#1c1a17" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="232" cy="164" r="3" fill="#ffc21a"/>
+    <circle cx="174" cy="214" r="6" fill="#ffc21a" stroke="#1c1a17" stroke-width="2.5"/>
+  </g>
+
+  <!-- plant in a round pot -->
+  <g class="ill-plant">
+    <path d="M552 470 Q520 380 560 320" stroke="#1c1a17" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M556 330 Q600 300 610 330 Q586 356 556 340 Z" fill="#1c1a17"/>
+    <path d="M548 380 Q500 360 494 392 Q520 410 548 392 Z" fill="#1c1a17"/>
+    <path d="M552 424 Q600 404 614 432 Q586 450 552 436 Z" fill="#1c1a17"/>
+    <path d="M520 470 L588 470 L578 530 L530 530 Z" fill="#ffffff"/>
+    <rect x="516" y="462" width="76" height="14" rx="7" fill="#1c1a17"/>
+  </g>
+
+  <!-- chai on a stool -->
+  <g class="ill-chai">
+    <rect x="56" y="452" width="66" height="10" rx="5" fill="#1c1a17"/>
+    <rect x="66" y="462" width="8" height="70" fill="#1c1a17"/><rect x="104" y="462" width="8" height="70" fill="#1c1a17"/>
+    <path d="M70 418 L108 418 L102 452 L76 452 Z" fill="#ffffff"/>
+    <path d="M108 426 Q122 428 118 440 Q114 446 104 444" fill="none" stroke="#ffffff" stroke-width="5"/>
+    <path class="ill-steam" d="M82 408 Q74 396 84 384 Q94 372 86 360" fill="none" stroke="#1c1a17" stroke-width="3.5" stroke-linecap="round"/>
+    <path class="ill-steam s2" d="M96 408 Q88 394 98 382" fill="none" stroke="#1c1a17" stroke-width="3.5" stroke-linecap="round"/>
+  </g>
+
+  <!-- sparkles: tiny four-point stars made of two lozenges -->
+  <g fill="#1c1a17" class="ill-spark">
+    <path d="M300 92 L306 110 L324 116 L306 122 L300 140 L294 122 L276 116 L294 110 Z"/>
+    <path d="M560 236 L564 248 L576 252 L564 256 L560 268 L556 256 L544 252 L556 248 Z"/>
+  </g>
+</svg>

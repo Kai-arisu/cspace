@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 520" class="ill ill-cta" role="img" aria-label="Illustration: a hand holding up a phone with a big record button">
+  <defs><pattern id="ct" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="5" cy="5" r="2.1" fill="#1c1a17"/></pattern></defs>
+  <circle cx="260" cy="260" r="250" fill="#ffc21a"/>
+  <circle cx="260" cy="260" r="190" fill="url(#ct)" opacity=".18"/>
+  <!-- sleeve + arm from below -->
+  <path d="M150 520 L196 380 L300 380 L330 520 Z" fill="#1c1a17"/>
+  <path d="M196 380 Q182 330 206 300 L292 300 Q312 330 300 380 Z" fill="#a8693f"/>
+  <!-- phone -->
+  <g class="ct-phone">
+    <rect x="178" y="70" width="160" height="290" rx="28" fill="#1c1a17"/>
+    <rect x="192" y="92" width="132" height="246" rx="16" fill="#ffffff"/>
+    <circle class="ill-rec" cx="258" cy="200" r="46" fill="#ffc21a" stroke="#1c1a17" stroke-width="6"/>
+    <circle cx="258" cy="200" r="20" fill="#1c1a17"/>
+    <rect x="216" y="270" width="84" height="10" rx="5" fill="#1c1a17"/>
+    <rect x="230" y="290" width="56" height="10" rx="5" fill="#e3e3e0"/>
+    <rect x="236" y="104" width="44" height="8" rx="4" fill="#1c1a17"/>
+  </g>
+  <!-- fingers over the phone edge -->
+  <rect x="160" y="250" width="34" height="22" rx="11" fill="#a8693f"/>
+  <rect x="158" y="276" width="38" height="22" rx="11" fill="#a8693f"/>
+  <rect x="162" y="302" width="34" height="22" rx="11" fill="#a8693f"/>
+  <rect x="320" y="270" width="34" height="24" rx="12" fill="#a8693f"/>
+  <!-- sparkles -->
+  <g fill="#1c1a17" class="ill-spark">
+    <path d="M410 120 L416 138 L434 144 L416 150 L410 168 L404 150 L386 144 L404 138 Z"/>
+    <path d="M104 170 L108 182 L120 186 L108 190 L104 202 L100 190 L88 186 L100 182 Z"/>
+    <circle cx="420" cy="300" r="8"/><circle cx="96" cy="320" r="6"/>
+  </g>
+</svg>

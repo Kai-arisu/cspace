@@ -3089,319 +3089,525 @@ html.pubpage body{font:400 16px/1.55 var(--f-body)}
 #pubpage .pg .pg-links .pp-link:hover{background:var(--surface)!important;padding-left:14px!important}
 
 /* ===================== Creator Space landing (signed-out visitors) =====================
-   Direction: "The sentence is the layout" (tasteskill seed 1724406290), brand type and colour kept.
+   Direction: One motif (tasteskill seed 1888539596). The round C of the logo, a lens and a
+   record button, is the only shape: the hero disc, every button, the timer dial, the ticket
+   punches on the card, the footer mark. Two-ink illustrations (ink and yellow on white).
    Five sizes: --s1 hero, --s2 section heading, --s3 lead, 17px body, 14px small. */
-html.landing,html.landing body{background:var(--bg)!important}
+html.landing,html.landing body{background:#fff!important;color-scheme:light}
 html.landing body>*:not(#landing):not(script){display:none!important}
 html.landing #landing{display:block!important}
 #landing[hidden]{display:none}
-#landing{--m:28px;--s1:clamp(56px,9.2vw,150px);--s2:clamp(34px,4.4vw,68px);--s3:clamp(19px,1.7vw,24px);--r:14px;--tone:var(--surface);--tone2:#ecf3f1;
-  color:var(--fg);font:400 17px/1.55 var(--f-body);overflow-x:clip}
+#landing{--bg:#ffffff;--fg:#1c1a17;--ink:#1c1a17;--muted:#5c5850;--stone:#f2f1ee;--stone2:#e6e5e1;--yel:#ffc21a;--yel-hi:#ffcd3c;
+  --m:clamp(16px,3vw,40px);--s1:clamp(52px,7.4vw,124px);--s2:clamp(36px,4.6vw,72px);--s3:clamp(19px,1.6vw,23px);--r:28px;
+  --spring:cubic-bezier(.34,1.56,.64,1);
+  background:var(--bg);color:var(--fg);font:400 17px/1.55 var(--f-body);overflow-x:clip}
 #landing *{box-sizing:border-box}
 #landing .vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 #landing button{font:inherit;color:inherit;cursor:pointer}
-#landing :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
-.lp-h2{font:600 var(--s2)/1 var(--f-body);letter-spacing:-.035em;margin:0;text-wrap:balance}
+#landing a{color:inherit}
+#landing :focus-visible{outline:2.5px solid var(--ink);outline-offset:3px;box-shadow:0 0 0 6px var(--yel)}
+#landing .lp-h2{font:400 var(--s2)/1 var(--f-serif);letter-spacing:-.03em;margin:0;text-wrap:balance}
+#landing h3{margin:0}
+#landing .ill{display:block;width:100%;height:auto}
 
-/* nav: wordmark left, two links right, no bar */
-.lp-nav{display:flex;align-items:center;justify-content:space-between;padding:22px var(--m);position:relative;z-index:2}
-.lp-word{display:inline-flex;align-items:center;gap:8px;font:600 17px var(--f-body);color:var(--fg);text-decoration:none}
-.lp-mark{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--accent);color:#fff}
+/* nav: wordmark, four plain links, two account buttons */
+.lp-nav{display:flex;align-items:center;gap:24px;padding:20px var(--m);position:relative;z-index:3}
+.lp-word{display:inline-flex;align-items:center;gap:10px;font:600 18px var(--f-body);text-decoration:none;white-space:nowrap}
+.lp-mark{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--yel);color:var(--ink);box-shadow:0 0 0 2px var(--ink)}
+.lp-menu-links{display:flex;gap:4px;margin-left:auto}
+.lp-menu-links a{padding:8px 14px;border-radius:999px;text-decoration:none;font:500 16px var(--f-body);transition:background-color .15s}
+.lp-menu-links a:hover{background:var(--stone)}
 .lp-links{display:flex;gap:6px}
-.lp-link{border:0;background:none;padding:8px 14px;border-radius:999px;font:500 17px var(--f-body)!important;transition:background-color .15s}
-.lp-link:hover{background:var(--surface2)}
-.lp-strong{background:var(--fg)!important;color:var(--bg)!important}
-.lp-strong:hover{opacity:.88}
+.lp-link{border:2px solid transparent;background:none;padding:7px 16px;border-radius:999px;font:500 16px var(--f-body)!important;white-space:nowrap;transition:background-color .15s,transform .18s var(--spring)}
+.lp-link:hover{background:var(--stone)}
+.lp-strong{background:var(--ink)!important;color:#fff!important}
+.lp-strong:hover{transform:translateY(-1px)}
 
-/* hero: the sentence, with the product inside it */
-.lp-hero{min-height:calc(100svh - 76px);display:flex;flex-direction:column;justify-content:flex-end;padding:12vh var(--m) 72px}
-.lp-sent{margin:0;font:600 var(--s1)/.98 var(--f-body);letter-spacing:-.045em}
-.lp-l1{display:flex;align-items:baseline;gap:.22em;white-space:nowrap}
-.lp-l2{display:block;white-space:nowrap}
-.lp-strip{position:relative;flex:1;min-width:0;height:.86em;align-self:center;border-radius:var(--r);overflow:hidden;background:var(--surface);transform:translateY(.04em)}
-.lp-strip img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:0 50%;opacity:0;transition:opacity .9s ease,transform 3.2s ease;transform:scale(1.04)}
-.lp-strip img.on{opacity:1;transform:scale(1)}
-.lp-lead{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:32px;align-items:end;margin-top:48px}
-.lp-lead p{margin:0;font:400 var(--s3)/1.45 var(--f-body);max-width:44ch;color:var(--fg)}
-.lp-acts{display:flex;align-items:center;gap:16px;justify-self:end;flex-wrap:wrap}
-.lp-acts span{font-size:14px;color:var(--muted)}
-.lp-btn{border:0;background:var(--accent);color:#fff!important;font:600 17px var(--f-body)!important;height:54px;padding:0 28px;border-radius:999px;transition:transform .15s,background-color .15s}
-.lp-btn:hover{background:#155a53}
-.lp-btn:active{transform:scale(.97)}
+/* buttons: the round shape, ink outline, yellow */
+.lp-btn,.lp-go{border:2.5px solid var(--ink);background:var(--yel);color:var(--ink)!important;font:600 18px var(--f-body)!important;height:60px;padding:0 30px;border-radius:999px;
+  transition:transform .2s var(--spring),box-shadow .15s,background-color .15s}
+.lp-btn:hover,.lp-go:hover{background:var(--yel-hi);transform:translateY(-3px);box-shadow:0 5px 0 var(--ink)}
+.lp-btn:active,.lp-go:active{transform:translateY(0) scale(.97);box-shadow:none}
 
-/* showcase: the headline you can type */
-.lp-show{padding:160px var(--m) 0;min-height:88svh}
-.lp-type{display:flex;align-items:center;margin:44px 0 0;cursor:text;max-width:100%}
-.lp-type input{flex:0 1 auto;width:100%;min-width:0;border:0;background:none;padding:0;color:var(--fg);font:500 var(--s2)/1.15 var(--f-body);letter-spacing:-.03em;outline:none;text-overflow:clip}
-.lp-caret{flex:none;width:.08em;height:var(--s2);background:var(--accent);margin-left:-.1em;animation:lpblink 1.05s steps(1) infinite}
-.lp-type:focus-within .lp-caret{display:none}
-@keyframes lpblink{50%{opacity:0}}
-.lp-show-grid{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,6fr);gap:48px;margin-top:48px;align-items:start}
-.lp-idea{display:flex;align-items:center;gap:12px;min-height:63px;padding:10px 12px 10px 10px;background:#fff;border:1px solid #eaeaea;border-radius:14px;max-width:560px;color:#1f201d}
-.lp-star{display:grid;place-items:center;width:34px;height:34px;color:#1f201d}
-.lp-star svg{fill:#1f201d}
-.lp-ib{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
-.lp-ib b{font:500 15px var(--f-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lp-im{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;color:#636361}
-.lp-tag{background:#f3f3f2;border-radius:999px;padding:1px 8px;font-weight:500}
-.lp-ia{display:flex;gap:6px;flex:none}
-.lp-mini{border:1px solid #d9d9d6;border-radius:999px;padding:5px 12px;font:500 13px var(--f-body);background:#fff;white-space:nowrap}
-.lp-said{margin:18px 0 0;max-width:52ch;font-size:17px}
-.lp-ex{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:32px;align-items:baseline}
-.lp-ex span{font-size:14px;color:var(--muted)}
-.lp-ex button{border:0;background:none;padding:2px 0;font:500 17px var(--f-body);text-decoration:underline;text-decoration-color:var(--line2);text-underline-offset:4px;transition:text-decoration-color .15s}
-.lp-ex button:hover{text-decoration-color:var(--fg)}
-.lp-fig{margin:0}
-.lp-fig img{display:block;width:100%;height:auto;border-radius:var(--r);background:var(--surface)}
-.lp-fig figcaption{margin-top:12px;font-size:14px;color:var(--muted);max-width:52ch}
+/* hero: headline left, the giant disc cropped by the right edge, the live capture on it */
+.lp-hero{position:relative;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;min-height:calc(100svh - 80px);padding:4vh var(--m) 72px;align-items:center}
+.lp-hero-t{grid-column:1/span 6;position:relative;z-index:2;padding-bottom:40px}
+.lp-sent{margin:0;font:400 var(--s1)/.94 var(--f-serif);letter-spacing:-.035em;max-width:9.6em;text-wrap:balance}
+.lp-lead{margin:32px 0 0;font:400 var(--s3)/1.5 var(--f-body);max-width:40ch}
+.lp-acts{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:36px}
+.lp-acts span{font-size:15px;color:var(--muted)}
+.lp-stage{grid-column:7/span 6;position:relative;align-self:stretch;min-height:640px}
+.lp-disc{position:absolute;left:4%;top:50%;width:min(64vw,880px);aspect-ratio:1;transform:translateY(-50%);border-radius:50%}
+.lp-disc .ill{width:100%;height:100%}
+.lp-cap{position:absolute;left:-14%;bottom:-8px;width:min(440px,92%);background:#fff;border:2.5px solid var(--ink);border-radius:var(--r);padding:16px;box-shadow:0 10px 0 var(--ink);z-index:2;font-size:15px}
+.lp-cap-in{display:flex;align-items:center;gap:10px;height:52px;padding:0 16px;border-radius:999px;background:var(--stone);cursor:text}
+.lp-cap-in input{flex:1;min-width:0;border:0;background:none;font:500 17px var(--f-body);color:var(--ink);outline:none}
+.lp-idea{display:flex;flex-direction:column;gap:8px;margin-top:12px;padding:16px;border-radius:20px;background:var(--yel);border:2px solid var(--ink)}
+.lp-st{align-self:flex-start;font:500 13px var(--f-body);padding:2px 10px;border-radius:999px;background:var(--ink);color:#fff}
+.lp-idea b{font:500 21px/1.25 var(--f-body)}
+.lp-im{display:flex;gap:6px;flex-wrap:wrap;min-height:24px}
+.lp-tag{font:500 14px var(--f-body);padding:2px 10px;border-radius:999px;background:rgba(28,26,23,.1)}
+.lp-ia{display:flex;gap:6px;padding-top:10px;border-top:2px dashed rgba(28,26,23,.3)}
+.lp-mini{border:2px solid var(--ink);border-radius:999px;padding:4px 12px;font:500 14px var(--f-body)}
+.lp-said{margin:10px 4px 0;font-size:14px;color:var(--muted)}
+
+/* features: a mosaic of close-ups */
+.lp-feat{padding:96px var(--m) 0}
+.lp-mosaic{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-rows:112px;gap:12px}
+.lp-t{position:relative;overflow:hidden;border-radius:var(--r);padding:24px;display:flex;flex-direction:column;justify-content:flex-end;transition:transform .3s var(--spring)}
+.lp-t:hover{transform:translateY(-4px) rotate(-.4deg)}
+.c-yel{background:var(--yel);color:var(--ink)}.c-ink{background:var(--ink);color:#fff}.c-stone{background:var(--stone);color:var(--ink)}
+.t-h{grid-column:span 6;grid-row:span 2;justify-content:space-between}
+.t-h p{margin:0;max-width:44ch;font-size:17px}
+.t-num{grid-column:span 6;grid-row:span 2}
+.t-idea{grid-column:span 6;grid-row:span 4}
+.t-notes,.t-mood{grid-column:span 3;grid-row:span 4}
+.t-board,.t-cal,.t-deal,.t-team{grid-column:span 3;grid-row:span 2}
+.lp-tc{position:relative;z-index:1}
+.lp-tc h3{font:600 19px var(--f-body)}
+.lp-tc p{margin:2px 0 0;font-size:15px;max-width:30ch}
+.lp-x{position:absolute;pointer-events:none}
+.x-num{right:-10px;top:-24px;text-align:right}
+.x-num b{display:block;font:500 150px/1 var(--f-body);letter-spacing:-.05em}
+.x-num span{display:inline-block;margin-top:8px;padding:4px 14px;border-radius:999px;background:var(--yel);color:var(--ink);font:500 18px var(--f-body)}
+.x-idea{right:-40px;top:28px;width:78%;transform:rotate(-4deg)}
+.xi-card{background:#fff;border:3px solid var(--ink);border-radius:26px;padding:26px;display:flex;flex-direction:column;gap:12px;box-shadow:0 10px 0 var(--ink)}
+.xi-st{align-self:flex-start;font:500 17px var(--f-body);padding:3px 14px;border-radius:999px;background:var(--ink);color:#fff}
+.xi-card b{font:500 40px/1.1 var(--f-body);letter-spacing:-.02em}
+.xi-tags{display:flex;gap:8px}.xi-tags i{font:500 18px var(--f-body);font-style:normal;padding:3px 12px;border-radius:999px;background:var(--stone)}
+.x-notes{left:24px;right:-60px;top:28px;display:flex;flex-direction:column;gap:18px}
+.xn-r{display:flex;align-items:center;gap:14px;font:500 26px var(--f-body);white-space:nowrap}
+.xn-r i{width:34px;height:34px;border-radius:50%;border:3px solid var(--ink);background:#fff;flex:none;display:grid;place-items:center}
+.xn-r.on i{background:var(--yel)}
+.xn-r.on i::after{content:"";width:13px;height:7px;border:3px solid var(--ink);border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-2px)}
+.xn-r.on span{text-decoration:line-through;text-decoration-thickness:3px;color:#6f6b62}
+.x-mood{right:-30px;top:22px;width:92%;height:56%}
+.x-mood i{position:absolute;width:56%;aspect-ratio:1;border-radius:50%;border:3px solid #fff}
+.x-mood i:nth-child(1){right:34%;top:6%}.x-mood i:nth-child(2){right:4%;top:0}.x-mood i:nth-child(3){right:18%;top:36%}
+.x-board{right:-24px;top:20px}
+.xb{display:inline-flex;align-items:center;gap:12px;background:#fff;border:3px solid var(--ink);border-radius:999px;padding:10px 26px;font:500 32px var(--f-body)}
+.xb i{width:18px;height:18px;border-radius:50%;background:var(--ink)}
+.x-cal{right:-12px;top:-18px;text-align:right}
+.x-cal b{display:block;font:400 120px/1 var(--f-serif);letter-spacing:-.04em}
+.x-cal span{display:inline-block;margin-top:-6px;padding:3px 12px;border-radius:999px;background:var(--yel);font:500 15px var(--f-body)}
+.x-deal{right:-16px;top:18px;text-align:right}
+.x-deal b{display:block;font:500 54px/1 var(--f-body);letter-spacing:-.03em}
+.x-deal span{display:inline-block;margin-top:8px;padding:3px 14px;border-radius:999px;background:var(--yel);color:var(--ink);font:500 16px var(--f-body)}
+.x-team{right:-20px;top:18px;display:flex}
+.x-team i{width:72px;height:72px;margin-left:-16px;border-radius:50%;display:grid;place-items:center;font:500 30px var(--f-body);font-style:normal;border:3px solid var(--ink);background:#fff}
+.x-team i:nth-child(2){background:var(--ink);color:#fff;border-color:var(--yel)}
+
+/* showcase: the focus timer, blown up; pressing it swaps the field */
+.lp-timer{position:relative;margin-top:120px;min-height:92svh;background:var(--yel);overflow:hidden;padding:80px var(--m);transition:background-color .5s,color .5s}
+.lp-timer.run{background:var(--ink);color:#fff}
+.lp-timer-t{position:relative;z-index:2;max-width:560px}
+.lp-timer-t p{margin:20px 0 0;font-size:var(--s3);line-height:1.5;max-width:36ch}
+.lp-dial{position:absolute;right:-8vw;bottom:-14vw;width:min(78vw,1080px);aspect-ratio:1;border-radius:50%;border:0;background:#fff;color:var(--ink);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vw;padding:0 0 14vw;box-shadow:0 0 0 .5vw var(--ink);transition:transform .3s var(--spring),background-color .4s}
+.lp-dial:hover{transform:scale(1.015)}.lp-dial:active{transform:scale(.985)}
+.lp-timer.run .lp-dial{background:var(--yel)}
+.ld-ring{position:absolute;inset:4%;border-radius:50%;border:.5vw dashed var(--ink);opacity:.35}
+.lp-timer.run .ld-ring{animation:lpspin 60s linear infinite;opacity:.6}
+.lp-dial b{font:500 min(16vw,220px)/1 var(--f-body);letter-spacing:-.05em;font-variant-numeric:tabular-nums}
+.ld-play{display:grid;place-items:center;width:min(9vw,120px);aspect-ratio:1;border-radius:50%;background:var(--ink)}
+.ld-play svg{width:46%;fill:var(--yel);transform:translateX(6%)}
+.lp-dial small{font:500 min(2vw,26px) var(--f-body)}
+@keyframes lpspin{to{transform:rotate(360deg)}}
 
 /* how it works: drag through the stages */
-.lp-how{display:grid;grid-template-columns:1fr 1fr;min-height:88svh;margin-top:200px}
-.lp-how-l{background:var(--tone);padding:64px var(--m) 40px;display:flex;flex-direction:column}
-.lp-clause{max-width:14ch;transition:opacity .2s}
+.lp-how{display:grid;grid-template-columns:1fr 1fr;min-height:88svh}
+.lp-how-l{background:var(--stone);padding:80px var(--m) 48px;display:flex;flex-direction:column}
+.lp-clause{max-width:12ch;transition:opacity .2s}
 .lp-clause-s{margin:24px 0 0;max-width:40ch;font-size:var(--s3);line-height:1.45;transition:opacity .2s}
 .lp-range{margin-top:auto;padding-top:48px}
-.lp-track{position:relative;height:32px;display:flex;align-items:center}
-.lp-track::before{content:"";position:absolute;left:0;right:0;height:8px;background:var(--line2)}
-.lp-track b{position:absolute;left:0;height:8px;width:var(--p,0%);background:var(--fg);transition:width .2s}
-.lp-range input{position:relative;width:100%;margin:0;-webkit-appearance:none;appearance:none;height:32px;background:none;outline-offset:8px}
-.lp-range input::-webkit-slider-thumb{-webkit-appearance:none;width:32px;height:32px;background:var(--accent);border:0;border-radius:0;cursor:grab;transition:transform .15s}
-.lp-range input::-moz-range-thumb{width:32px;height:32px;background:var(--accent);border:0;border-radius:0;cursor:grab}
-.lp-range input:active::-webkit-slider-thumb{transform:scale(1.1)}
-.lp-stops{list-style:none;margin:16px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);font-size:17px;color:var(--muted)}
+.lp-track{position:relative;height:40px;display:flex;align-items:center}
+.lp-track::before{content:"";position:absolute;left:0;right:0;height:8px;border-radius:4px;background:var(--stone2)}
+.lp-track b{position:absolute;left:0;height:8px;border-radius:4px;width:var(--p,0%);background:var(--ink);transition:width .25s}
+.lp-range input{position:relative;width:100%;margin:0;-webkit-appearance:none;appearance:none;height:40px;background:none;outline-offset:8px}
+.lp-range input::-webkit-slider-thumb{-webkit-appearance:none;width:40px;height:40px;background:var(--yel);border:3px solid var(--ink);border-radius:50%;cursor:grab;transition:transform .2s var(--spring)}
+.lp-range input::-moz-range-thumb{width:34px;height:34px;background:var(--yel);border:3px solid var(--ink);border-radius:50%;cursor:grab}
+.lp-range input:active::-webkit-slider-thumb{transform:scale(1.15)}
+.lp-stops{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);font-size:17px;color:var(--muted)}
 .lp-stops li{cursor:pointer}
 .lp-stops li:nth-child(2){text-align:center;transform:translateX(-17%)}.lp-stops li:nth-child(3){text-align:center;transform:translateX(17%)}.lp-stops li:last-child{text-align:right}
 .lp-stops li[aria-current="true"]{color:var(--fg);font-weight:600}
-.lp-how-r{background:var(--tone2);display:grid;place-items:center;padding:48px var(--m)}
-.lp-col{width:min(440px,100%);background:#f7f7f6;border-radius:22px;padding:14px;color:#1f201d;transition:opacity .2s}
-.lp-col h4{display:flex;align-items:center;gap:8px;margin:2px 4px 12px;font:600 14px var(--f-body)}
-.lp-col h4 i{width:8px;height:8px;border-radius:50%;background:var(--dot,#8c8c88)}
-.lp-col h4 small{margin-left:auto;font:500 13px var(--f-body);color:#636361}
-.lp-card{background:#fff;border:1px solid #eaeaea;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
-.lp-card b{font:500 16px/1.3 var(--f-body)}
+.lp-how-r{background:var(--yel);display:grid;place-items:center;padding:48px var(--m)}
+.lp-col{width:min(440px,100%);background:#fff;border:2.5px solid var(--ink);border-radius:var(--r);padding:16px;box-shadow:0 10px 0 var(--ink);transition:opacity .2s}
+.lp-col h4{display:flex;align-items:center;gap:8px;margin:2px 4px 12px;font:600 15px var(--f-body)}
+.lp-col h4 i{width:10px;height:10px;border-radius:50%;background:var(--dot,#8c8c88)}
+.lp-col h4 small{margin-left:auto;font:500 14px var(--f-body);color:var(--muted)}
+.lp-card{background:var(--stone);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.lp-card b{font:500 18px/1.3 var(--f-body)}
 .lp-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.lp-chip{display:inline-flex;align-items:center;gap:6px;background:#f3f3f2;border-radius:999px;padding:3px 10px;font:500 13px var(--f-body);color:#3d3d3a}
-.lp-chip.ok{background:#e7f1ef;color:#1b6e66}
-.lp-chip.warn{background:#fffbeb;color:#92400e}
-.lp-chk{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px}
-.lp-chk li{display:flex;gap:8px;align-items:center}
-.lp-chk i{width:16px;height:16px;border-radius:5px;border:1.5px solid #c9c9c5;flex:none}
-.lp-chk li.d i{background:#1f201d;border-color:#1f201d}
-.lp-chk li.d{color:#636361;text-decoration:line-through}
-.lp-ghost{border:1px dashed #d9d9d6;border-radius:12px;padding:10px 14px;margin-top:8px;color:#636361;font-size:14px}
-.lp-num{font:400 30px/1 var(--f-body);font-variant-numeric:tabular-nums}
+.lp-chip{display:inline-flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:3px 10px;font:500 14px var(--f-body)}
+.lp-chip.ok{background:var(--yel)}
+.lp-chip.warn{background:var(--ink);color:#fff}
+.lp-chk{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.lp-chk li{display:flex;gap:10px;align-items:center}
+.lp-chk i{width:20px;height:20px;border-radius:50%;border:2.5px solid var(--ink);flex:none;background:#fff}
+.lp-chk li.d i{background:var(--yel)}
+.lp-chk li.d{color:var(--muted);text-decoration:line-through}
+.lp-ghost{border:2px dashed var(--stone2);border-radius:14px;padding:10px 14px;margin-top:8px;color:var(--muted);font-size:15px}
+.lp-num{font:500 34px/1 var(--f-body);font-variant-numeric:tabular-nums}
 
-/* features: sentences with switches */
-.lp-feat{margin-top:200px}
-.lp-band{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,4fr) minmax(0,1fr);align-items:center;column-gap:32px;min-height:20vh;padding:28px var(--m);transition:background-color .35s}
-.lp-bf{grid-column:2;grid-row:1/span 2;margin:0;height:clamp(150px,15vw,220px);border-radius:var(--r);overflow:hidden;background:var(--surface);opacity:.55;filter:grayscale(1);transition:opacity .35s,filter .35s}
-.lp-bf img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 0}
-.lp-band.on .lp-bf{opacity:1;filter:none}
-.lp-bs{margin:0;font:600 clamp(26px,3.3vw,54px)/1.08 var(--f-body);letter-spacing:-.03em;color:var(--muted);transition:color .25s}
-.lp-bc{grid-column:1;margin:0;max-height:0;overflow:hidden;opacity:0;font-size:17px;max-width:60ch;transition:max-height .35s,opacity .3s,margin .3s}
-.lp-sw{grid-column:3;grid-row:1/span 2;justify-self:end;position:relative;width:2.2em;height:1.2em;font-size:clamp(26px,3.3vw,54px);border:0;border-radius:999px;background:var(--line2);padding:0;transition:background-color .2s}
-.lp-sw i{position:absolute;top:.12em;left:.12em;width:.96em;height:.96em;border-radius:50%;background:#fff;transition:transform .22s cubic-bezier(.3,1.4,.5,1)}
-.lp-sw[aria-checked="true"]{background:var(--fg)}
-.lp-sw[aria-checked="true"] i{transform:translateX(1em)}
-.lp-band.on .lp-bs{color:var(--fg)}
-.lp-band.on .lp-bc{max-height:6em;opacity:1;margin-top:10px}
-.lp-band.on:nth-child(odd){background:var(--tone2)}
-.lp-band.on:nth-child(even){background:var(--tone)}
+/* tour: the real screens on a sideways rail */
+.lp-tour{padding:160px 0 0}
+.lp-tour-h{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:0 var(--m);flex-wrap:wrap}
+.lp-tour-h p{margin:0;font-size:var(--s3);max-width:34ch}
+.lp-rail{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 var(--m);padding:40px var(--m) 24px;scrollbar-width:thin;outline-offset:-4px}
+.lp-rail figure{flex:none;margin:0;scroll-snap-align:start;width:min(760px,82vw)}
+.lp-rail img{display:block;width:100%;height:clamp(240px,30vw,420px);object-fit:cover;object-position:0 0;border-radius:var(--r);border:2.5px solid var(--ink);background:var(--stone);transition:transform .3s var(--spring)}
+.lp-rail figure:hover img{transform:translateY(-6px)}
+.lp-rail figcaption{margin-top:14px;font-size:16px;color:var(--muted)}
+.lp-rail figcaption b{color:var(--fg);font-weight:600;margin-right:8px}
 
-/* list: statement, table pushed right */
-.lp-list{padding:200px var(--m) 0}
-.lp-ind{padding-left:3vw;line-height:.98}
-.lp-list-g{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;margin-top:96px;align-items:end}
-.lp-pic{grid-column:1/span 4;margin:0}
-.lp-pic img{display:block;width:100%;height:auto;border-radius:var(--r);background:var(--surface)}
-.lp-tname{grid-column:7;align-self:start;font-size:14px;color:var(--muted);padding-top:2px}
-.lp-tbl{grid-column:8/span 5;align-self:start;border-collapse:collapse;width:100%;font-size:17px}
-.lp-tbl th,.lp-tbl td{padding:0 0 26px;text-align:left;vertical-align:top;font-weight:400}
-.lp-tbl th{color:var(--muted);width:24%}
-.lp-tbl td:last-child{text-align:right;color:var(--fg);font-variant-numeric:tabular-nums;white-space:nowrap;padding-left:12px}
-.lp-tbl tr.g+tr th,.lp-tbl tr.g+tr td{padding-top:18px}
+/* included: a printed card on a yellow ground, beside the desk; the punch holes are the motif */
+.lp-menu{margin-top:160px;background:var(--yel);padding:120px var(--m);display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;align-items:start}
+.lp-desk{grid-column:1/span 5;position:sticky;top:60px}
+.lp-sheet{grid-column:7/span 6;position:relative;background:#fff;color:var(--ink);padding:72px 56px 64px;text-align:center;border-radius:6px}
+.lp-sheet::before,.lp-sheet::after{content:"";position:absolute;top:196px;width:44px;height:44px;border-radius:50%;background:var(--yel)}
+.lp-sheet::before{left:-22px}.lp-sheet::after{right:-22px}
+.lp-sheet .lp-h2{font-size:clamp(36px,3.6vw,52px)}
+.lp-sheet-n{margin:12px 0 0;font-size:16px;color:var(--muted)}
+.lp-g{margin-top:52px}
+.lp-g h3{font:400 26px var(--f-serif);margin-bottom:18px}
+.lp-i{display:flex;justify-content:space-between;align-items:baseline;gap:16px;text-align:left;max-width:440px;margin:0 auto 16px}
+.lp-i span{font:500 18px var(--f-body)}
+.lp-i small{display:block;font:400 15px var(--f-body);color:var(--muted)}
+.lp-i b{font:500 16px var(--f-body);white-space:nowrap;padding:2px 12px;border-radius:999px;background:var(--stone)}
+.lp-soon .lp-i b{background:var(--yel)}
+.lp-sheet-f{margin:56px 0 0;font-size:16px}
 
-/* faq: wide heading, indented questions */
-.lp-faq{padding:200px var(--m) 0}
-.lp-qs{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));margin-top:80px}
-.lp-qs details{grid-column:5/span 8;border-radius:16px;margin:0 -24px 12px;padding:14px 24px;transition:background-color .2s}
-.lp-qs details[open]{background:var(--tone)}
-.lp-qs summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:24px;font:400 var(--s3)/1.3 var(--f-body)}
-.lp-qs summary::-webkit-details-marker{display:none}
-.lp-qs summary::after{content:"";flex:none;width:10px;height:10px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translate(-2px,-2px);transition:transform .2s}
-.lp-qs details[open] summary::after{transform:rotate(225deg) translate(-2px,-2px)}
-.lp-qs p{margin:14px 0 6px;max-width:52ch;font-size:17px}
+/* faq: index cards with tabs, stacked */
+.lp-faq{padding:180px var(--m) 0;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px}
+.lp-faq .lp-h2{grid-column:3/span 8}
+.lp-cards{grid-column:3/span 8;margin-top:72px;display:flex;flex-direction:column}
+.lp-cards details{position:relative;margin-top:16px;background:var(--c,var(--stone));border-radius:0 22px 22px 22px;transition:transform .25s var(--spring)}
+.lp-cards details:first-child{margin-top:0}
+.lp-cards details:nth-child(3n+1){--c:var(--stone)}.lp-cards details:nth-child(3n+2){--c:var(--yel)}.lp-cards details:nth-child(3n){--c:var(--ink);color:#fff}
+.lp-cards details:hover{transform:translateY(-3px)}
+.lp-cards details+details{margin-top:52px}
+.lp-cards summary{list-style:none;cursor:pointer;display:block;padding:22px 28px 26px}
+.lp-cards summary::-webkit-details-marker{display:none}
+.lp-tab{position:absolute;top:-38px;left:calc(var(--i,0) * 120px);height:40px;padding:0 22px;display:inline-flex;align-items:center;border-radius:20px 20px 0 0;background:var(--c);font:500 16px var(--f-body)}
+.lp-cards details:nth-child(1){--i:0}.lp-cards details:nth-child(2){--i:1}.lp-cards details:nth-child(3){--i:2}.lp-cards details:nth-child(4){--i:3}.lp-cards details:nth-child(5){--i:4}.lp-cards details:nth-child(6){--i:5}
+.lp-cards details:not(:first-child) .lp-tab{border-radius:20px 20px 0 0}
+.lp-cards details:nth-child(n+2){border-radius:22px}
+.lp-q{display:flex;justify-content:space-between;gap:16px;align-items:center;font:500 22px/1.3 var(--f-body)}
+.lp-q::after{content:"+";flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;border:2.5px solid currentColor;font:400 24px/1 var(--f-body);transition:transform .25s var(--spring)}
+.lp-cards details[open] .lp-q::after{transform:rotate(45deg)}
+.lp-cards details p{margin:0 28px;padding-bottom:30px;max-width:52ch;font-size:17px}
 
-/* cta: a sentence with a blank */
-.lp-cta{padding:200px var(--m) 200px}
-.lp-sent2{display:flex;flex-wrap:wrap;align-items:baseline;gap:.25em;font:600 clamp(34px,6.2vw,100px)/1.1 var(--f-body);letter-spacing:-.035em;margin:0}
+/* cta: a sentence with a blank, beside the record button */
+.lp-cta{padding:180px var(--m) 160px;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;align-items:center}
+.lp-cta-t{grid-column:1/span 7}
+.lp-cta-a{grid-column:9/span 4}
+.lp-sent2{display:flex;flex-wrap:wrap;align-items:baseline;gap:.25em;font:400 clamp(40px,5.4vw,92px)/1.1 var(--f-serif);letter-spacing:-.03em;margin:0;row-gap:.1em}
 .lp-sent2>span:first-child{flex-basis:100%}
-.lp-blank{display:inline-flex;flex:0 1 9em;min-width:0}
-.lp-blank input{width:100%;height:1.15em;border:0;border-radius:.2em;background:var(--tone);padding:0 .25em;font:inherit;letter-spacing:inherit;color:var(--fg);outline:none;transition:background-color .15s}
-.lp-blank input:focus{background:var(--tone2)}
-.lp-blank input::placeholder{color:var(--muted)}
-.lp-go{height:1.15em;border:0;border-radius:.2em;background:var(--accent);color:#fff!important;font:inherit!important;letter-spacing:inherit;padding:0 .35em;transition:transform .15s,background-color .15s}
-.lp-go:hover{background:#155a53}.lp-go:active{transform:scale(.97)}
-.lp-after{margin:24px 0 0;font-size:17px;color:var(--muted);max-width:60ch}
+.lp-blank{display:inline-flex;flex:0 1 8em;min-width:0}
+.lp-blank input{width:100%;height:1.12em;border:0;border-radius:999px;background:var(--stone);padding:0 .45em;font:inherit;letter-spacing:inherit;color:var(--fg);outline:none;box-shadow:inset 0 0 0 3px var(--ink);transition:background-color .15s}
+.lp-blank input:focus{background:#fff4cc}
+.lp-blank input::placeholder{color:#7a766d}
+#landing .lp-go{height:1.12em;font:inherit!important;letter-spacing:inherit;padding:0 .5em;border-width:3px}
+.lp-after{margin:28px 0 0;font-size:17px;color:var(--muted);max-width:52ch}
 
-/* footer: invitation over a cropped name */
-.lp-foot{background:var(--fg);color:var(--bg);min-height:100svh;display:flex;flex-direction:column;overflow:hidden;padding:120px var(--m) 0}
-.lp-foot-top{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px}
-.lp-inv{grid-column:1/span 7}
-.lp-inv .lp-h2{color:var(--bg)}
-.lp-inv-b{margin-top:40px;background:var(--bg)!important;color:var(--fg)!important}
-.lp-inv-b:hover{opacity:.9}
-.lp-flinks{grid-column:10/span 3;list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
-.lp-flinks button,.lp-flinks a{border:0;background:none;padding:0;font:400 17px var(--f-body);color:var(--bg);text-decoration:none;opacity:.85}
-.lp-flinks button:hover,.lp-flinks a:hover{opacity:1;text-decoration:underline;text-underline-offset:4px}
-.lp-legal{display:flex;justify-content:space-between;margin-top:auto;padding-top:80px;font-size:14px;opacity:.8}
-.lp-big{font:600 27vw/.8 var(--f-body);letter-spacing:-.06em;white-space:nowrap;transform:translateY(22%);margin-top:12px;margin-left:-.04em;user-select:none}
+/* footer: the mark, built large */
+.lp-foot{background:var(--ink);color:#fff;padding:96px var(--m) 32px;overflow:hidden}
+.lp-big{display:flex;align-items:center;gap:3vw}
+.lp-bigc{flex:none;width:min(30vw,420px);aspect-ratio:1}
+.lp-bigc svg{width:100%;height:100%;display:block}
+.lp-bigw{font:400 clamp(64px,11vw,190px)/.86 var(--f-serif);letter-spacing:-.04em;color:#fff}
+.lp-foot-row{display:grid;grid-template-columns:repeat(3,minmax(0,2fr)) minmax(0,3fr);gap:24px;margin-top:80px;align-items:start}
+.lp-flinks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.lp-flinks button,.lp-flinks a{border:0;background:none;padding:0;font:400 17px var(--f-body);color:#fff;text-decoration:none}
+.lp-flinks button:hover,.lp-flinks a:hover{text-decoration:underline;text-underline-offset:4px}
+.lp-inv-b{justify-self:end;border-color:var(--yel)}
+.lp-legal{display:flex;justify-content:space-between;margin-top:72px;font-size:14px;color:#c9c6bd}
+.lp-legal a{text-decoration:none}
 
-/* motion: parts of each section rise in; reduced motion keeps everything still */
-.lp-rise{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
+/* motion */
+.lp-rise{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .8s var(--spring)}
 .lp-rise.lp-seen{opacity:1;transform:none}
-.lp-strip.shut{clip-path:inset(0 100% 0 0 round var(--r))}
-.lp-strip.shut img.on{transform:scale(1.12)}
-.lp-strip.open{clip-path:inset(0 0 0 0 round var(--r));transition:clip-path 1.1s cubic-bezier(.7,0,.2,1)}
-@media (prefers-reduced-motion:reduce){.lp-rise{opacity:1;transform:none;transition:none}.lp-strip.shut{clip-path:none}.lp-strip img{transition:none}.lp-caret{animation:none}}
+.lp-disc.shut{clip-path:circle(0% at 60% 50%)}
+.lp-disc.open{clip-path:circle(71% at 50% 50%);transition:clip-path 1.2s cubic-bezier(.7,0,.2,1)}
+.lp-disc .ill{transition:transform 1.6s cubic-bezier(.2,.7,.2,1)}
+.lp-disc.shut .ill{transform:scale(1.12)}
+@keyframes lpbob{50%{transform:translateY(-8px)}}
+@keyframes lpwave{0%,60%,100%{transform:rotate(0)}70%{transform:rotate(-8deg)}80%{transform:rotate(6deg)}90%{transform:rotate(-4deg)}}
+@keyframes lpsteam{0%{opacity:0;transform:translateY(6px)}40%{opacity:1}100%{opacity:0;transform:translateY(-14px)}}
+@keyframes lptwinkle{0%,100%{transform:scale(1)}50%{transform:scale(.6)}}
+@keyframes lprec{0%,100%{opacity:1}50%{opacity:.25}}
+.ill-wave,.ill-hand{transform-box:view-box;transform-origin:262px 290px;animation:lpwave 3.6s ease-in-out infinite}
+.ill-steam{animation:lpsteam 2.4s ease-in-out infinite}.ill-steam.s2{animation-delay:1.1s}
+.ill-spark path,.ill-spark circle{transform-box:fill-box;transform-origin:center;animation:lptwinkle 2.8s ease-in-out infinite}
+.ill-spark path:nth-child(2){animation-delay:1.3s}
+.ill-rec{animation:lprec 1.6s ease-in-out infinite}
+.ill-ring,.dk-phone,.ct-phone{animation:lpbob 5s ease-in-out infinite}
+.lp-cap{animation:lpbob 6s ease-in-out infinite 1s}
+@media (prefers-reduced-motion:reduce){
+  .lp-rise{opacity:1;transform:none;transition:none}
+  .lp-disc.shut{clip-path:none}
+  #landing *{animation:none!important}
+}
 
 /* tablet */
-@media (max-width:1000px){
-  .lp-lead{grid-template-columns:1fr}.lp-acts{justify-self:start}
-  .lp-show-grid{grid-template-columns:1fr}
-  .lp-how{grid-template-columns:1fr}.lp-how-r{min-height:60svh}
-  .lp-list-g{grid-template-columns:repeat(6,minmax(0,1fr))}.lp-pic{grid-column:1/span 3;grid-row:2;margin-top:48px}.lp-tname{display:none}.lp-tbl{grid-column:1/-1}
-  .lp-qs details{grid-column:3/span 10}
-  .lp-flinks{grid-column:1/-1;flex-direction:row;flex-wrap:wrap;gap:20px;margin-top:48px}.lp-inv{grid-column:1/-1}
-}
-@media (max-width:1000px){
-  .lp-hero{min-height:0;padding-top:16vh}
-  .lp-how{min-height:0}.lp-how-l{min-height:0}.lp-how-r{min-height:52vh}
-  .lp-show{min-height:0}
-  .lp-foot{min-height:0}
+@media (max-width:1100px){
+  .lp-menu-links{display:none}
+  .lp-links{margin-left:auto}
+  .lp-hero{grid-template-columns:1fr;min-height:0;padding-bottom:40px}
+  .lp-hero-t{grid-column:1}
+  .lp-stage{grid-column:1;min-height:0;height:min(92vw,720px);margin-top:24px}
+  .lp-disc{left:auto;right:-14vw;top:0;transform:none;width:min(92vw,720px)}
+  .lp-cap{left:0;bottom:0}
+  .t-h,.t-num,.t-idea{grid-column:span 12}
+  .t-notes,.t-mood{grid-column:span 6}
+  .t-board,.t-cal,.t-deal,.t-team{grid-column:span 6}
+  .lp-how{grid-template-columns:1fr;min-height:0}.lp-how-r{min-height:56svh}
+  .lp-menu{display:flex;flex-direction:column;gap:48px}
+  .lp-desk{position:static;width:min(420px,70%);align-self:center}
+  .lp-sheet{width:100%;max-width:680px;align-self:center}
+  .lp-faq .lp-h2,.lp-cards{grid-column:1/-1}
+  .lp-cta{grid-template-columns:1fr;row-gap:48px}.lp-cta-t,.lp-cta-a{grid-column:1}.lp-cta-a{width:min(360px,70%);justify-self:end}
+  .lp-foot-row{grid-template-columns:1fr 1fr}.lp-inv-b{justify-self:start}
 }
 /* phone: its own composition */
 @media (max-width:640px){
-  #landing{--m:16px}
-  .lp-nav{padding:16px var(--m)}
-  .lp-word,.lp-link{white-space:nowrap}
-  .lp-word{font-size:15px;gap:6px}.lp-mark{width:24px;height:24px}
-  .lp-links{gap:2px}.lp-links .lp-link{font-size:14px!important;padding:7px 10px}
-  .lp-hero{min-height:calc(100svh - 64px);padding-bottom:40px}
-  .lp-sent{font-size:16vw}
-  .lp-l1{flex-direction:column;align-items:flex-start;gap:12px}
-  .lp-strip{flex:none;width:100%;height:auto;aspect-ratio:2/1;align-self:stretch;transform:none;order:2}
-  .lp-strip img{object-position:0 0}
-  .lp-l1>span:first-child{order:1}
-  .lp-lead{margin-top:32px}.lp-lead p{font-size:18px}
-  .lp-btn{width:100%}
-  .lp-show{padding-top:120px;min-height:0}
-  .lp-type input,.lp-caret{font-size:9vw;height:9vw}
-  .lp-idea{flex-wrap:wrap}.lp-ia{width:100%;padding-left:46px}
-  .lp-ex{gap:8px}.lp-ex span{width:100%}
-  .lp-ex button{text-decoration:none;background:var(--tone);border-radius:12px;padding:0 14px;min-height:44px;font-size:15px}
-  .lp-how{margin-top:120px;display:flex;flex-direction:column}
-  .lp-how-r{order:-1;min-height:46svh;padding:28px var(--m)}
-  .lp-how-l{padding:28px var(--m) 32px}
+  #landing{--r:22px}
+  .lp-nav{padding:14px var(--m);gap:8px}
+  .lp-word{font-size:16px;gap:8px}.lp-mark{width:26px;height:26px}
+  .lp-links{gap:2px}.lp-link{font-size:14px!important;padding:6px 10px}
+  .lp-hero{padding-top:20px}
+  .lp-sent{font-size:13vw}
+  .lp-lead{margin-top:20px;font-size:18px}
+  .lp-acts{margin-top:26px}.lp-btn{width:100%}
+  .lp-stage{height:auto;display:flex;flex-direction:column;margin:28px calc(-1 * var(--m)) 0}
+  .lp-disc{position:relative;right:auto;left:8vw;width:112vw;transform:none;margin-bottom:-30vw}
+  .lp-cap{position:relative;left:auto;bottom:auto;margin:0 var(--m);width:auto}
+  .lp-feat{padding-top:72px}
+  .lp-mosaic{grid-template-columns:1fr 1fr;grid-auto-rows:30vw;gap:8px}
+  .t-h,.t-num,.t-idea{grid-column:span 2}
+  .t-h{grid-row:span 3}.t-num{grid-row:span 2}.t-idea{grid-row:span 3}
+  .t-notes,.t-mood,.t-board,.t-cal,.t-deal,.t-team{grid-column:span 1;grid-row:span 2}
+  .lp-t{padding:16px;border-radius:20px}
+  .lp-tc h3{font-size:17px}.lp-tc p{font-size:14px}
+  .x-num b{font-size:96px}.x-idea{width:92%;right:-30px}.xi-card b{font-size:28px}
+  .xn-r{font-size:19px}.xn-r i{width:26px;height:26px}
+  .xb{font-size:22px;padding:8px 18px}.x-cal b{font-size:80px}.x-deal b{font-size:34px}.x-team i{width:52px;height:52px;font-size:22px}
+  .lp-timer{margin-top:80px;min-height:86svh;padding:56px var(--m)}
+  .lp-timer-t p{font-size:18px}
+  .lp-dial{right:auto;left:-20vw;bottom:-30vw;width:140vw;padding-bottom:30vw}
+  .lp-dial b{font-size:26vw}.ld-play{width:18vw}.lp-dial small{font-size:4.4vw}
+  .lp-how{display:flex;flex-direction:column}
+  .lp-how-r{order:-1;min-height:0;padding:40px var(--m)}
+  .lp-how-l{padding:32px var(--m) 36px}
+  .lp-clause{font-size:10vw}
   .lp-range{margin-top:28px;padding-top:0}
-  .lp-range input::-webkit-slider-thumb{width:40px;height:40px}
   .lp-stops{grid-template-columns:1fr 1fr;gap:6px 12px;font-size:15px}.lp-stops li{transform:none!important;text-align:left!important}
-  .lp-clause{font-size:9vw}
-  .lp-feat{margin-top:120px}
-  .lp-band{grid-template-columns:minmax(0,1fr) auto;min-height:132px;padding:20px var(--m)}
-  .lp-bf{grid-column:1/-1;grid-row:3;height:160px;margin-top:14px}
-  .lp-sw{grid-column:2!important}
-  .lp-bs{font-size:6.4vw}.lp-sw{font-size:24px}.lp-bc{font-size:15px}
-  .lp-list,.lp-faq{padding-top:120px}
-  .lp-ind{padding-left:0}
-  .lp-list-g{display:flex;flex-direction:column;margin-top:48px}
-  .lp-tbl tr{display:grid;grid-template-columns:1fr auto;padding-bottom:18px}
-  .lp-tbl th{grid-column:1;width:auto;padding:0}.lp-tbl td{padding:0}.lp-tbl td:nth-child(2){grid-column:1}.lp-tbl td:last-child{grid-column:2;grid-row:1}
-  .lp-pic{width:60%;align-self:flex-end;margin-top:32px}
-  .lp-qs{display:block;margin-top:40px}
-  .lp-qs details{margin:0 calc(-1 * var(--m)) 4px;padding:14px var(--m);border-radius:0}
-  .lp-qs summary{font-size:19px}.lp-qs p{font-size:16px}
-  .lp-cta{padding:100px var(--m) 80px}
-  .lp-sent2{font-size:10vw}
-  .lp-sent2{font-size:8.4vw}
-  .lp-blank{flex:1 1 0;min-width:0}.lp-blank input{width:100%}
-  .lp-foot{padding-top:80px}
-  .lp-inv .lp-h2{font-size:11vw}.lp-inv-b{width:100%}
-  .lp-legal{font-size:13px}
-  .lp-big{font-size:34vw}
+  .lp-tour{padding-top:120px}
+  .lp-rail{gap:12px;padding-top:28px}
+  .lp-rail img{height:56vw}
+  .lp-menu{margin-top:120px;padding:72px 10px}
+  .lp-desk{width:80%}
+  .lp-sheet{padding:52px 22px 48px}
+  .lp-sheet::before,.lp-sheet::after{top:150px;width:28px;height:28px}.lp-sheet::before{left:-14px}.lp-sheet::after{right:-14px}
+  .lp-i span{font-size:16px}.lp-i small{font-size:14px}
+  .lp-faq{padding-top:120px}
+  .lp-cards{margin-top:56px}
+  .lp-tab{height:36px;top:-34px;padding:0 14px;font-size:14px;left:calc(var(--i,0) * 36px)}
+  .lp-cards summary{padding:18px 20px 22px}
+  .lp-q{font-size:19px}
+  .lp-cards details p{margin:0 20px;padding-bottom:26px;font-size:16px}
+  .lp-cta{padding:120px var(--m) 100px}
+  .lp-sent2{font-size:11vw}
+  .lp-blank{flex:1 1 0}
+  .lp-after{font-size:16px}
+  .lp-cta-a{width:70%}
+  .lp-foot{padding-top:64px}
+  .lp-big{flex-direction:column;align-items:flex-start;gap:24px}
+  .lp-bigc{width:40vw}
+  .lp-bigw{font-size:19vw}
+  .lp-foot-row{margin-top:48px}
+  .lp-inv-b{grid-column:1/-1;width:100%}
 }
 #landing .lp-blank input{font-size:1em!important}
-#landing .lp-type input{font-size:var(--s2)!important}
-@media (max-width:1000px){.lp-blank{flex:1 1 0}}
-@media (max-width:640px){#landing .lp-type input{font-size:8.4vw!important}.lp-caret{display:none}}
-.lp-sent2{row-gap:0!important;line-height:1.1}
-#landing .lp-blank input,.lp-go{height:1.06em}
+#landing .lp-cap-in input{font-size:17px!important}
+.lp-t.lp-seen:hover,.lp-t:hover{transform:translateY(-4px) rotate(-.4deg)}
+.lp-cards details.lp-seen:hover{transform:translateY(-3px)}
+/* round 1 fixes */
+.lp-sent{font-size:clamp(48px,5.9vw,100px);max-width:none}
+.lp-sent>span{display:block;white-space:nowrap}
+.lp-sent2{font-size:clamp(36px,4.4vw,72px)}
+.lp-blank{flex:0 1 7em}
+.xn-r{font-size:22px}
+.lp-shots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:40px 24px;padding:48px var(--m) 0}
+.lp-shots figure{margin:0}
+.lp-shots figure.w{grid-column:1/-1}
+.lp-shots img{display:block;width:100%;height:auto;aspect-ratio:auto;border-radius:var(--r);border:2.5px solid var(--ink);background:var(--stone);transition:transform .3s var(--spring)}
+.lp-shots figure:not(.w) img{aspect-ratio:16/10;object-fit:cover;object-position:0 0}
+.lp-shots figure:hover img{transform:translateY(-6px)}
+.lp-shots figcaption{margin-top:14px;font-size:16px;color:var(--muted)}
+.lp-shots figcaption b{color:var(--fg);font-weight:600;margin-right:8px}
+@media (max-width:640px){
+  .lp-sent{font-size:12.4vw}
+  .lp-sent2{font-size:9.4vw}
+  .xn-r{font-size:17px}
+  .lp-shots{grid-template-columns:1fr;gap:28px}
+  .lp-shots figure.w img{aspect-ratio:16/9;object-fit:cover;object-position:0 0}
+}
 
-/* ===== mid-century identity: Young Serif display, ink, one mustard yellow ===== */
-#landing{--tone:var(--surface);--tone2:var(--yel)}
-#landing :focus-visible{outline:2px solid var(--ink);box-shadow:0 0 0 5px var(--yel)}
-.lp-h2,.lp-sent,.lp-bs,.lp-sent2,.lp-big,.lp-clause{font-family:var(--f-serif)!important;font-weight:400!important;letter-spacing:-.03em!important}
-.lp-sent{line-height:.95}
-.lp-mark{background:var(--yel);color:var(--on-yel);border-radius:50%}
-.lp-strong{background:var(--ink)!important;color:var(--on-ink)!important}
-.lp-btn,.lp-go{background:var(--yel)!important;color:var(--on-yel)!important;border:2px solid var(--ink)!important;transition:transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .15s!important}
-.lp-btn:hover,.lp-go:hover{background:var(--yel-hi)!important;box-shadow:0 4px 0 var(--ink);transform:translateY(-2px)}
-.lp-btn:active,.lp-go:active{box-shadow:none;transform:scale(.97)}
-.lp-inv-b{border-color:var(--yel)!important}
-.lp-caret{background:var(--yel)}
-.lp-strip{box-shadow:0 0 0 2px var(--ink)}
-.lp-how-r{background:var(--yel)}
-.lp-col{box-shadow:0 0 0 2px #1c1a17,0 8px 0 #1c1a17}
-.lp-track b{background:var(--ink)}
-.lp-range input::-webkit-slider-thumb{background:var(--yel);border:2px solid var(--ink);border-radius:50%}
-.lp-range input::-moz-range-thumb{background:var(--yel);border:2px solid var(--ink);border-radius:50%}
-.lp-chip.ok{background:#fff4cc;color:#6b4d00}
-.lp-sw{box-shadow:inset 0 0 0 2px var(--ink);background:var(--bg)}
-.lp-sw i{background:var(--ink)}
-.lp-sw[aria-checked="true"]{background:var(--yel)}
-.lp-sw[aria-checked="true"] i{background:var(--ink)}
-.lp-band.on:nth-child(odd){background:var(--yel)}
-.lp-band.on:nth-child(odd) .lp-bs,.lp-band.on:nth-child(odd) .lp-bc{color:var(--on-yel)}
-.lp-blank input{box-shadow:inset 0 -3px 0 var(--ink)}
-.lp-blank input:focus{background:var(--yel-soft)}
-.lp-foot{background:#1c1a17;color:#fff}
-.lp-inv .lp-h2{color:#fff}
-.lp-flinks button,.lp-flinks a{color:#fff}
-.lp-big{color:var(--yel)}
-.lp-strip img,.lp-fig img,.lp-pic img,.lp-bf img{image-rendering:auto}
-.lp-pic{grid-column:1/span 6}
-.lp-tname{grid-column:8}
-.lp-tbl{grid-column:8/span 5}
-.lp-tname{display:none}
-@media (max-width:640px){.lp-pic{width:100%}}
+.lp-hero{grid-template-columns:repeat(12,minmax(0,1fr))}
+@media (max-width:1100px){.lp-hero{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:640px){.t-notes,.t-mood{grid-column:span 2}}
+@media (max-width:640px){
+  .lp-blank{flex:1 1 0}
+  .lp-cta{display:flex;flex-direction:column;gap:32px;padding-bottom:96px}
+  .lp-cta-a{order:-1;width:52%;align-self:flex-start}
+  .x-mood{width:62%;height:auto;top:14px;right:-10px;aspect-ratio:1.4}
+  .x-mood i{width:58%}
+}
+@media (min-width:1101px){.lp-cap{left:-24%;bottom:-36px}.lp-hero{padding-bottom:96px}}
+@media (max-width:640px){.lp-cta{padding-top:72px}.lp-cta-a{order:0;align-self:flex-end}}
+#landing .lp-dial{color:var(--ink)}
+.lp-timer,.lp-t{overflow:clip}
 </style><script>try{if(location.pathname==="/"&&!/[?&](signin|signup)\b/.test(location.search)&&!/type=recovery/.test(location.hash+location.search)&&!Object.keys(localStorage).some(function(k){return /^sb-.*-auth-token$/.test(k)}))document.documentElement.className="landing"}catch(e){}</script></head><body><div id="authgate" hidden></div><div id="pubpage" hidden></div><div id="landing" hidden><header class="lp-nav">
-  <a class="lp-word" href="/" aria-label="Creator Space, home"><span class="lp-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M17.2 8.4a6 6 0 1 0 0 7.2"/></svg></span>Creator Space</a>
+  <a class="lp-word" href="/" aria-label="Creator Space, home"><span class="lp-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M17.2 8.4a6 6 0 1 0 0 7.2"/></svg></span>Creator Space</a>
+  <nav class="lp-menu-links" aria-label="On this page"><a href="#lp-features">Features</a><a href="#lp-how">How it works</a><a href="#lp-menu">What's included</a><a href="#lp-faq">Questions</a></nav>
   <nav class="lp-links" aria-label="Account"><button type="button" class="lp-link" data-ag="in">Sign in</button><button type="button" class="lp-link lp-strong" data-ag="up">Create account</button></nav>
 </header>
 
 <main id="lp-main">
 <section class="lp-hero" aria-labelledby="lp-h1">
-  <h1 id="lp-h1" class="lp-sent"><span class="lp-l1"><span>All your</span><span class="lp-strip" role="img" aria-label="plans, tasks, ideas and brand, shown as screens from the app" data-ui><img src="/lp/today.webp" alt="" width="1600" height="326" fetchpriority="high"><img src="/lp/board.webp" alt="" width="1600" height="320"><img src="/lp/ideas.webp" alt="" width="1600" height="320"><img src="/lp/mood.webp" alt="" width="1600" height="320"></span><span class="vh"> work</span></span><span class="lp-l2">in one space.</span></h1>
-  <div class="lp-lead">
-    <p>Creator Space is a free workspace for YouTube and Instagram creators. Write scripts, plan posts, watch your live numbers and run sponsor deals, without ten different apps.</p>
+  <div class="lp-hero-t">
+    <h1 id="lp-h1" class="lp-sent"><span>Your channel,</span> <span>in one space.</span></h1>
+    <p class="lp-lead">Creator Space is a free workspace for YouTube and Instagram creators. Catch ideas, write scripts, plan posts, watch your live numbers and run sponsor deals, without ten different apps.</p>
     <div class="lp-acts"><button type="button" class="lp-btn" data-ag="up">Create your space</button><span>Free, with an email. No card.</span></div>
   </div>
-</section>
+  <div class="lp-stage">
+    <div class="lp-disc"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="ill ill-hero" role="img" aria-label="Illustration: a creator filming herself with a phone on a ring light, a plant and a cup of chai beside her">
+  <defs>
+    <pattern id="dots" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="5" cy="5" r="2.1" fill="#1c1a17"/></pattern>
+    <pattern id="dotsY" width="9" height="9" patternUnits="userSpaceOnUse"><circle cx="4.5" cy="4.5" r="2" fill="#e0a400"/></pattern>
+    <clipPath id="disc"><circle cx="320" cy="320" r="320"/></clipPath>
+  </defs>
+  <g clip-path="url(#disc)">
+    <rect width="640" height="640" fill="#ffc21a"/>
+    <!-- sun / window circle with halftone -->
+    <circle cx="470" cy="150" r="96" fill="url(#dotsY)"/>
+    <!-- floor -->
+    <rect x="0" y="520" width="640" height="120" fill="#1c1a17"/>
+    <rect x="0" y="520" width="640" height="12" fill="#ffffff"/>
+    <!-- rug ellipse halftone -->
+    <ellipse cx="300" cy="580" rx="230" ry="26" fill="url(#dotsY)" opacity=".9"/>
+  </g>
 
-<section class="lp-show" aria-labelledby="lp-show-h">
-  <h2 id="lp-show-h" class="lp-h2">Catch it as you think it.</h2>
-  <label class="lp-type" data-ui><span class="vh">Type an idea with a #tag</span><input id="lp-in" value="Street food tour in Bhopal #vlog" maxlength="80" autocomplete="off" spellcheck="false"><i class="lp-caret" aria-hidden="true"></i></label>
-  <div class="lp-show-grid">
-    <div class="lp-answer" aria-live="polite">
-      <div class="lp-idea" data-ui><span class="lp-star" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.8z"/></svg></span><span class="lp-ib"><b id="lp-it">Street food tour in Bhopal</b><span class="lp-im" id="lp-tags"><span class="lp-tag">#vlog</span><span>just now</span></span></span><span class="lp-ia"><span class="lp-mini">Make task</span><span class="lp-mini">Plan post</span></span></div>
-      <p class="lp-said" id="lp-said">Saved to Ideas, sorted under #vlog. One press turns it into a card on your board or a post on your calendar.</p>
-      <div class="lp-ex"><span>Try</span><button type="button" data-ex="Ladakh in 7 days on ₹20,000 #travel">Ladakh in 7 days on ₹20,000</button><button type="button" data-ex="Best phones under 20k #tech #review">Best phones under 20k</button><button type="button" data-ex="Chai at 5 am, one take #shorts">Chai at 5 am, one take</button></div>
+  <!-- tripod + ring light -->
+  <g class="ill-ring">
+    <circle cx="440" cy="250" r="96" fill="none" stroke="#ffffff" stroke-width="22"/>
+    <circle cx="440" cy="250" r="96" fill="none" stroke="#1c1a17" stroke-width="3" stroke-dasharray="2 10"/>
+    <rect x="414" y="200" width="52" height="96" rx="10" fill="#1c1a17"/>
+    <rect x="420" y="208" width="40" height="72" rx="5" fill="#ffffff"/>
+    <circle class="ill-rec" cx="440" cy="232" r="9" fill="#ffc21a" stroke="#1c1a17" stroke-width="3"/>
+    <rect x="428" y="250" width="24" height="5" rx="2.5" fill="#1c1a17"/>
+    <rect x="428" y="261" width="16" height="5" rx="2.5" fill="#1c1a17"/>
+  </g>
+  <g stroke="#1c1a17" stroke-width="8" stroke-linecap="round">
+    <line x1="440" y1="346" x2="440" y2="430"/>
+    <line x1="440" y1="430" x2="392" y2="540"/>
+    <line x1="440" y1="430" x2="488" y2="540"/>
+    <line x1="440" y1="430" x2="440" y2="540"/>
+  </g>
+  <rect x="428" y="420" width="24" height="20" rx="5" fill="#1c1a17"/>
+
+  <!-- the creator -->
+  <g class="ill-person">
+    <!-- legs -->
+    <path d="M168 400 L156 532 L188 532 L204 420 Z" fill="#1c1a17"/>
+    <path d="M214 400 L232 532 L264 532 L246 404 Z" fill="#1c1a17"/>
+    <ellipse cx="170" cy="534" rx="26" ry="10" fill="#ffffff"/>
+    <ellipse cx="250" cy="534" rx="26" ry="10" fill="#ffffff"/>
+    <!-- kurta / long shirt -->
+    <path d="M150 262 Q206 236 262 262 L284 432 Q206 452 128 432 Z" fill="#ffffff"/>
+    <path d="M206 250 L206 440" stroke="#1c1a17" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round"/>
+    <circle cx="206" cy="282" r="4" fill="#1c1a17"/><circle cx="206" cy="304" r="4" fill="#1c1a17"/>
+    <!-- dupatta / scarf in yellow halftone -->
+    <path d="M154 262 Q186 300 172 380 L150 372 Q160 306 140 270 Z" fill="url(#dots)" opacity=".85"/>
+    <!-- left arm down holding notebook -->
+    <path d="M152 270 Q122 330 136 392 L156 388 Q148 334 172 286 Z" fill="#a8693f"/>
+    <rect x="112" y="368" width="58" height="72" rx="6" fill="#1c1a17" transform="rotate(-8 141 404)"/>
+    <rect x="120" y="378" width="42" height="6" rx="3" fill="#ffc21a" transform="rotate(-8 141 404)"/>
+    <!-- right arm waving to camera -->
+    <path class="ill-wave" d="M252 268 Q300 250 318 196 L338 204 Q322 270 262 300 Z" fill="#a8693f"/>
+    <g class="ill-hand"><circle cx="330" cy="190" r="17" fill="#a8693f"/>
+      <rect x="320" y="160" width="7" height="22" rx="3.5" fill="#a8693f"/><rect x="330" y="156" width="7" height="24" rx="3.5" fill="#a8693f"/><rect x="340" y="162" width="7" height="22" rx="3.5" fill="#a8693f"/></g>
+    <!-- neck + head -->
+    <rect x="193" y="214" width="26" height="40" rx="10" fill="#8f5634"/>
+    <circle cx="206" cy="182" r="50" fill="#a8693f"/>
+    <!-- hair: a half circle and a bun (the motif again) -->
+    <path d="M154 184 A52 52 0 0 1 258 176 Q236 150 204 152 Q170 154 160 196 Z" fill="#1c1a17"/>
+    <circle cx="176" cy="128" r="22" fill="#1c1a17"/>
+    <path d="M154 184 Q150 230 172 250 L178 210 Z" fill="#1c1a17"/>
+    <!-- face: eye, smile, bindi -->
+    <circle cx="228" cy="182" r="5" fill="#1c1a17"/>
+    <path d="M220 206 Q234 214 244 202" fill="none" stroke="#1c1a17" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="232" cy="164" r="3" fill="#ffc21a"/>
+    <circle cx="174" cy="214" r="6" fill="#ffc21a" stroke="#1c1a17" stroke-width="2.5"/>
+  </g>
+
+  <!-- plant in a round pot -->
+  <g class="ill-plant">
+    <path d="M552 470 Q520 380 560 320" stroke="#1c1a17" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M556 330 Q600 300 610 330 Q586 356 556 340 Z" fill="#1c1a17"/>
+    <path d="M548 380 Q500 360 494 392 Q520 410 548 392 Z" fill="#1c1a17"/>
+    <path d="M552 424 Q600 404 614 432 Q586 450 552 436 Z" fill="#1c1a17"/>
+    <path d="M520 470 L588 470 L578 530 L530 530 Z" fill="#ffffff"/>
+    <rect x="516" y="462" width="76" height="14" rx="7" fill="#1c1a17"/>
+  </g>
+
+  <!-- chai on a stool -->
+  <g class="ill-chai">
+    <rect x="56" y="452" width="66" height="10" rx="5" fill="#1c1a17"/>
+    <rect x="66" y="462" width="8" height="70" fill="#1c1a17"/><rect x="104" y="462" width="8" height="70" fill="#1c1a17"/>
+    <path d="M70 418 L108 418 L102 452 L76 452 Z" fill="#ffffff"/>
+    <path d="M108 426 Q122 428 118 440 Q114 446 104 444" fill="none" stroke="#ffffff" stroke-width="5"/>
+    <path class="ill-steam" d="M82 408 Q74 396 84 384 Q94 372 86 360" fill="none" stroke="#1c1a17" stroke-width="3.5" stroke-linecap="round"/>
+    <path class="ill-steam s2" d="M96 408 Q88 394 98 382" fill="none" stroke="#1c1a17" stroke-width="3.5" stroke-linecap="round"/>
+  </g>
+
+  <!-- sparkles: tiny four-point stars made of two lozenges -->
+  <g fill="#1c1a17" class="ill-spark">
+    <path d="M300 92 L306 110 L324 116 L306 122 L300 140 L294 122 L276 116 L294 110 Z"/>
+    <path d="M560 236 L564 248 L576 252 L564 256 L560 268 L556 256 L544 252 L556 248 Z"/>
+  </g>
+</svg></div>
+    <div class="lp-cap" data-ui>
+      <label class="lp-cap-in"><span class="vh">Type an idea with a #tag</span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.8z"/></svg><input id="lp-in" value="Street food tour in Bhopal #vlog" maxlength="80" autocomplete="off" spellcheck="false"></label>
+      <div class="lp-idea" aria-live="polite"><span class="lp-st">Loose</span><b id="lp-it">Street food tour in Bhopal</b><span class="lp-im" id="lp-tags"><span class="lp-tag">#vlog</span></span>
+        <span class="lp-ia"><span class="lp-mini">Make task</span><span class="lp-mini">Plan post</span></span></div>
+      <p class="lp-said" id="lp-said">Try it: type an idea with a #tag.</p>
     </div>
-    <figure class="lp-fig"><img src="/lp/notes.webp" alt="A video script in Notes, read mode, with tick-off checklist and a Teleprompter button" width="1200" height="600" loading="lazy"><figcaption>When an idea is ready, its script lives in Notes, and the teleprompter reads it back while you film.</figcaption></figure>
   </div>
 </section>
 
-<section class="lp-how" aria-labelledby="lp-how-h">
+<section class="lp-feat" id="lp-features" aria-labelledby="lp-feat-h">
+  <div class="lp-mosaic">
+    <div class="lp-t t-h c-stone"><h2 id="lp-feat-h" class="lp-h2">Everything a channel needs.</h2><p>Nine tools that already know about each other. An idea becomes a task, a task becomes a post, a post brings in numbers.</p></div>
+    <div class="lp-t t-num c-ink"><div class="lp-x x-num" data-ui><b>9.1K</b><span>+910 this month</span></div><div class="lp-tc"><h3>Live numbers</h3><p>YouTube and Instagram, refreshed every morning.</p></div></div>
+    <div class="lp-t t-idea c-yel"><div class="lp-x x-idea" data-ui><div class="xi-card"><span class="xi-st">Planned</span><b>Street food tour in Bhopal</b><span class="xi-tags"><i>#food</i><i>#vlog</i></span></div></div><div class="lp-tc"><h3>Ideas</h3><p>Type it with a #tag and it sorts itself. Star the good ones.</p></div></div>
+    <div class="lp-t t-notes c-stone"><div class="lp-x x-notes" data-ui><div class="xn-r on"><i></i><span>Write the hook</span></div><div class="xn-r on"><i></i><span>Film at the market</span></div><div class="xn-r"><i></i><span>Record voiceover</span></div></div><div class="lp-tc"><h3>Notes and scripts</h3><p>Checklists you tick, and a teleprompter that reads them back.</p></div></div>
+    <div class="lp-t t-mood c-ink"><div class="lp-x x-mood" data-ui><i style="background:#B5651D"></i><i style="background:#F4EDE1"></i><i style="background:#6B8E4E"></i></div><div class="lp-tc"><h3>Moodboard</h3><p>Drop images, colours and links on an open canvas.</p></div></div>
+    <div class="lp-t t-board c-yel"><div class="lp-x x-board" data-ui><span class="xb"><i></i>Making</span></div><div class="lp-tc"><h3>Progress board</h3><p>Idea to Shipped, left to right.</p></div></div>
+    <div class="lp-t t-cal c-stone"><div class="lp-x x-cal" data-ui><b>31</b><span>Fri · Reel goes out</span></div><div class="lp-tc"><h3>Calendar</h3><p>Syncs to Google or Apple Calendar.</p></div></div>
+    <div class="lp-t t-deal c-ink"><div class="lp-x x-deal" data-ui><b>₹45,000</b><span>Signed</span></div><div class="lp-tc"><h3>Sponsor deals</h3><p>From lead to paid, with invoices.</p></div></div>
+    <div class="lp-t t-team c-yel"><div class="lp-x x-team" data-ui><i>A</i><i>M</i><i>R</i></div><div class="lp-tc"><h3>Team</h3><p>Hand out work, see it come back.</p></div></div>
+  </div>
+</section>
+
+<section class="lp-timer" id="lp-timer" aria-labelledby="lp-timer-h">
+  <div class="lp-timer-t"><h2 id="lp-timer-h" class="lp-h2"><span id="lp-tw">Ready</span> to film.</h2><p>A 25-minute focus timer is built in. Press start, and everything else can wait until the take is done.</p></div>
+  <button type="button" class="lp-dial" id="lp-dial" data-ui aria-pressed="false" aria-label="Start the focus timer"><span class="ld-ring" aria-hidden="true"></span><b id="lp-tt">25:00</b><span class="ld-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z"/></svg></span><small>Focus timer</small></button>
+</section>
+
+<section class="lp-how" id="lp-how" aria-labelledby="lp-how-h">
   <div class="lp-how-l">
     <h2 id="lp-how-h" class="lp-h2 lp-clause" aria-live="polite">Start with the idea.</h2>
     <p class="lp-clause-s" id="lp-clause-s">Every idea you save waits in the first column until you are ready for it.</p>
@@ -3413,64 +3619,160 @@ html.landing #landing{display:block!important}
   <div class="lp-how-r"><div class="lp-col" id="lp-col" data-ui></div></div>
 </section>
 
-<section class="lp-feat" aria-label="What it does for you">
-  <div class="lp-band"><h2 class="lp-bs">Pull my channel numbers every day</h2><p class="lp-bc">Subscribers, followers and views from YouTube and Instagram, refreshed each morning, with your progress to the next goal.</p><figure class="lp-bf"><img src="/lp/ig.webp" alt="A channel card in Audience: subscribers, views and progress to the next goal" width="900" height="766" loading="lazy"></figure><button type="button" class="lp-sw" role="switch" aria-checked="true" aria-label="Pull my channel numbers every day" data-ui><i></i></button></div>
-  <div class="lp-band"><h3 class="lp-bs">Turn my script into a teleprompter</h3><p class="lp-bc">Full screen, a 3-2-1 countdown, and the arrow keys change the speed while you read.</p><figure class="lp-bf"><img src="/lp/tp.webp" alt="The teleprompter reading a script full screen" width="1200" height="750" loading="lazy"></figure><button type="button" class="lp-sw" role="switch" aria-checked="false" aria-label="Turn my script into a teleprompter" data-ui><i></i></button></div>
-  <div class="lp-band"><h3 class="lp-bs">Tell me what's due each morning</h3><p class="lp-bc">One notification after 8 am: tasks due, posts going out, sponsor deliverables and late invoices.</p><figure class="lp-bf"><img src="/lp/bell.webp" alt="The notification list: overdue tasks, today's post, what's coming up" width="760" height="1106" loading="lazy"></figure><button type="button" class="lp-sw" role="switch" aria-checked="true" aria-label="Tell me what's due each morning" data-ui><i></i></button></div>
-  <div class="lp-band"><h3 class="lp-bs">Give brands one link to my numbers</h3><p class="lp-bc">A public page and media kit at /u/yourname, with live follower counts and your rates.</p><figure class="lp-bf"><img src="/lp/page.webp" alt="A public creator page: the name set large and live subscriber numbers" width="1200" height="740" loading="lazy"></figure><button type="button" class="lp-sw" role="switch" aria-checked="false" aria-label="Give brands one link to my numbers" data-ui><i></i></button></div>
-  <div class="lp-band"><h3 class="lp-bs">Let my editor see one space only</h3><p class="lp-bc">Invite someone to a single channel's space. Your other spaces stay private.</p><figure class="lp-bf"><img src="/lp/team.webp" alt="The Team screen: members, open work and pay" width="1100" height="428" loading="lazy"></figure><button type="button" class="lp-sw" role="switch" aria-checked="false" aria-label="Let my editor see one space only" data-ui><i></i></button></div>
-</section>
-
-<section class="lp-list" aria-labelledby="lp-list-h">
-  <h2 id="lp-list-h" class="lp-h2 lp-ind">Run the business side,<br>in the same place.</h2>
-  <div class="lp-list-g">
-    <figure class="lp-pic"><img src="/lp/biz.webp" alt="The Business screen: income this month and sponsorship deals by stage" width="1200" height="578" loading="lazy"></figure>
-    <span class="lp-tname">Included</span>
-    <table class="lp-tbl">
-      <caption class="vh">Business tools included</caption>
-      <tbody>
-        <tr><th scope="row">Sponsors</th><td>Deals from lead to paid</td><td>5 stages</td></tr>
-        <tr><th scope="row">Sponsors</th><td>Deliverable dates</td><td>On your calendar</td></tr>
-        <tr><th scope="row">Income</th><td>Every payment logged</td><td>By month and source</td></tr>
-        <tr class="g"><th scope="row">Income</th><td>Your currency</td><td>₹ $ € £ ¥</td></tr>
-        <tr><th scope="row">Invoices</th><td>Numbered invoices</td><td>Overdue alerts</td></tr>
-        <tr><th scope="row">Media kit</th><td>Live numbers and rates</td><td>One link</td></tr>
-        <tr><th scope="row">Team</th><td>Members, roles and pay</td><td>Salary or per project</td></tr>
-        <tr class="g"><th scope="row">Team</th><td>Work handed out</td><td>Back to you in Review</td></tr>
-        <tr><th scope="row">Import</th><td>Trello, Notion, Sheets, CSV</td><td>Paste or drop a file</td></tr>
-      </tbody>
-    </table>
+<section class="lp-tour" aria-labelledby="lp-tour-h">
+  <div class="lp-tour-h"><h2 id="lp-tour-h" class="lp-h2">The real screens.</h2><p>No mock-ups. This is the app, with a sample channel loaded.</p></div>
+  <div class="lp-shots">
+    <figure class="w"><img src="/lp/today.webp" alt="Today: the greeting, what goes out today and what is overdue" width="1600" height="326" loading="lazy"><figcaption><b>Today</b> What goes out, what's late, what's next.</figcaption></figure>
+    <figure><img src="/lp/notes.webp" alt="A video script in Notes, in read mode with a checklist" width="1200" height="600" loading="lazy"><figcaption><b>Notes</b> Scripts with checklists and a teleprompter.</figcaption></figure>
+    <figure><img src="/lp/page.webp" alt="A public creator page with the name set large and live numbers" width="1200" height="740" loading="lazy"><figcaption><b>Public page</b> One link for brands, with live numbers.</figcaption></figure>
+    <figure class="w"><img src="/lp/ideas.webp" alt="Ideas as cards, the starred one in yellow" width="1600" height="320" loading="lazy"><figcaption><b>Ideas</b> A wall of cards, sorted by tag.</figcaption></figure>
+    <figure><img src="/lp/biz.webp" alt="The Business screen: income and sponsorship deals" width="1200" height="578" loading="lazy"><figcaption><b>Business</b> Deals, income and invoices.</figcaption></figure>
+    <figure><img src="/lp/tp.webp" alt="The teleprompter reading a script full screen" width="1200" height="750" loading="lazy"><figcaption><b>Teleprompter</b> Your script, read back while you film.</figcaption></figure>
+    <figure class="w"><img src="/lp/mood.webp" alt="The moodboard canvas with colour swatches placed by hand" width="1600" height="319" loading="lazy"><figcaption><b>Moodboard</b> An open canvas for your look.</figcaption></figure>
   </div>
 </section>
 
-<section class="lp-faq" aria-labelledby="lp-faq-h">
+<section class="lp-menu" id="lp-menu" aria-labelledby="lp-menu-h">
+  <div class="lp-desk"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 700" class="ill ill-desk" role="img" aria-label="Illustration: a creator's desk from above, with a laptop playing a video, a notebook checklist, a phone, a pencil and a glass of chai">
+  <defs><pattern id="dk" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="5" cy="5" r="2.1" fill="#1c1a17"/></pattern></defs>
+  <!-- laptop -->
+  <g class="dk-laptop" transform="rotate(-6 250 190)">
+    <rect x="70" y="60" width="360" height="250" rx="22" fill="#1c1a17"/>
+    <rect x="88" y="78" width="324" height="196" rx="10" fill="#ffffff"/>
+    <circle cx="250" cy="176" r="52" fill="#ffc21a" stroke="#1c1a17" stroke-width="5"/>
+    <path d="M236 150 L278 176 L236 202 Z" fill="#1c1a17"/>
+    <rect x="108" y="250" width="284" height="8" rx="4" fill="#e3e3e0"/>
+    <rect x="108" y="250" width="170" height="8" rx="4" fill="#1c1a17"/>
+    <circle cx="278" cy="254" r="9" fill="#ffc21a" stroke="#1c1a17" stroke-width="3"/>
+    <rect x="40" y="306" width="420" height="34" rx="17" fill="#1c1a17"/>
+    <rect x="200" y="314" width="100" height="10" rx="5" fill="#ffffff"/>
+  </g>
+  <!-- notebook with checklist -->
+  <g class="dk-book" transform="rotate(7 170 500)">
+    <rect x="44" y="388" width="250" height="250" rx="14" fill="#ffffff" stroke="#1c1a17" stroke-width="5"/>
+    <rect x="44" y="388" width="30" height="250" rx="10" fill="url(#dk)"/>
+    <g stroke="#1c1a17" stroke-width="5" stroke-linecap="round" fill="none">
+      <circle cx="108" cy="440" r="13"/><path d="M101 440 L107 447 L117 433"/>
+      <circle cx="108" cy="496" r="13"/><path d="M101 496 L107 503 L117 489"/>
+      <circle cx="108" cy="552" r="13"/>
+    </g>
+    <rect x="134" y="434" width="120" height="11" rx="5.5" fill="#1c1a17"/>
+    <rect x="134" y="490" width="96" height="11" rx="5.5" fill="#1c1a17"/>
+    <rect x="134" y="546" width="130" height="11" rx="5.5" fill="#e3e3e0"/>
+    <rect x="134" y="596" width="70" height="11" rx="5.5" fill="#e3e3e0"/>
+  </g>
+  <!-- pencil -->
+  <g transform="rotate(-38 330 470)">
+    <rect x="250" y="458" width="170" height="24" rx="4" fill="#ffc21a" stroke="#1c1a17" stroke-width="4"/>
+    <path d="M420 458 L452 470 L420 482 Z" fill="#ffffff" stroke="#1c1a17" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M442 466 L452 470 L442 474 Z" fill="#1c1a17"/>
+    <rect x="238" y="458" width="16" height="24" rx="3" fill="#1c1a17"/>
+  </g>
+  <!-- phone -->
+  <g class="dk-phone" transform="rotate(14 430 560)">
+    <rect x="378" y="470" width="110" height="196" rx="20" fill="#1c1a17"/>
+    <rect x="388" y="486" width="90" height="160" rx="10" fill="#ffc21a"/>
+    <rect x="400" y="500" width="66" height="66" rx="33" fill="#ffffff"/>
+    <rect x="400" y="580" width="66" height="9" rx="4.5" fill="#1c1a17"/>
+    <rect x="400" y="598" width="44" height="9" rx="4.5" fill="#1c1a17"/>
+    <text x="433" y="540" text-anchor="middle" font-family="Jost, sans-serif" font-weight="600" font-size="20" fill="#1c1a17">9.1K</text>
+  </g>
+  <!-- chai glass, top view: two circles and a saucer -->
+  <g class="dk-chai">
+    <circle cx="470" cy="360" r="58" fill="#ffffff" stroke="#1c1a17" stroke-width="5"/>
+    <circle cx="470" cy="360" r="38" fill="#a8693f"/>
+    <circle cx="470" cy="360" r="38" fill="url(#dk)" opacity=".35"/>
+    <path class="ill-steam" d="M500 300 Q488 286 500 272 Q512 258 500 244" fill="none" stroke="#1c1a17" stroke-width="4" stroke-linecap="round"/>
+  </g>
+</svg></div>
+  <div class="lp-sheet">
+    <h2 id="lp-menu-h" class="lp-h2">What's included</h2>
+    <p class="lp-sheet-n">Everything on this card is free. Sign up with an email.</p>
+    <div class="lp-g"><h3>Create</h3>
+      <div class="lp-i"><span>Ideas<small>Capture with #tags, star, repurpose</small></span><b>Free</b></div>
+      <div class="lp-i"><span>Notes and scripts<small>Templates, checklists, read mode</small></span><b>Free</b></div>
+      <div class="lp-i"><span>Teleprompter<small>Full screen, 3-2-1, speed keys</small></span><b>Free</b></div>
+      <div class="lp-i"><span>Moodboard<small>Poster, collage or open canvas</small></span><b>Free</b></div>
+      <div class="lp-i"><span>Whiteboard, clips and captions<small>Sketch, save links, keep hooks</small></span><b>Free</b></div></div>
+    <div class="lp-g"><h3>Plan</h3>
+      <div class="lp-i"><span>Progress board<small>Idea, Making, Review, Shipped</small></span><b>Free</b></div>
+      <div class="lp-i"><span>Calendar<small>Syncs to Google and Apple</small></span><b>Free</b></div>
+      <div class="lp-i"><span>Morning summary<small>One notification after 8 am</small></span><b>Free</b></div></div>
+    <div class="lp-g"><h3>Grow</h3>
+      <div class="lp-i"><span>Live channel numbers<small>YouTube, plus Instagram sign-in</small></span><b>Free</b></div>
+      <div class="lp-i"><span>Public page and media kit<small>One link at /u/yourname</small></span><b>Free</b></div></div>
+    <div class="lp-g"><h3>Business and team</h3>
+      <div class="lp-i"><span>Sponsor deals and income<small>Pipeline, payments, invoices</small></span><b>Free</b></div>
+      <div class="lp-i"><span>Team and pay<small>Invite to one space or all</small></span><b>Free</b></div></div>
+    <div class="lp-g lp-soon"><h3>Coming next</h3>
+      <div class="lp-i"><span>Bring your own AI<small>Connect Claude, ChatGPT or Gemini</small></span><b>Soon</b></div>
+      <div class="lp-i"><span>Team daily agenda<small>The day's plan, filling up live</small></span><b>Soon</b></div>
+      <div class="lp-i"><span>Discord and Telegram<small>Updates and ticks from chat</small></span><b>Soon</b></div></div>
+    <p class="lp-sheet-f">Works in your browser and on your phone.<br>Add it to your home screen like an app.</p>
+  </div>
+</section>
+
+<section class="lp-faq" id="lp-faq" aria-labelledby="lp-faq-h">
   <h2 id="lp-faq-h" class="lp-h2">Questions, answered.</h2>
-  <div class="lp-qs">
-    <details><summary>Is Creator Space free?</summary><p>Yes. Sign up with an email and everything on this page is yours to use. There is no card to enter.</p></details>
-    <details><summary>Which platforms can it read?</summary><p>Any public YouTube channel, by its link. Live sign-in for Instagram, TikTok, Facebook Pages and X is opening platform by platform. Until yours is ready, type your numbers and you still see growth over time.</p></details>
-    <details><summary>Where is my data kept?</summary><p>In your own account, synced across your devices. Platform sign-ins are stored encrypted and can't be read from the browser. Other people see only what you share with them.</p></details>
-    <details><summary>Does it work on my phone?</summary><p>Yes. It runs in your phone's browser, can be added to the home screen, opens without a connection, and sends the morning summary as a notification if you allow it.</p></details>
-    <details><summary>Can my editor or team use it?</summary><p>Invite people by email to your whole workspace or to one space. Teammates get their own My work list, and when they finish something it moves to Review on your board.</p></details>
-    <details><summary>Can I bring my stuff from other apps?</summary><p>Drop a CSV or Excel file, or paste rows from Google Sheets, Trello or Notion, and match the columns to tasks, ideas, notes, posts, income, deals or audience numbers.</p></details>
+  <div class="lp-cards">
+    <details open><summary><span class="lp-tab">Price</span><span class="lp-q">Is Creator Space free?</span></summary><p>Yes. Sign up with an email and everything on the card above is yours to use. There is no card to enter.</p></details>
+    <details><summary><span class="lp-tab">Platforms</span><span class="lp-q">Which platforms can it read?</span></summary><p>Any public YouTube channel, by its link. Live sign-in for Instagram is open, and TikTok, Facebook Pages and X follow platform by platform. Until yours is ready, type your numbers and you still see growth over time.</p></details>
+    <details><summary><span class="lp-tab">Privacy</span><span class="lp-q">Where is my data kept?</span></summary><p>In your own account, synced across your devices. Platform sign-ins are stored encrypted and can't be read from the browser. Other people see only what you share with them.</p></details>
+    <details><summary><span class="lp-tab">Phone</span><span class="lp-q">Does it work on my phone?</span></summary><p>Yes. It runs in your phone's browser, can be added to the home screen, opens without a connection, and sends the morning summary as a notification if you allow it.</p></details>
+    <details><summary><span class="lp-tab">Team</span><span class="lp-q">Can my editor or team use it?</span></summary><p>Invite people by email to your whole workspace or to one space. Teammates get their own My work list, and when they finish something it moves to Review on your board.</p></details>
+    <details><summary><span class="lp-tab">AI</span><span class="lp-q">Can I use my own AI with it?</span></summary><p>That is coming next. You will connect the AI you already pay for, such as Claude, ChatGPT or Gemini, with a one-time sign-in, and it will read your numbers and help plan your day.</p></details>
   </div>
 </section>
 
 <section class="lp-cta" aria-labelledby="lp-cta-h">
-  <h2 id="lp-cta-h" class="vh">Start your space</h2>
-  <form class="lp-sent2" id="lp-cta" novalidate>
-    <span>Name your space:</span><label class="lp-blank"><span class="vh">Your channel or project name</span><input id="lp-name" placeholder="your channel" maxlength="40" autocomplete="off"></label><button type="submit" class="lp-go">Start</button>
-  </form>
-  <p class="lp-after">You create an account next. The name becomes your first space, and you can change it any time.</p>
+  <div class="lp-cta-t">
+    <h2 id="lp-cta-h" class="vh">Start your space</h2>
+    <form class="lp-sent2" id="lp-cta" novalidate>
+      <span>Name your space:</span><label class="lp-blank"><span class="vh">Your channel or project name</span><input id="lp-name" placeholder="your channel" maxlength="40" autocomplete="off"></label><button type="submit" class="lp-go">Start</button>
+    </form>
+    <p class="lp-after">You create an account next. The name becomes your first space, and you can change it any time.</p>
+  </div>
+  <div class="lp-cta-a"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 520" class="ill ill-cta" role="img" aria-label="Illustration: a hand holding up a phone with a big record button">
+  <defs><pattern id="ct" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="5" cy="5" r="2.1" fill="#1c1a17"/></pattern></defs>
+  <circle cx="260" cy="260" r="250" fill="#ffc21a"/>
+  <circle cx="260" cy="260" r="190" fill="url(#ct)" opacity=".18"/>
+  <!-- sleeve + arm from below -->
+  <path d="M150 520 L196 380 L300 380 L330 520 Z" fill="#1c1a17"/>
+  <path d="M196 380 Q182 330 206 300 L292 300 Q312 330 300 380 Z" fill="#a8693f"/>
+  <!-- phone -->
+  <g class="ct-phone">
+    <rect x="178" y="70" width="160" height="290" rx="28" fill="#1c1a17"/>
+    <rect x="192" y="92" width="132" height="246" rx="16" fill="#ffffff"/>
+    <circle class="ill-rec" cx="258" cy="200" r="46" fill="#ffc21a" stroke="#1c1a17" stroke-width="6"/>
+    <circle cx="258" cy="200" r="20" fill="#1c1a17"/>
+    <rect x="216" y="270" width="84" height="10" rx="5" fill="#1c1a17"/>
+    <rect x="230" y="290" width="56" height="10" rx="5" fill="#e3e3e0"/>
+    <rect x="236" y="104" width="44" height="8" rx="4" fill="#1c1a17"/>
+  </g>
+  <!-- fingers over the phone edge -->
+  <rect x="160" y="250" width="34" height="22" rx="11" fill="#a8693f"/>
+  <rect x="158" y="276" width="38" height="22" rx="11" fill="#a8693f"/>
+  <rect x="162" y="302" width="34" height="22" rx="11" fill="#a8693f"/>
+  <rect x="320" y="270" width="34" height="24" rx="12" fill="#a8693f"/>
+  <!-- sparkles -->
+  <g fill="#1c1a17" class="ill-spark">
+    <path d="M410 120 L416 138 L434 144 L416 150 L410 168 L404 150 L386 144 L404 138 Z"/>
+    <path d="M104 170 L108 182 L120 186 L108 190 L104 202 L100 190 L88 186 L100 182 Z"/>
+    <circle cx="420" cy="300" r="8"/><circle cx="96" cy="320" r="6"/>
+  </g>
+</svg></div>
 </section>
 </main>
 
 <footer class="lp-foot">
-  <div class="lp-foot-top">
-    <div class="lp-inv"><h2 class="lp-h2">Your next video<br>starts here.</h2><button type="button" class="lp-btn lp-inv-b" data-ag="up">Create your space</button></div>
-    <ul class="lp-flinks"><li><button type="button" data-ag="in">Sign in</button></li><li><button type="button" data-ag="up">Create account</button></li><li><a href="#lp-main">Back to the top</a></li></ul>
+  <div class="lp-big" aria-hidden="true"><span class="lp-bigc"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="100" fill="#ffc21a"/><path d="M146 66a56 56 0 1 0 0 68" fill="none" stroke="#1c1a17" stroke-width="26" stroke-linecap="round"/></svg></span><span class="lp-bigw">Creator<br>Space</span></div>
+  <div class="lp-foot-row">
+    <ul class="lp-flinks"><li><button type="button" data-ag="up">Create account</button></li><li><button type="button" data-ag="in">Sign in</button></li></ul>
+    <ul class="lp-flinks"><li><a href="#lp-features">Features</a></li><li><a href="#lp-how">How it works</a></li></ul>
+    <ul class="lp-flinks"><li><a href="#lp-menu">What's included</a></li><li><a href="#lp-faq">Questions</a></li></ul>
+    <button type="button" class="lp-btn lp-inv-b" data-ag="up">Create your space</button>
   </div>
-  <div class="lp-legal"><span>© 2026 Creator Space</span><span>Free to use</span></div>
-  <div class="lp-big" aria-hidden="true">Creator Space</div>
+  <div class="lp-legal"><span>© 2026 Creator Space</span><a href="#lp-main">Back to the top</a></div>
 </footer>
 </div>
 
@@ -3856,43 +4158,48 @@ window.__signOut=async function(){try{await SB.auth.signOut()}catch(e){}location
   else if(r.data.session&&!started){started=true;startApp(r.data.session)}
 })();
 })();
-</script><script>/* Creator Space landing: the strip, the idea you can type, the stage slider, the switches, the named space */
+</script><script>/* Creator Space landing: the disc shutter, the idea you can type, the focus timer, the stage slider, the named space */
 (function(){
 var L=document.getElementById("landing");if(!L||L.__init)return;L.__init=1;
 function $(id){return document.getElementById(id)}
 function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 var RM=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;
 
-/* the strip inside the headline: a shutter opens once, then the four screens take turns */
-var strip=L.querySelector(".lp-strip"),imgs=strip?strip.querySelectorAll("img"):[],k=0;
-if(imgs.length){imgs[0].classList.add("on");
-  if(!RM){strip.classList.add("shut");requestAnimationFrame(function(){requestAnimationFrame(function(){strip.classList.add("open");strip.classList.remove("shut")})})}
-  setInterval(function(){if(document.hidden)return;imgs[k].classList.remove("on");k=(k+1)%imgs.length;imgs[k].classList.add("on")},RM?5000:2600);
-}
+/* the hero disc opens like a lens, once */
+var disc=L.querySelector(".lp-disc");
+if(disc&&!RM){disc.classList.add("shut");setTimeout(function(){requestAnimationFrame(function(){disc.classList.add("open");disc.classList.remove("shut")})},120)}
 
 /* the idea you can type: tags come out of the sentence, like in the app */
 var inp=$("lp-in");
 function paintIdea(){
   var v=(inp.value||"").slice(0,80),tags=(v.match(/#[\w-]+/g)||[]).map(function(t){return t.toLowerCase()}),txt=v.replace(/\s*#[\w-]+/g,"").trim();
   $("lp-it").textContent=txt||"Your idea";
-  $("lp-tags").innerHTML=tags.map(function(t){return '<span class="lp-tag">'+esc(t)+'</span>'}).join("")+"<span>just now</span>";
-  $("lp-said").textContent=tags.length?"Saved to Ideas, sorted under "+tags.join(" and ")+". One press turns it into a card on your board or a post on your calendar."
-    :"Saved to Ideas. Add a #tag to sort it, then one press turns it into a card on your board or a post on your calendar.";
+  $("lp-tags").innerHTML=tags.map(function(t){return '<span class="lp-tag">'+esc(t)+'</span>'}).join("");
+  $("lp-said").textContent=tags.length?"Saved to Ideas under "+tags.join(" and ")+". One press makes it a task or a post.":"Add a #tag and it sorts itself.";
 }
-if(inp){inp.addEventListener("input",paintIdea);
-  L.querySelectorAll("[data-ex]").forEach(function(b){b.addEventListener("click",function(){inp.value=b.dataset.ex;paintIdea();inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length)})});
-  paintIdea();}
+if(inp){inp.addEventListener("input",paintIdea);paintIdea();$("lp-said").textContent="Try it: type your own idea with a #tag."}
+
+/* the focus timer, blown up: it really counts down */
+var dial=$("lp-dial"),sec=$("lp-timer"),tt=$("lp-tt"),tw=$("lp-tw"),left=25*60,tick=null;
+function show(){tt.textContent=String(Math.floor(left/60)).padStart(2,"0")+":"+String(left%60).padStart(2,"0")}
+if(dial)dial.addEventListener("click",function(){
+  var on=!tick;
+  if(on){tick=setInterval(function(){left=left>0?left-1:25*60;show()},1000)}else{clearInterval(tick);tick=null}
+  sec.classList.toggle("run",on);dial.setAttribute("aria-pressed",String(on));dial.setAttribute("aria-label",on?"Pause the focus timer":"Start the focus timer");
+  tw.textContent=on?"Time":"Ready";
+  dial.querySelector(".ld-play").innerHTML=on?'<svg viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>':'<svg viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z"/></svg>';
+});
 
 /* drag through the stages: one card moves from Idea to Shipped */
 var ST=[
-  {n:"Idea",dot:"#8c8c88",c:"Start with the idea.",s:"Every idea you save waits in the first column until you are ready for it.",
+  {n:"Idea",dot:"#b8b5ad",c:"Start with the idea.",s:"Every idea you save waits in the first column until you are ready for it.",
    h:'<b>Street food tour in Bhopal</b><div class="lp-row"><span class="lp-chip">#vlog</span><span class="lp-chip">Fri 31 Oct</span></div><div class="lp-row"><span class="lp-mini">Plan post</span><span class="lp-mini">Repurpose</span></div>'},
-  {n:"Making",dot:"#1f201d",c:"Script it, shoot it.",s:"The script sits in Notes, the checklist ticks off as you go, and the teleprompter reads it back.",
+  {n:"Making",dot:"#1c1a17",c:"Script it, shoot it.",s:"The script sits in Notes, the checklist ticks off as you go, and the teleprompter reads it back.",
    h:'<b>Street food tour in Bhopal</b><ul class="lp-chk"><li class="d"><i></i>Write the script</li><li class="d"><i></i>Film at the night market</li><li><i></i>Record the voiceover</li></ul><div class="lp-row"><span class="lp-chip">2 of 3 done</span><span class="lp-mini">Teleprompter</span></div>'},
-  {n:"Review",dot:"#a86b12",c:"Hand it over, get it back.",s:"Assign the edit to a teammate. When they mark it done, it lands back here for your check.",
+  {n:"Review",dot:"#ffc21a",c:"Hand it over, get it back.",s:"Assign the edit to a teammate. When they mark it done, it lands back here for your check.",
    h:'<b>Street food tour in Bhopal</b><div class="lp-row"><span class="lp-chip">Mia · Editor</span><span class="lp-chip warn">Due tomorrow</span></div><div class="lp-row"><span class="lp-mini">Open the cut</span><span class="lp-mini">Approve</span></div>'},
-  {n:"Shipped",dot:"#1b6e66",c:"Ship it, watch it land.",s:"Published posts move to Shipped, and their views come in with your live numbers.",
-   h:'<b>Street food tour in Bhopal</b><div class="lp-row"><span class="lp-chip ok">Published · Instagram</span></div><div class="lp-row" style="align-items:baseline;gap:10px"><span class="lp-num">5.2K</span><span style="font-size:13px;color:#636361">views in the first two days</span></div>'}
+  {n:"Shipped",dot:"#ffc21a",c:"Ship it, watch it land.",s:"Published posts move to Shipped, and their views come in with your live numbers.",
+   h:'<b>Street food tour in Bhopal</b><div class="lp-row"><span class="lp-chip ok">Published · Instagram</span></div><div class="lp-row" style="align-items:baseline;gap:10px"><span class="lp-num">5.2K</span><span style="font-size:14px;color:#5c5850">views in the first two days</span></div>'}
 ];
 var rg=$("lp-stage"),col=$("lp-col"),stops=L.querySelectorAll(".lp-stops li"),clause=L.querySelector(".lp-clause"),sub=$("lp-clause-s");
 function stage(i,instant){
@@ -3909,13 +4216,9 @@ function stage(i,instant){
 }
 if(rg){rg.addEventListener("input",function(){stage(+rg.value)});stops.forEach(function(li,j){li.addEventListener("click",function(){stage(j)})});stage(0,true)}
 
-/* sentences with switches */
-L.querySelectorAll(".lp-band").forEach(function(b){
-  var sw=b.querySelector(".lp-sw");
-  function set(on){sw.setAttribute("aria-checked",String(on));b.classList.toggle("on",on)}
-  set(sw.getAttribute("aria-checked")==="true");
-  sw.addEventListener("click",function(){set(sw.getAttribute("aria-checked")!=="true")});
-});
+/* one question card open at a time */
+var cards=L.querySelectorAll(".lp-cards details");
+cards.forEach(function(d){d.addEventListener("toggle",function(){if(d.open)cards.forEach(function(o){if(o!==d)o.open=false})})});
 
 /* a sentence with a blank: the name becomes the first space after sign-up */
 var f=$("lp-cta");
@@ -3924,10 +4227,14 @@ if(f)f.addEventListener("submit",function(e){e.preventDefault();var n=($("lp-nam
   if(window.__lpGate)window.__lpGate("up");});
 
 /* the parts of each section rise in as it arrives */
-var parts=L.querySelectorAll(".lp-show>*,.lp-how-l>*,.lp-how-r>*,.lp-band,.lp-list .lp-h2,.lp-pic,.lp-tbl,.lp-faq .lp-h2,.lp-qs details,.lp-cta>*,.lp-inv,.lp-flinks");
+var parts=L.querySelectorAll(".lp-hero-t>*,.lp-cap,.lp-t,.lp-timer-t>*,.lp-how-l>*,.lp-col,.lp-tour-h>*,.lp-shots figure,.lp-desk,.lp-sheet,.lp-faq .lp-h2,.lp-cards details,.lp-cta-a");
 if(!RM&&"IntersectionObserver" in window){
-  var io=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting){en.target.classList.add("lp-seen");io.unobserve(en.target)}})},{rootMargin:"0px 0px -8% 0px"});
-  parts.forEach(function(el,i){var sib=el.parentNode?Array.prototype.indexOf.call(el.parentNode.children,el):0;el.classList.add("lp-rise");el.style.transitionDelay=Math.min(sib,6)*75+"ms";io.observe(el)});
+  var io=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting){en.target.classList.add("lp-seen");io.unobserve(en.target)}})},{rootMargin:"0px 0px -6% 0px"});
+  parts.forEach(function(el){var sib=el.parentNode?Array.prototype.indexOf.call(el.parentNode.children,el):0;el.classList.add("lp-rise");el.style.transitionDelay=Math.min(sib,6)*80+"ms";io.observe(el)});
+  /* a belt and braces check on scroll and resize, so nothing stays hidden after a jump */
+  var sweep=function(){var h=innerHeight,end=scrollY+h>=document.documentElement.scrollHeight-40;
+    parts.forEach(function(el){if(!el.classList.contains("lp-seen")&&(end||el.getBoundingClientRect().top<h))el.classList.add("lp-seen")})};
+  addEventListener("scroll",sweep,{passive:true});addEventListener("resize",sweep);setTimeout(sweep,300);
 }
 })();
 </script><script type="text/plain" id="appjs">

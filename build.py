@@ -31,7 +31,7 @@ m=re.search(r'</style>',pre);head_end=m.end()
 head=pre[:head_end].replace('<meta name="claude:viewport-fit-sides" content="cover">','')
 body=pre[head_end:]
 out='<!doctype html><html lang="en" class="authing"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">'+head+'<style id="webcss">'+css+'</style></head><body>'
-landing=open(base+'web/landing.html').read();lpjs=open(base+'web/landing.js').read()
+landing=open(base+'web/landing.html').read();landing=re.sub(r'\{\{ill:(\w+)\}\}',lambda m:open(base+'web/ill/'+m.group(1)+'.svg').read().strip(),landing);lpjs=open(base+'web/landing.js').read()
 early='<script>try{if(location.pathname==="/"&&!/[?&](signin|signup)\\b/.test(location.search)&&!/type=recovery/.test(location.hash+location.search)&&!Object.keys(localStorage).some(function(k){return /^sb-.*-auth-token$/.test(k)}))document.documentElement.className="landing"}catch(e){}</script>'
 out=out.replace('</head><body>',early+'</head><body>',1)
 out+='<div id="authgate" hidden></div><div id="pubpage" hidden></div><div id="landing" hidden>'+landing+'</div>'+body
