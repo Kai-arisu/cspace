@@ -1862,34 +1862,47 @@ function noteListHTML(q){
   var list=mine("notes").slice().sort(function(a,b){return (b.pin-a.pin)||(b.ts-a.ts)}).filter(function(n){return !q||(n.title+" "+n.body).toLowerCase().indexOf(q)>-1});
   if(!list.length)return '<div class="empty">'+(q?"No notes match.":"No notes yet.")+'</div>';
   return list.map(function(n){
-    return '<button class="ncard" data-act="opennote" data-id="'+n.id+'" aria-current="'+(n.id===selNote)+'"><b>'+(n.pin?"● ":"")+esc(n.title||"Untitled")+'</b><span>'+esc((n.body||"").replace(/\s+/g," ").slice(0,70)||"Empty note")+'</span></button>';
+    return '<button class="ncard" data-act="opennote" data-id="'+n.id+'" aria-current="'+(n.id===selNote)+'"><b>'+esc(n.title||"Untitled")+(n.pin?'<i class="npin" aria-label="Pinned">'+I("pin")+'</i>':"")+'</b><span>'+esc((n.body||"").replace(/[#*\[\]]+/g,"").replace(/\s+/g," ").trim().slice(0,90)||"Empty note")+'</span><small>'+ago(n.ts)+'</small></button>';
   }).join("");
 }
 function noteEditorHTML(){
   var n=S.notes.filter(function(x){return x.id===selNote})[0];
   if(!n)return '<div class="panel empty">Create a note to start writing.</div>';
-  var ro=readOnly?" readonly":"";
-  return '<div class="panel"><div class="nmeta"><span id="nwc">'+words(n.body)+' words · edited '+ago(n.ts)+'</span><span><button class="btn sm" data-act="tp_open">Teleprompter</button> '+cbtn("#neditor .panel")+' <button class="btn sm" data-act="pinnote">'+(n.pin?"Unpin":"Pin")+'</button> <button class="btn sm" data-act="delnote"'+(readOnly?" disabled":"")+'>Delete</button></span></div>'+
-    '<div class="nout" id="nout">'+nOutline(n.body)+'</div>'+nToolbar()+
+  var ro=readOnly?" readonly":"",outl=nOutline(n.body);
+  return '<div class="panel npaper"><div class="nbar">'+nToolbar()+'<span class="nacts"><button class="btn sm" data-act="tp_open">'+I("play")+'Teleprompter</button>'+cbtn("#neditor .panel")+
+    '<button class="ico" data-act="pinnote" aria-label="'+(n.pin?"Unpin note":"Pin note")+'" title="'+(n.pin?"Unpin":"Pin")+'" aria-pressed="'+!!n.pin+'">'+I("pin")+'</button>'+
+    '<button class="ico" data-act="delnote" aria-label="Delete note" title="Delete"'+(readOnly?" disabled":"")+'>'+I("trash")+'</button></span></div>'+
+    '<div class="nout" id="nout"'+(/nsec/.test(outl)?"":" hidden")+'>'+outl+'</div>'+
     '<input class="ghost ntitle" id="ntitle" value="'+esc(n.title)+'" placeholder="Untitled" aria-label="Note title"'+ro+'>'+
-    '<textarea class="nbody" id="nbody" placeholder="Start writing…" aria-label="Note body"'+ro+'>'+esc(n.body)+'</textarea></div>';
+    '<textarea class="nbody" id="nbody" placeholder="Start writing… use ## for headings, - [ ] for checklists" aria-label="Note body"'+ro+'>'+esc(n.body)+'</textarea>'+
+    '<div class="nmeta"><span id="nwc">'+words(n.body)+' words · edited '+ago(n.ts)+'</span></div></div>';
 }
 
 function vIdeas(){
   var all=mine("ideas"),tags={};
-  all.forEach(function(i){(i.tags||[]).forEach(function(t){tags[t]=1})});
-  var h=hero("ideas","Ideas",null,"");
-  h+='<div class="capture"><input class="in" id="ideain" placeholder="A video about…   add #tags to sort it later" maxlength="240" aria-label="New idea"'+(readOnly?" disabled":"")+'><button class="btn pri" data-act="addidea"'+(readOnly?" disabled":"")+'>Add</button></div>';
-  h+='<div class="chips" role="group" aria-label="Filter ideas"><button class="chip" data-act="ifilter" data-id="all" aria-pressed="'+(ideaFilter==="all")+'">All '+all.length+'</button><button class="chip" data-act="ifilter" data-id="star" aria-pressed="'+(ideaFilter==="star")+'">Starred</button>'+
-    Object.keys(tags).sort().map(function(t){return '<button class="chip" data-act="ifilter" data-id="'+esc(t)+'" aria-pressed="'+(ideaFilter===t)+'">#'+esc(t)+'</button>'}).join("")+'</div>';
+  all.forEach(function(i){(i.tags||[]).forEach(function(t){tags[t]=(tags[t]||0)+1})});
+  var h=hero("ideas","Ideas","Catch ideas before they disappear. Any idea becomes a task or a planned post in one click.","");
+  h+='<div class="capture"><input class="in" id="ideain" placeholder="A video about…  add #tags to sort it later" maxlength="240" aria-label="New idea" autocomplete="off"'+(readOnly?" disabled":"")+'><button class="btn pri" data-act="addidea"'+(readOnly?" disabled":"")+'>Add idea</button></div>';
+  if(!all.length)return h+emptyCard("bulb","Catch your first idea","Type it above and press Add idea. Use #tags like #vlog to sort them. Any idea becomes a task or a planned post in one click.","");
   var shown=all.filter(function(i){return ideaFilter==="all"||(ideaFilter==="star"?i.star:(i.tags||[]).indexOf(ideaFilter)>-1)}).sort(function(a,b){return b.ts-a.ts});
-  if(!all.length)h+=emptyCard("bulb","Catch your first idea","Type it above and press Add. Use #tags like #vlog to sort them. Any idea becomes a task or a planned post in one click.","");
-  else if(!shown.length)h+='<div class="empty">No ideas match this filter.</div>';
-  h+=shown.map(function(i){
-    return '<div class="idea"><button class="ico star" data-act="staridea" data-id="'+i.id+'" aria-pressed="'+!!i.star+'" aria-label="Star idea">'+I("star")+'</button><div class="body">'+esc(i.text)+'<div style="margin-top:6px">'+(i.tags||[]).map(function(t){return '<span class="tag">#'+esc(t)+'</span>'}).join("")+'<span class="muted" style="font-size:12px">'+ago(i.ts)+'</span></div></div><div class="acts">'+
-      (i.task?'<span class="muted" style="font-size:12px;padding:4px">on board</span>':'<button class="btn sm" data-act="idea2task" data-id="'+i.id+'"'+(readOnly?" disabled":"")+'>Make task</button>')+(S.posts.some(function(p){return p.ideaId===i.id})?'<span class="muted" style="font-size:12px;padding:4px">planned</span>':'<button class="btn sm" data-act="idea2post" data-id="'+i.id+'"'+(readOnly?" disabled":"")+'>Plan post</button>')+(readOnly?'':'<button class="btn sm" data-act="rp_open" data-id="idea:'+i.id+'">Repurpose</button>')+
-      '<button class="btn sm" data-act="delidea" data-id="'+i.id+'"'+(readOnly?" disabled":"")+'>Delete</button></div></div>';
-  }).join("");
+  var starred=all.filter(function(i){return i.star}).length,onBoard=all.filter(function(i){return i.task}).length,planned=all.filter(function(i){return S.posts.some(function(p){return p.ideaId===i.id})}).length;
+  var label=ideaFilter==="all"?"All ideas":(ideaFilter==="star"?"Starred":"#"+ideaFilter);
+  h+='<div class="id-grid"><section class="panel id-main"><h2>'+esc(label)+' <span class="cnt">'+shown.length+'</span>'+(ideaFilter!=="all"?'<button class="lnk" data-act="ifilter" data-id="all">Show all</button>':"")+'</h2>';
+  if(!shown.length)h+='<div class="empty">No ideas match this filter.</div>';
+  h+='<div class="id-rows">'+shown.map(function(i){
+    var txt=String(i.text||"").replace(/\s*#[\w-]+/g,"").trim()||i.text;
+    var planned1=S.posts.some(function(p){return p.ideaId===i.id});
+    return '<div class="idea"><button class="ico star" data-act="staridea" data-id="'+i.id+'" aria-pressed="'+!!i.star+'" aria-label="'+(i.star?"Unstar":"Star")+' idea">'+I("star")+'</button>'+
+      '<div class="body"><span class="it">'+esc(txt)+'</span><span class="im">'+(i.tags||[]).map(function(t){return '<button class="tag" data-act="ifilter" data-id="'+esc(t)+'">#'+esc(t)+'</button>'}).join("")+'<span>'+ago(i.ts)+'</span>'+(i.task?'<span class="id-st">On the board</span>':"")+(planned1?'<span class="id-st">Planned</span>':"")+'</span></div>'+
+      '<div class="acts">'+(i.task?"":'<button class="btn sm" data-act="idea2task" data-id="'+i.id+'"'+(readOnly?" disabled":"")+'>Make task</button>')+(planned1?"":'<button class="btn sm" data-act="idea2post" data-id="'+i.id+'"'+(readOnly?" disabled":"")+'>Plan post</button>')+(readOnly?'':'<button class="btn sm" data-act="rp_open" data-id="idea:'+i.id+'">Repurpose</button>')+
+      '<button class="ico" data-act="delidea" data-id="'+i.id+'" aria-label="Delete idea" title="Delete"'+(readOnly?" disabled":"")+'>'+I("trash")+'</button></div></div>';
+  }).join("")+'</div></section>';
+  var tk=Object.keys(tags).sort(function(a,b){return tags[b]-tags[a]||(a<b?-1:1)});
+  h+='<aside class="panel id-side"><h2>Sort by</h2><div class="id-f">'+
+    '<button data-act="ifilter" data-id="all" aria-pressed="'+(ideaFilter==="all")+'"><span>All ideas</span><b>'+all.length+'</b></button>'+
+    '<button data-act="ifilter" data-id="star" aria-pressed="'+(ideaFilter==="star")+'"><span>Starred</span><b>'+starred+'</b></button>'+
+    tk.map(function(t){return '<button data-act="ifilter" data-id="'+esc(t)+'" aria-pressed="'+(ideaFilter===t)+'"><span>#'+esc(t)+'</span><b>'+tags[t]+'</b></button>'}).join("")+'</div>'+
+    '<div class="id-sum"><div><b>'+onBoard+'</b><span>on the board</span></div><div><b>'+planned+'</b><span>planned as posts</span></div><div><b>'+all.filter(function(i){return !i.task&&!S.posts.some(function(p){return p.ideaId===i.id})}).length+'</b><span>still loose</span></div></div></aside></div>';
   return h;
 }
 
@@ -2518,7 +2531,7 @@ function nInsert(pre){
   ta.value=v.slice(0,at)+ins+v.slice(at);
   var c=at+ins.length;ta.focus();ta.setSelectionRange(c,c);
   n.body=ta.value;n.ts=Date.now();touch();
-  var o=$("nout");if(o)o.innerHTML=nOutline(n.body);
+  var o=$("nout");if(o){o.innerHTML=nOutline(n.body);o.hidden=!/nsec/.test(o.innerHTML)}
 }
 function nToTasks(){
   var n=findIn(S.notes,selNote);if(!n||readOnly)return;
@@ -2533,7 +2546,7 @@ function nFromTpl(key){
   S.notes.push(n);selNote=n.id;S.view="notes";touch();render();var b=$("nbody");if(b){b.focus();b.setSelectionRange(0,0)}
 }
 document.addEventListener("input",function(e){
-  if(e.target.id==="nbody"){var o=$("nout");if(o)o.innerHTML=nOutline(e.target.value)}
+  if(e.target.id==="nbody"){var o=$("nout");if(o){o.innerHTML=nOutline(e.target.value);o.hidden=!/nsec/.test(o.innerHTML)}}
 });
 
 /* ---------- shared helpers (v10) ---------- */
@@ -3490,8 +3503,7 @@ function wbToolsHTML(){
 }
 function wbToolbar(){var t=$("wbtools");if(t){t.innerHTML=wbToolsHTML();wbPaint()}}
 function vWb(){
-  var h=hero("wb","Whiteboard",null,'<span class="muted" style="font-size:13px">Scroll to zoom. Drag empty space to move around.</span>');
-  h+='<div class="wbwrap" id="wbwrap"><div class="wbui" id="wbtools">'+wbToolsHTML()+'</div><svg id="wbsvg" class="wbsvg" role="img" aria-label="Whiteboard canvas"><defs><pattern id="wbdots" width="54" height="54" patternUnits="userSpaceOnUse"><path d="M18 0V54M36 0V54M0 18H54M0 36H54" fill="none" stroke="#E6E6E6" stroke-width="1"/><path d="M54 0H0V54" fill="none" stroke="#D8D8D8" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(#wbdots)"/><g id="wbworld"><g id="wbitems"></g></g></svg><div class="wbempty" id="wbempty"><button class="wbempty-x" data-act="wbhint" aria-label="Dismiss">'+I("x")+'</button><button class="wbempty-b" data-act="wbfirst"><svg viewBox="0 0 96 96" width="88" height="88" aria-hidden="true"><rect x="52" y="10" width="22" height="22" rx="3" fill="none" stroke="currentColor" stroke-width="3"/><rect x="72" y="36" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="3"/><rect x="14" y="40" width="46" height="46" rx="3" fill="var(--surface)" stroke="currentColor" stroke-width="3"/><path d="M37 52v22M26 63h22" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg><span>Add your first object</span></button></div><div class="wbchips" id="wbchips"></div><svg id="wbmini" class="wbmini" viewBox="0 0 168 108" role="img" aria-label="Minimap. Click to move the view."></svg><div class="wbtl" id="wbtl"></div></div><input type="file" id="wbfile" accept="image/*" hidden>';
+  var h='<div class="wbwrap" id="wbwrap"><div class="wbname"><h1>Whiteboard</h1><span>'+esc(spaceName())+'</span></div><div class="wbui" id="wbtools">'+wbToolsHTML()+'</div><svg id="wbsvg" class="wbsvg" role="img" aria-label="Whiteboard canvas"><defs><pattern id="wbdots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1.1" class="wbdot"/></pattern></defs><rect width="100%" height="100%" fill="url(#wbdots)"/><g id="wbworld"><g id="wbitems"></g></g></svg><div class="wbempty" id="wbempty"><button class="wbempty-x" data-act="wbhint" aria-label="Dismiss">'+I("x")+'</button><button class="wbempty-b" data-act="wbfirst"><svg viewBox="0 0 96 96" width="88" height="88" aria-hidden="true"><rect x="52" y="10" width="22" height="22" rx="3" fill="none" stroke="currentColor" stroke-width="3"/><rect x="72" y="36" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="3"/><rect x="14" y="40" width="46" height="46" rx="3" fill="var(--surface)" stroke="currentColor" stroke-width="3"/><path d="M37 52v22M26 63h22" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg><span>Add your first object</span></button></div><div class="wbchips" id="wbchips"></div><svg id="wbmini" class="wbmini" viewBox="0 0 168 108" role="img" aria-label="Minimap. Click to move the view."></svg><div class="wbtl" id="wbtl"></div></div><input type="file" id="wbfile" accept="image/*" hidden>';
   return h;
 }
 function wbMount(){

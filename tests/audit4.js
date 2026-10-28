@@ -34,5 +34,5 @@ await go('wb');const w0=await p.locator('#wbsvg *, #wbitems *').count();await p.
 await go('biz');await p.click('[data-act="biztab"][data-id="deals"]');await p.fill('#dbrand','Acme');await p.fill('#damt','5000');await p.click('#main .btn.pri, .col-main form .btn.pri').catch(()=>{});await p.waitForTimeout(300);c=await cnt();console.log('deals',c.deals);
 await p.click('[data-act="biztab"][data-id="income"]').catch(()=>{});await p.waitForTimeout(200);console.log('biz tabs',await p.$$eval('[data-act="biztab"]',e=>e.map(x=>x.dataset.id)));
 // visualizer, progress, calendar, library render
-for(const v of ['cal','prog','viz','lib','aud','board']){await go(v).catch(()=>{});console.log(v,(await p.textContent('.hero h1,.td-head h1').catch(()=>'-')).slice(0,30))}
+for(const v of ['cal','prog','viz','lib','aud','board']){await go(v).catch(()=>{});console.log(v,(await p.textContent('.hero h1,.td-head h1,.wbname h1').catch(()=>'-')).slice(0,30))}
 console.log('errors',errs);console.log(fail?'FAILURES '+fail:'ALL PASSED');await b.close();srv.close()})();

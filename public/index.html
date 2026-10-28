@@ -2576,6 +2576,102 @@ body *,svg text{font-variant-numeric:tabular-nums}
 @media (max-width:820px){.soc-live{flex-direction:column;align-items:stretch}.soc-btn{width:100%;justify-content:center}}
 .ac-vids h4{text-transform:none!important;letter-spacing:0!important;font:500 12.5px var(--f-body)!important;color:var(--muted)}
 .ac-ins{margin-bottom:12px}
+
+/* ---------- Notes: a list on a tonal panel, the note on white paper ---------- */
+.ntpl{margin:-8px 0 20px!important;gap:6px!important}
+.ntpl>span{font-size:13px;color:var(--muted)}
+.notes{grid-template-columns:minmax(0,300px) minmax(0,1fr)!important;gap:16px!important;align-items:start!important}
+.notes>div:first-child{background:var(--surface);border-radius:var(--r-card);padding:12px;position:sticky;top:24px;max-height:calc(100vh - 48px);overflow:auto}
+.notes #nsearch{height:38px;margin-bottom:8px!important;border-radius:999px!important}
+.nlist{display:flex;flex-direction:column;gap:6px}
+.ncard{display:flex!important;flex-direction:column;gap:2px;min-height:63px;width:100%;padding:10px 14px!important;background:var(--card)!important;border:1px solid var(--line)!important;border-radius:14px!important;box-shadow:none!important;transform:none!important;text-align:left}
+.ncard:hover{border-color:var(--line2)!important;background:var(--card)!important}
+.ncard[aria-current="true"]{border-color:var(--fg)!important;box-shadow:none!important;outline:1px solid var(--fg);outline-offset:-2px}
+.ncard b{display:flex!important;align-items:center;gap:6px;font:500 14px var(--f-body)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ncard .npin{flex:none;margin-left:auto;color:var(--muted);display:inline-flex}.ncard .npin svg{width:14px;height:14px}
+.ncard span{font-size:13px!important;color:var(--muted)!important}
+.ncard small{font-size:12px;color:var(--muted)}
+.panel.npaper{background:var(--card)!important;border:1px solid var(--line)!important;border-radius:var(--r-card)!important;padding:16px 40px 20px!important;min-height:calc(100vh - 220px);display:flex;flex-direction:column}
+.nbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 -24px 22px;padding:0 0 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.ntool{display:flex!important;gap:2px!important;margin:0!important;flex-wrap:wrap}
+.ntool .btn{border:0!important;background:none!important;color:var(--muted)!important;height:30px;padding:0 10px!important}
+.ntool .btn:hover{background:var(--surface2)!important;color:var(--fg)!important}
+.nacts{display:flex;align-items:center;gap:4px}
+.nacts .btn svg{width:12px;height:12px}
+.nacts .ico{width:32px;height:32px;justify-content:center;align-items:center;border-radius:8px!important}
+.nacts .ico[aria-pressed="true"]{color:var(--fg)!important}
+.nout{margin:0 0 14px!important;gap:6px!important}
+.nout .nsec{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 12px;font:500 12.5px var(--f-body);color:var(--fg);cursor:pointer}
+.nout .nsec.l3{color:var(--muted)}
+.ntitle{font:600 32px/1.15 var(--f-body)!important;letter-spacing:-.015em!important;color:var(--fg);margin:0 0 12px;max-width:68ch}
+.nbody{flex:1;min-height:52vh!important;resize:none!important;font:400 16.5px/1.75 var(--f-body)!important;color:var(--fg)!important;max-width:68ch!important}
+.nbody::placeholder{color:var(--faint)}
+.npaper .nmeta{border:0!important;margin:12px 0 0!important;padding:12px 0 0!important;border-top:1px solid var(--line)!important;font-size:12.5px;color:var(--muted)}
+@media (max-width:820px){
+  .notes>div:first-child{position:static;max-height:none}
+  .panel.npaper{padding:12px 16px 16px!important;min-height:0}
+  .nbar{margin:0 0 16px}
+  .ntitle{font-size:24px!important}
+  .nbody{min-height:50vh!important}
+}
+
+/* ---------- Ideas: the list on the left, sorting on the right ---------- */
+.capture{margin:0 0 16px!important}
+.id-grid{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,1fr);gap:16px;align-items:start}
+.id-main,.id-side{margin:0!important}
+.id-main h2,.id-side h2{display:flex;align-items:center;gap:8px;margin:0 0 14px!important;font:600 14px var(--f-body)!important}
+.id-rows{display:flex;flex-direction:column;gap:8px}
+.idea{display:flex!important;align-items:center;gap:12px;min-height:63px;padding:10px 12px 10px 8px!important;background:var(--card)!important;border:1px solid var(--line)!important;border-radius:14px!important;box-shadow:none!important}
+.idea:hover{border-color:var(--line2)!important}
+.idea .star{flex:none;width:36px;height:36px;justify-content:center;align-items:center;color:var(--faint)!important;border-radius:10px!important}
+.idea .star[aria-pressed="true"]{color:var(--fg)!important}
+.idea .star[aria-pressed="true"] svg{fill:currentColor}
+.idea .body{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.idea .it{font:500 14.5px/1.35 var(--f-body);color:var(--fg)}
+.idea .im{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)}
+.idea .im .tag{border:0;cursor:pointer;padding:2px 8px;font:500 12px var(--f-body)}
+.idea .im .tag:hover{color:var(--fg)!important}
+.id-st{color:var(--accent);font-weight:500}
+.idea .acts{display:flex;align-items:center;gap:4px;flex:none;opacity:0;transition:opacity .15s}
+.idea:hover .acts,.idea:focus-within .acts{opacity:1}
+.idea .acts .ico{width:30px;height:30px;justify-content:center;align-items:center;border-radius:8px!important}
+@media (hover:none){.idea .acts{opacity:1}}
+.id-side{position:sticky;top:24px}
+.id-f{display:flex;flex-direction:column;gap:2px;margin-bottom:16px}
+.id-f button{display:flex;justify-content:space-between;align-items:center;min-height:36px;padding:0 12px;border:0;border-radius:10px;background:none;color:var(--fg);font:400 14px var(--f-body);cursor:pointer;text-align:left}
+.id-f button:hover{background:var(--surface2)}
+.id-f button[aria-pressed="true"]{background:var(--card);outline:1px solid var(--line);outline-offset:-1px;font-weight:500}
+.id-f b{font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums}
+.id-sum{display:flex;flex-direction:column;gap:10px;padding-top:14px;border-top:1px solid var(--line)}
+.id-sum div{display:flex;align-items:baseline;gap:8px}
+.id-sum b{font:400 22px/1 var(--f-body);font-variant-numeric:tabular-nums;min-width:30px}
+.id-sum span{font-size:13px;color:var(--muted)}
+@media (max-width:1000px){.id-grid{grid-template-columns:minmax(0,1fr)}.id-side{position:static;order:-1}.id-f{flex-direction:row;flex-wrap:wrap;gap:6px}.id-f button{border:1px solid var(--line);border-radius:999px;min-height:32px}.id-sum{display:none}}
+@media (max-width:820px){.idea{flex-wrap:wrap}.idea .acts{width:100%;padding-left:44px;flex-wrap:wrap}}
+.btn{white-space:nowrap}
+
+/* ---------- Whiteboard: white canvas, dot grid, floating tools ---------- */
+:root{--wb-ground:#ffffff;--wb-dot:#d4d4d0}
+.col-main[data-v="wb"] .sheet{padding:0!important}
+.wbwrap{padding:0!important;height:100dvh!important;min-height:480px;background:var(--wb-ground)!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+.wbdot{fill:var(--wb-dot)}
+.wbwrap:not(.dk) .wbsvg{background:var(--wb-ground)!important}
+.wbcard,.wbempty-b,.wbfly{background:var(--card)!important;border:1px solid var(--line)!important;border-radius:16px!important;box-shadow:var(--pop)!important}
+.wbcard .tb,.wbfly .tb{border-radius:10px!important;color:var(--fg)}
+.wbcard .tb:hover,.wbfly .tb:hover{background:var(--surface2)!important}
+.wbcard .tb[aria-pressed="true"],.wbcard .tb.on{background:var(--ink)!important;color:var(--on-ink)!important}
+.wbempty-b{color:var(--fg)}
+.wbempty-b:hover{transform:none!important;border-color:var(--line2)!important}
+.wbempty-x{background:var(--card)!important;border:1px solid var(--line)!important;box-shadow:var(--pop)!important}
+.wbz{font-variant-numeric:tabular-nums;color:var(--muted)}
+@media (max-width:820px){.wbwrap{height:calc(100dvh - 56px - 96px)!important}}
+
+.wbcard,.wbempty-b,.wbfly,.wbempty-x{box-shadow:0 1px 3px rgba(0,0,0,.07)!important}
+.wbname{position:absolute;left:16px;top:14px;z-index:7;display:flex;align-items:baseline;gap:10px;pointer-events:none;padding:8px 14px;background:color-mix(in srgb,var(--wb-ground) 86%,transparent);border-radius:12px}
+.wbname h1{margin:0;font:600 18px var(--f-body);letter-spacing:-.01em;color:#1f201d}
+.wbname span{font-size:13px;color:#636361}
+@media (max-width:820px){.wbname{left:8px;top:8px;padding:6px 10px}.wbname h1{font-size:15px}.wbname span{display:none}
+  .panel.npaper{overflow:hidden}.nbar{margin:0 0 16px!important;padding-right:0}.ntool{max-width:100%}}
 </style></head><body><div id="authgate" hidden></div><div id="pubpage" hidden></div>
 
 <div class="app">
@@ -3884,34 +3980,47 @@ function noteListHTML(q){
   var list=mine("notes").slice().sort(function(a,b){return (b.pin-a.pin)||(b.ts-a.ts)}).filter(function(n){return !q||(n.title+" "+n.body).toLowerCase().indexOf(q)>-1});
   if(!list.length)return '<div class="empty">'+(q?"No notes match.":"No notes yet.")+'</div>';
   return list.map(function(n){
-    return '<button class="ncard" data-act="opennote" data-id="'+n.id+'" aria-current="'+(n.id===selNote)+'"><b>'+(n.pin?"● ":"")+esc(n.title||"Untitled")+'</b><span>'+esc((n.body||"").replace(/\s+/g," ").slice(0,70)||"Empty note")+'</span></button>';
+    return '<button class="ncard" data-act="opennote" data-id="'+n.id+'" aria-current="'+(n.id===selNote)+'"><b>'+esc(n.title||"Untitled")+(n.pin?'<i class="npin" aria-label="Pinned">'+I("pin")+'</i>':"")+'</b><span>'+esc((n.body||"").replace(/[#*\[\]]+/g,"").replace(/\s+/g," ").trim().slice(0,90)||"Empty note")+'</span><small>'+ago(n.ts)+'</small></button>';
   }).join("");
 }
 function noteEditorHTML(){
   var n=S.notes.filter(function(x){return x.id===selNote})[0];
   if(!n)return '<div class="panel empty">Create a note to start writing.</div>';
-  var ro=readOnly?" readonly":"";
-  return '<div class="panel"><div class="nmeta"><span id="nwc">'+words(n.body)+' words · edited '+ago(n.ts)+'</span><span><button class="btn sm" data-act="tp_open">Teleprompter</button> '+cbtn("#neditor .panel")+' <button class="btn sm" data-act="pinnote">'+(n.pin?"Unpin":"Pin")+'</button> <button class="btn sm" data-act="delnote"'+(readOnly?" disabled":"")+'>Delete</button></span></div>'+
-    '<div class="nout" id="nout">'+nOutline(n.body)+'</div>'+nToolbar()+
+  var ro=readOnly?" readonly":"",outl=nOutline(n.body);
+  return '<div class="panel npaper"><div class="nbar">'+nToolbar()+'<span class="nacts"><button class="btn sm" data-act="tp_open">'+I("play")+'Teleprompter</button>'+cbtn("#neditor .panel")+
+    '<button class="ico" data-act="pinnote" aria-label="'+(n.pin?"Unpin note":"Pin note")+'" title="'+(n.pin?"Unpin":"Pin")+'" aria-pressed="'+!!n.pin+'">'+I("pin")+'</button>'+
+    '<button class="ico" data-act="delnote" aria-label="Delete note" title="Delete"'+(readOnly?" disabled":"")+'>'+I("trash")+'</button></span></div>'+
+    '<div class="nout" id="nout"'+(/nsec/.test(outl)?"":" hidden")+'>'+outl+'</div>'+
     '<input class="ghost ntitle" id="ntitle" value="'+esc(n.title)+'" placeholder="Untitled" aria-label="Note title"'+ro+'>'+
-    '<textarea class="nbody" id="nbody" placeholder="Start writing…" aria-label="Note body"'+ro+'>'+esc(n.body)+'</textarea></div>';
+    '<textarea class="nbody" id="nbody" placeholder="Start writing… use ## for headings, - [ ] for checklists" aria-label="Note body"'+ro+'>'+esc(n.body)+'</textarea>'+
+    '<div class="nmeta"><span id="nwc">'+words(n.body)+' words · edited '+ago(n.ts)+'</span></div></div>';
 }
 
 function vIdeas(){
   var all=mine("ideas"),tags={};
-  all.forEach(function(i){(i.tags||[]).forEach(function(t){tags[t]=1})});
-  var h=hero("ideas","Ideas",null,"");
-  h+='<div class="capture"><input class="in" id="ideain" placeholder="A video about…   add #tags to sort it later" maxlength="240" aria-label="New idea"'+(readOnly?" disabled":"")+'><button class="btn pri" data-act="addidea"'+(readOnly?" disabled":"")+'>Add</button></div>';
-  h+='<div class="chips" role="group" aria-label="Filter ideas"><button class="chip" data-act="ifilter" data-id="all" aria-pressed="'+(ideaFilter==="all")+'">All '+all.length+'</button><button class="chip" data-act="ifilter" data-id="star" aria-pressed="'+(ideaFilter==="star")+'">Starred</button>'+
-    Object.keys(tags).sort().map(function(t){return '<button class="chip" data-act="ifilter" data-id="'+esc(t)+'" aria-pressed="'+(ideaFilter===t)+'">#'+esc(t)+'</button>'}).join("")+'</div>';
+  all.forEach(function(i){(i.tags||[]).forEach(function(t){tags[t]=(tags[t]||0)+1})});
+  var h=hero("ideas","Ideas","Catch ideas before they disappear. Any idea becomes a task or a planned post in one click.","");
+  h+='<div class="capture"><input class="in" id="ideain" placeholder="A video about…  add #tags to sort it later" maxlength="240" aria-label="New idea" autocomplete="off"'+(readOnly?" disabled":"")+'><button class="btn pri" data-act="addidea"'+(readOnly?" disabled":"")+'>Add idea</button></div>';
+  if(!all.length)return h+emptyCard("bulb","Catch your first idea","Type it above and press Add idea. Use #tags like #vlog to sort them. Any idea becomes a task or a planned post in one click.","");
   var shown=all.filter(function(i){return ideaFilter==="all"||(ideaFilter==="star"?i.star:(i.tags||[]).indexOf(ideaFilter)>-1)}).sort(function(a,b){return b.ts-a.ts});
-  if(!all.length)h+=emptyCard("bulb","Catch your first idea","Type it above and press Add. Use #tags like #vlog to sort them. Any idea becomes a task or a planned post in one click.","");
-  else if(!shown.length)h+='<div class="empty">No ideas match this filter.</div>';
-  h+=shown.map(function(i){
-    return '<div class="idea"><button class="ico star" data-act="staridea" data-id="'+i.id+'" aria-pressed="'+!!i.star+'" aria-label="Star idea">'+I("star")+'</button><div class="body">'+esc(i.text)+'<div style="margin-top:6px">'+(i.tags||[]).map(function(t){return '<span class="tag">#'+esc(t)+'</span>'}).join("")+'<span class="muted" style="font-size:12px">'+ago(i.ts)+'</span></div></div><div class="acts">'+
-      (i.task?'<span class="muted" style="font-size:12px;padding:4px">on board</span>':'<button class="btn sm" data-act="idea2task" data-id="'+i.id+'"'+(readOnly?" disabled":"")+'>Make task</button>')+(S.posts.some(function(p){return p.ideaId===i.id})?'<span class="muted" style="font-size:12px;padding:4px">planned</span>':'<button class="btn sm" data-act="idea2post" data-id="'+i.id+'"'+(readOnly?" disabled":"")+'>Plan post</button>')+(readOnly?'':'<button class="btn sm" data-act="rp_open" data-id="idea:'+i.id+'">Repurpose</button>')+
-      '<button class="btn sm" data-act="delidea" data-id="'+i.id+'"'+(readOnly?" disabled":"")+'>Delete</button></div></div>';
-  }).join("");
+  var starred=all.filter(function(i){return i.star}).length,onBoard=all.filter(function(i){return i.task}).length,planned=all.filter(function(i){return S.posts.some(function(p){return p.ideaId===i.id})}).length;
+  var label=ideaFilter==="all"?"All ideas":(ideaFilter==="star"?"Starred":"#"+ideaFilter);
+  h+='<div class="id-grid"><section class="panel id-main"><h2>'+esc(label)+' <span class="cnt">'+shown.length+'</span>'+(ideaFilter!=="all"?'<button class="lnk" data-act="ifilter" data-id="all">Show all</button>':"")+'</h2>';
+  if(!shown.length)h+='<div class="empty">No ideas match this filter.</div>';
+  h+='<div class="id-rows">'+shown.map(function(i){
+    var txt=String(i.text||"").replace(/\s*#[\w-]+/g,"").trim()||i.text;
+    var planned1=S.posts.some(function(p){return p.ideaId===i.id});
+    return '<div class="idea"><button class="ico star" data-act="staridea" data-id="'+i.id+'" aria-pressed="'+!!i.star+'" aria-label="'+(i.star?"Unstar":"Star")+' idea">'+I("star")+'</button>'+
+      '<div class="body"><span class="it">'+esc(txt)+'</span><span class="im">'+(i.tags||[]).map(function(t){return '<button class="tag" data-act="ifilter" data-id="'+esc(t)+'">#'+esc(t)+'</button>'}).join("")+'<span>'+ago(i.ts)+'</span>'+(i.task?'<span class="id-st">On the board</span>':"")+(planned1?'<span class="id-st">Planned</span>':"")+'</span></div>'+
+      '<div class="acts">'+(i.task?"":'<button class="btn sm" data-act="idea2task" data-id="'+i.id+'"'+(readOnly?" disabled":"")+'>Make task</button>')+(planned1?"":'<button class="btn sm" data-act="idea2post" data-id="'+i.id+'"'+(readOnly?" disabled":"")+'>Plan post</button>')+(readOnly?'':'<button class="btn sm" data-act="rp_open" data-id="idea:'+i.id+'">Repurpose</button>')+
+      '<button class="ico" data-act="delidea" data-id="'+i.id+'" aria-label="Delete idea" title="Delete"'+(readOnly?" disabled":"")+'>'+I("trash")+'</button></div></div>';
+  }).join("")+'</div></section>';
+  var tk=Object.keys(tags).sort(function(a,b){return tags[b]-tags[a]||(a<b?-1:1)});
+  h+='<aside class="panel id-side"><h2>Sort by</h2><div class="id-f">'+
+    '<button data-act="ifilter" data-id="all" aria-pressed="'+(ideaFilter==="all")+'"><span>All ideas</span><b>'+all.length+'</b></button>'+
+    '<button data-act="ifilter" data-id="star" aria-pressed="'+(ideaFilter==="star")+'"><span>Starred</span><b>'+starred+'</b></button>'+
+    tk.map(function(t){return '<button data-act="ifilter" data-id="'+esc(t)+'" aria-pressed="'+(ideaFilter===t)+'"><span>#'+esc(t)+'</span><b>'+tags[t]+'</b></button>'}).join("")+'</div>'+
+    '<div class="id-sum"><div><b>'+onBoard+'</b><span>on the board</span></div><div><b>'+planned+'</b><span>planned as posts</span></div><div><b>'+all.filter(function(i){return !i.task&&!S.posts.some(function(p){return p.ideaId===i.id})}).length+'</b><span>still loose</span></div></div></aside></div>';
   return h;
 }
 
@@ -4540,7 +4649,7 @@ function nInsert(pre){
   ta.value=v.slice(0,at)+ins+v.slice(at);
   var c=at+ins.length;ta.focus();ta.setSelectionRange(c,c);
   n.body=ta.value;n.ts=Date.now();touch();
-  var o=$("nout");if(o)o.innerHTML=nOutline(n.body);
+  var o=$("nout");if(o){o.innerHTML=nOutline(n.body);o.hidden=!/nsec/.test(o.innerHTML)}
 }
 function nToTasks(){
   var n=findIn(S.notes,selNote);if(!n||readOnly)return;
@@ -4555,7 +4664,7 @@ function nFromTpl(key){
   S.notes.push(n);selNote=n.id;S.view="notes";touch();render();var b=$("nbody");if(b){b.focus();b.setSelectionRange(0,0)}
 }
 document.addEventListener("input",function(e){
-  if(e.target.id==="nbody"){var o=$("nout");if(o)o.innerHTML=nOutline(e.target.value)}
+  if(e.target.id==="nbody"){var o=$("nout");if(o){o.innerHTML=nOutline(e.target.value);o.hidden=!/nsec/.test(o.innerHTML)}}
 });
 
 /* ---------- shared helpers (v10) ---------- */
@@ -5509,8 +5618,7 @@ function wbToolsHTML(){
 }
 function wbToolbar(){var t=$("wbtools");if(t){t.innerHTML=wbToolsHTML();wbPaint()}}
 function vWb(){
-  var h=hero("wb","Whiteboard",null,'<span class="muted" style="font-size:13px">Scroll to zoom. Drag empty space to move around.</span>');
-  h+='<div class="wbwrap" id="wbwrap"><div class="wbui" id="wbtools">'+wbToolsHTML()+'</div><svg id="wbsvg" class="wbsvg" role="img" aria-label="Whiteboard canvas"><defs><pattern id="wbdots" width="54" height="54" patternUnits="userSpaceOnUse"><path d="M18 0V54M36 0V54M0 18H54M0 36H54" fill="none" stroke="#E6E6E6" stroke-width="1"/><path d="M54 0H0V54" fill="none" stroke="#D8D8D8" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(#wbdots)"/><g id="wbworld"><g id="wbitems"></g></g></svg><div class="wbempty" id="wbempty"><button class="wbempty-x" data-act="wbhint" aria-label="Dismiss">'+I("x")+'</button><button class="wbempty-b" data-act="wbfirst"><svg viewBox="0 0 96 96" width="88" height="88" aria-hidden="true"><rect x="52" y="10" width="22" height="22" rx="3" fill="none" stroke="currentColor" stroke-width="3"/><rect x="72" y="36" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="3"/><rect x="14" y="40" width="46" height="46" rx="3" fill="var(--surface)" stroke="currentColor" stroke-width="3"/><path d="M37 52v22M26 63h22" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg><span>Add your first object</span></button></div><div class="wbchips" id="wbchips"></div><svg id="wbmini" class="wbmini" viewBox="0 0 168 108" role="img" aria-label="Minimap. Click to move the view."></svg><div class="wbtl" id="wbtl"></div></div><input type="file" id="wbfile" accept="image/*" hidden>';
+  var h='<div class="wbwrap" id="wbwrap"><div class="wbname"><h1>Whiteboard</h1><span>'+esc(spaceName())+'</span></div><div class="wbui" id="wbtools">'+wbToolsHTML()+'</div><svg id="wbsvg" class="wbsvg" role="img" aria-label="Whiteboard canvas"><defs><pattern id="wbdots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1.1" class="wbdot"/></pattern></defs><rect width="100%" height="100%" fill="url(#wbdots)"/><g id="wbworld"><g id="wbitems"></g></g></svg><div class="wbempty" id="wbempty"><button class="wbempty-x" data-act="wbhint" aria-label="Dismiss">'+I("x")+'</button><button class="wbempty-b" data-act="wbfirst"><svg viewBox="0 0 96 96" width="88" height="88" aria-hidden="true"><rect x="52" y="10" width="22" height="22" rx="3" fill="none" stroke="currentColor" stroke-width="3"/><rect x="72" y="36" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="3"/><rect x="14" y="40" width="46" height="46" rx="3" fill="var(--surface)" stroke="currentColor" stroke-width="3"/><path d="M37 52v22M26 63h22" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg><span>Add your first object</span></button></div><div class="wbchips" id="wbchips"></div><svg id="wbmini" class="wbmini" viewBox="0 0 168 108" role="img" aria-label="Minimap. Click to move the view."></svg><div class="wbtl" id="wbtl"></div></div><input type="file" id="wbfile" accept="image/*" hidden>';
   return h;
 }
 function wbMount(){
