@@ -446,3 +446,6 @@ body *,svg text{font-variant-numeric:tabular-nums}
 .mb2 .mb-collage .mb-sw,.mb2 .mb-collage .mb-note{border-radius:14px!important}
 .mb2 .mb-collage .k-image{border-radius:14px!important}
 .mb2 .mb-collage .k-image .mb-img{border-radius:8px!important}
+.card textarea.ct{display:block;resize:none;overflow:hidden;field-sizing:content;min-height:0;font:500 14px/1.35 var(--f-body);color:var(--fg);white-space:pre-wrap;overflow-wrap:anywhere}
+.mb-bs{padding:16px 10px}.mb-bs b{font-size:12px;letter-spacing:0;text-overflow:clip}
+.mb2 .s-palette .mb-wrap{grid-template-columns:repeat(auto-fill,minmax(104px,1fr))}

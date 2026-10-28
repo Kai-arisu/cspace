@@ -2546,6 +2546,9 @@ body *,svg text{font-variant-numeric:tabular-nums}
 .mb2 .mb-collage .mb-sw,.mb2 .mb-collage .mb-note{border-radius:14px!important}
 .mb2 .mb-collage .k-image{border-radius:14px!important}
 .mb2 .mb-collage .k-image .mb-img{border-radius:8px!important}
+.card textarea.ct{display:block;resize:none;overflow:hidden;field-sizing:content;min-height:0;font:500 14px/1.35 var(--f-body);color:var(--fg);white-space:pre-wrap;overflow-wrap:anywhere}
+.mb-bs{padding:16px 10px}.mb-bs b{font-size:12px;letter-spacing:0;text-overflow:clip}
+.mb2 .s-palette .mb-wrap{grid-template-columns:repeat(auto-fill,minmax(104px,1fr))}
 </style></head><body><div id="authgate" hidden></div><div id="pubpage" hidden></div>
 
 <div class="app">
@@ -3772,6 +3775,7 @@ function dlabel(d,done){
   if(done)return {t:nice,c:""};if(d<td)return {t:"Overdue · "+nice,c:"late"};if(d===td)return {t:"Today",c:"today"};if(d===tm)return {t:"Tomorrow",c:""};return {t:nice,c:""};
 }
 function dchip(attrs,val,done){var l=dlabel(val,done);return '<label class="dchip '+l.c+'">'+I("calendar")+'<span>'+esc(l.t)+'</span><input type="date" '+attrs+' value="'+esc(val||"")+'" aria-label="Due date"'+(readOnly?" disabled":"")+'></label>'}
+document.addEventListener("keydown",function(e){var t=e.target;if(e.key==="Enter"&&t&&t.tagName==="TEXTAREA"&&t.classList.contains("ct")){e.preventDefault();t.blur()}});
 document.addEventListener("click",function(e){var t=e.target;if(t&&t.tagName==="INPUT"&&t.type==="date"&&t.closest(".dchip")&&t.showPicker){try{t.showPicker()}catch(x){}}});
 function vHome(){
   var t=mine("tasks"),today=ymd(new Date()),open=t.filter(function(x){return x.col!=="s"});
@@ -3893,7 +3897,7 @@ function vBoard(){
     return '<section class="col" data-col="'+s.id+'" aria-label="'+s.name+'" style="--sc:'+STCOL[s.id]+'"><h3><span>'+s.name+'</span><span class="cn">'+cards.length+'</span></h3>'+
       cards.map(function(x){
         var late=x.due&&x.due<today&&x.col!=="s";
-        return '<div class="card'+(late?" late":"")+'" data-pri="'+(x.pri||0)+'" draggable="'+!readOnly+'" data-id="'+x.id+'"><input class="ghost ct" data-f="task" data-id="'+x.id+'" value="'+esc(x.title)+'" aria-label="Task title"'+(readOnly?" readonly":"")+'>'+
+        return '<div class="card'+(late?" late":"")+'" data-pri="'+(x.pri||0)+'" draggable="'+!readOnly+'" data-id="'+x.id+'"><textarea class="ghost ct" rows="1" data-f="task" data-id="'+x.id+'" aria-label="Task title"'+(readOnly?" readonly":"")+'>'+esc(x.title)+'</textarea>'+
           '<div class="foot"><span class="fl">'+dchip('data-f="due" data-id="'+x.id+'"',x.due,x.col==="s")+(x.who?'<span class="who" title="Assigned to '+esc(x.who)+'">'+esc(x.who.split(" ")[0])+'</span>':'')+'</span><span class="cacts">'+(!readOnly&&!x.tw&&typeof tkMembers==="function"&&tkMembers().length?'<button class="ico" data-act="tk_assign" data-id="'+x.id+'" aria-label="Assign to a teammate" title="Assign to a teammate">'+I("users")+'</button>':'')+
           '<button class="ico pflag" data-act="tpri" data-id="'+x.id+'" data-p="'+(x.pri||0)+'" title="Priority: '+["none","low","medium","high"][x.pri||0]+' (click to change)" aria-label="Priority: '+["none","low","medium","high"][x.pri||0]+'"'+(readOnly?" disabled":"")+'>'+I("flag")+'</button>'+
           '<button class="ico" data-act="tleft" data-id="'+x.id+'" aria-label="Move back"'+(si===0?" disabled":"")+'>'+I("left")+'</button>'+
@@ -5684,7 +5688,7 @@ document.addEventListener("input",function(e){
     var w=$("nwc");if(w)w.textContent=words(n.body)+" words · edited just now";
   }
   if(t.id==="nsearch")$("nlist").innerHTML=noteListHTML(t.value);
-  if(t.dataset&&t.dataset.f==="task"){var k=findIn(S.tasks,t.dataset.id);if(k){k.title=t.value;touch()}}
+  if(t.dataset&&t.dataset.f==="task"){if(t.tagName==="TEXTAREA"&&/\n/.test(t.value))t.value=t.value.replace(/\n+/g," ");var k=findIn(S.tasks,t.dataset.id);if(k){k.title=t.value;touch()}}
 });
 document.addEventListener("change",function(e){
   var t=e.target;
