@@ -3,7 +3,7 @@ base=os.path.dirname(os.path.abspath(__file__))+'/'
 src=open(base+'creator-space.html').read()
 web=open(base+'web/web.js').read()
 boot=open(base+'web/boot.js').read()
-css=open(base+'web/web.css').read()+'\n'+open(base+'web/frost.css').read()+'\n'+open(base+'web/studio.css').read()+'\n'+open(base+'web/editorial.css').read()+'\n'+open(base+'web/landing.css').read()
+css=open(base+'web/web.css').read()+'\n'+open(base+'web/frost.css').read()+'\n'+open(base+'web/studio.css').read()+'\n'+open(base+'web/editorial.css').read()+'\n'+open(base+'web/mid.css').read()+'\n'+open(base+'web/pubpage.css').read()+'\n'+open(base+'web/landing.css').read()
 # split
 i=src.index('<script>');j=src.rindex('</script>')
 pre=src[:i];js=src[i+len('<script>'):j]
@@ -36,7 +36,7 @@ early='<script>try{if(location.pathname==="/"&&!/[?&](signin|signup)\\b/.test(lo
 out=out.replace('</head><body>',early+'</head><body>',1)
 out+='<div id="authgate" hidden></div><div id="pubpage" hidden></div><div id="landing" hidden>'+landing+'</div>'+body
 out+='<script src="/supabase.js"></script><script>'+boot+'</script><script>'+lpjs+'</script><script type="text/plain" id="appjs">'+js+'</script><script>if("serviceWorker"in navigator){var hadSW=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener("controllerchange",function(){if(!hadSW){hadSW=true;return}if(document.getElementById("swup"))return;var d=document.createElement("div");d.id="swup";d.className="swup";d.innerHTML=\'<span>A new version of Creator Space is ready.</span><button onclick="location.reload()">Reload</button>\';document.body.appendChild(d)});addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").then(function(r){setInterval(function(){r.update().catch(function(){})},36e5)}).catch(function(){})})}</script></body></html>'
-out=re.sub(r'<link rel="stylesheet" href="https://fonts.googleapis.com/[^"]*">','<link rel="preload" href="/is.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/iserif.woff2" as="font" type="font/woff2" crossorigin>',out,count=1)
+out=re.sub(r'<link rel="stylesheet" href="https://fonts.googleapis.com/[^"]*">','<link rel="preload" href="/jost.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/young.woff2" as="font" type="font/woff2" crossorigin>',out,count=1)
 out=out.replace('<title>Creator Space</title>','<title>Creator Space: one workspace for creators</title><meta name="description" content="A free workspace for YouTube and Instagram creators: write scripts, plan posts, watch your live numbers and run sponsor deals in one calm place."><link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/icon-192.png"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%2317171A%27/%3E%3Cpath d=%27M21 11a7 7 0 1 0 0 10%27 fill=%27none%27 stroke=%27white%27 stroke-width=%273%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">',1)
 old='<div class="brand"><span class="logo" id="logo"></span><b>Creator Space</b></div>'
 assert out.count(old)==1
@@ -52,20 +52,23 @@ for f in os.listdir(base+'vendor/lp'):shutil.copy(base+'vendor/lp/'+f,base+'publ
 shutil.copy(base+'vendor/fonts/instrument-sans-latin-wght-normal.woff2',base+'public/is.woff2')
 shutil.copy(base+'vendor/fonts/instrument-sans-latin-ext-wght-normal.woff2',base+'public/is-ext.woff2')
 shutil.copy(base+'vendor/fonts/instrument-serif-latin-400-normal.woff2',base+'public/iserif.woff2')
+shutil.copy(base+'vendor/fonts/jost-latin-wght-normal.woff2',base+'public/jost.woff2')
+shutil.copy(base+'vendor/fonts/jost-latin-ext-wght-normal.woff2',base+'public/jost-ext.woff2')
+shutil.copy(base+'vendor/fonts/young-serif-latin-400-normal.woff2',base+'public/young.woff2')
 # ---- PWA ----
 import json
 from PIL import Image, ImageDraw
 def icon(n,pad):
-    im=Image.new('RGB',(n,n),(23,23,26));d=ImageDraw.Draw(im)
-    r=n*(0.5-pad);c=n/2;w=max(2,int(n*0.09))
-    d.arc([c-r*0.55,c-r*0.55,c+r*0.55,c+r*0.55],40,320,fill='white',width=w)
+    im=Image.new('RGB',(n,n),(255,194,26));d=ImageDraw.Draw(im)
+    r=n*(0.5-pad);c=n/2;w=max(2,int(n*0.1))
+    d.arc([c-r*0.55,c-r*0.55,c+r*0.55,c+r*0.55],40,320,fill=(28,26,23),width=w)
     return im
 icon(192,0.1).save(base+'public/icon-192.png');icon(512,0.1).save(base+'public/icon-512.png');icon(512,0.2).save(base+'public/icon-maskable.png')
-open(base+'public/manifest.webmanifest','w').write(json.dumps({"name":"Creator Space","short_name":"Creator","start_url":"/","scope":"/","display":"standalone","background_color":"#E9E9EC","theme_color":"#17171A","icons":[{"src":"/icon-192.png","sizes":"192x192","type":"image/png"},{"src":"/icon-512.png","sizes":"512x512","type":"image/png"},{"src":"/icon-maskable.png","sizes":"512x512","type":"image/png","purpose":"maskable"}]}))
+open(base+'public/manifest.webmanifest','w').write(json.dumps({"name":"Creator Space","short_name":"Creator","start_url":"/","scope":"/","display":"standalone","background_color":"#FFFFFF","theme_color":"#FFFFFF","icons":[{"src":"/icon-192.png","sizes":"192x192","type":"image/png"},{"src":"/icon-512.png","sizes":"512x512","type":"image/png"},{"src":"/icon-maskable.png","sizes":"512x512","type":"image/png","purpose":"maskable"}]}))
 import hashlib
 _ver=hashlib.sha1(out.encode()).hexdigest()[:10]
 open(base+'public/sw.js','w').write("""const C='cs-shell-"""+_ver+"""';
-const SHELL=['/','/supabase.js','/591.supabase.js','/is.woff2','/iserif.woff2','/manifest.webmanifest','/icon-192.png'];
+const SHELL=['/','/supabase.js','/591.supabase.js','/jost.woff2','/young.woff2','/is.woff2','/manifest.webmanifest','/icon-192.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(SHELL.map(u=>new Request(u,{cache:'reload'})))).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{const r=e.request,u=new URL(r.url);

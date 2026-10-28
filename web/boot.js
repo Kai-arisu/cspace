@@ -241,48 +241,47 @@ async function showPublic(handle,mode){
   var PL={youtube:"YouTube",instagram:"Instagram",tiktok:"TikTok",x:"X",facebook:"Facebook",other:"Other"};
   var accent=/^#[0-9a-f]{6}$/i.test(p.accent||"")?p.accent:"#111111";
   var kit=p.kit&&typeof p.kit==="object"?p.kit:{};
+  var name=p.display_name||p.handle,ini=esc((name||"?").slice(0,1).toUpperCase());
+  function lumOf(h){var c=[1,3,5].map(function(i){var v=parseInt(h.substr(i,2),16)/255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)});return .2126*c[0]+.7152*c[1]+.0722*c[2]}
+  var onA=lumOf(accent)>.36?"#1c1a17":"#ffffff";
+  var av=p.avatar_url?'<img class="pg-av" src="'+esc(p.avatar_url)+'" alt="'+esc(name)+'">':'<span class="pg-av pg-ini" aria-hidden="true">'+ini+'</span>';
+  var stamp=new Date().toLocaleDateString("en-IN",{month:"long",year:"numeric"});
+  var nums=conns.map(function(c){var s=snaps[c.id]||{};return {pl:PL[c.platform]||c.platform,f:s.followers,v:s.views,n:s.posts,unit:c.platform==="youtube"?"subscribers":"followers",ts:s.ts}});
+  var bar='<header class="pg-bar"><a class="pg-word" href="/u/'+esc(p.handle)+'">@'+esc(p.handle)+'</a><nav class="pg-nav">'+
+    (mode==="kit"?'<a href="/u/'+esc(p.handle)+'">Profile</a><button type="button" class="pg-btn" id="kitprint">Save as PDF</button>':(kit.on?'<a class="pp-kit" href="/u/'+esc(p.handle)+'/kit">Media kit</a>':"")+(kit.email?'<a class="pg-btn" href="mailto:'+esc(kit.email)+'">Work with me</a>':""))+'</nav></header>';
+  var foot='<footer class="pg-foot"><span>'+esc(name)+'</span><a href="/">Made with Creator Space</a></footer>';
   if(mode==="kit"){
     if(!kit.on){el.innerHTML='<div class="pp-wrap"><div class="pp-card"><h1>No media kit</h1><p class="pp-sub">This creator has not published a media kit.</p><a class="btn pri" href="/u/'+esc(p.handle)+'">See their page</a></div></div>';document.title="Media kit";return}
-    document.title=(p.display_name||"@"+p.handle)+" media kit";
-    var kh='<div class="pp-wrap kit" style="--pa:'+accent+'"><div class="pp-card"><div class="kit-top"><a class="kit-back" href="/u/'+esc(p.handle)+'">← Profile</a><button class="btn sm" id="kitprint">Save as PDF</button></div><div class="pp-head">'+
-      (p.avatar_url?'<img class="pp-av" src="'+esc(p.avatar_url)+'" alt="">':'<span class="pp-av pp-ini">'+esc((p.display_name||p.handle||"?").slice(0,1).toUpperCase())+'</span>')+
-      '<div><p class="kit-eyebrow">Media kit</p><h1>'+esc(p.display_name||p.handle)+'</h1><p class="pp-handle">@'+esc(p.handle)+'</p></div></div>'+
-      (p.tagline?'<p class="pp-tag">'+esc(p.tagline)+'</p>':"")+(kit.intro?'<p class="pp-bio">'+esc(kit.intro)+'</p>':(p.bio?'<p class="pp-bio">'+esc(p.bio)+'</p>':""));
-    var PLn={youtube:"YouTube",instagram:"Instagram",tiktok:"TikTok",x:"X",facebook:"Facebook",other:"Other"};
-    var st=conns.map(function(c){var s=snaps[c.id]||{};return [(PLn[c.platform]||c.platform)+(c.platform==="youtube"?" subscribers":" followers"),fmt(s.followers)]}).concat((Array.isArray(kit.stats)?kit.stats:[]).map(function(x){return [x[0],x[1]]}));
-    if(st.length)kh+='<h2 class="pp-h">Audience</h2><div class="pp-stats">'+st.map(function(x){return '<div class="pp-stat"><span class="pp-pl">'+esc(x[0])+'</span><b>'+esc(x[1])+'</b></div>'}).join("")+'</div>';
-    var rt=Array.isArray(kit.rates)?kit.rates:[];
-    if(rt.length)kh+='<h2 class="pp-h">Rates</h2><div class="kit-list">'+rt.map(function(x){return '<div class="kit-li"><span>'+esc(x[0])+'</span><b>'+esc(x[1])+'</b></div>'}).join("")+'</div>';
-    var br=Array.isArray(kit.brands)?kit.brands:[];
-    if(br.length)kh+='<h2 class="pp-h">Worked with</h2><div class="kit-list">'+br.map(function(x){return '<div class="kit-li"><span>'+esc(x.name)+'</span><small>'+esc(x.note)+'</small></div>'}).join("")+'</div>';
-    if(kit.email)kh+='<h2 class="pp-h">Contact</h2><a class="btn pri kit-mail" href="mailto:'+esc(kit.email)+'">'+esc(kit.email)+'</a>';
-    kh+='</div><p class="pp-foot">Made with <a href="/">Creator Space</a></p></div>';
-    el.innerHTML=kh;var pb=$("kitprint");if(pb)pb.addEventListener("click",function(){window.print()});
+    document.title=name+" media kit";
+    var st=nums.map(function(x){return [x.pl+" "+x.unit,fmt(x.f)]}).concat((Array.isArray(kit.stats)?kit.stats:[]).map(function(x){return [x[0],x[1]]}));
+    var rt=Array.isArray(kit.rates)?kit.rates:[],br=Array.isArray(kit.brands)?kit.brands:[];
+    var kh='<div class="pg pg-kit" style="--pa:'+accent+';--on-pa:'+onA+'">'+bar+
+      '<section class="pg-hero kh"><div class="pg-ht"><h1 class="pg-name">'+esc(name)+'</h1><p class="pg-tag">Media kit, '+esc(stamp)+'</p>'+
+      ((kit.intro||p.bio)?'<p class="pg-bio">'+esc(kit.intro||p.bio)+'</p>':"")+'</div>'+av+'</section>';
+    if(st.length)kh+='<section class="pg-band" aria-labelledby="kst"><h2 id="kst" class="pg-h">Audience</h2><div class="pg-nums">'+st.map(function(x){return '<div class="pg-n"><b>'+esc(x[1])+'</b><span>'+esc(x[0])+'</span></div>'}).join("")+'</div></section>';
+    kh+='<div class="pg-two">';
+    if(rt.length)kh+='<section class="pg-sec" aria-labelledby="krt"><h2 id="krt" class="pg-h2">Rates</h2><table class="pg-rates"><tbody>'+rt.map(function(x){return '<tr><th scope="row">'+esc(x[0])+'</th><td>'+esc(x[1])+'</td></tr>'}).join("")+'</tbody></table></section>';
+    if(br.length)kh+='<section class="pg-sec" aria-labelledby="kbr"><h2 id="kbr" class="pg-h2">Worked with</h2><ul class="pg-brands">'+br.map(function(x){return '<li><b>'+esc(x.name)+'</b><span>'+esc(x.note)+'</span></li>'}).join("")+'</ul></section>';
+    kh+='</div>';
+    if(kit.email)kh+='<section class="pg-cta" aria-labelledby="kct"><h2 id="kct" class="pg-h2">Let\'s make something.</h2><a class="pg-mail kit-mail" href="mailto:'+esc(kit.email)+'">'+esc(kit.email)+'</a></section>';
+    el.innerHTML=kh+foot+'</div>';var pb=$("kitprint");if(pb)pb.addEventListener("click",function(){window.print()});
     return;
   }
   var links=(Array.isArray(p.links)?p.links:[]).filter(function(l){return l&&/^https?:\/\//i.test(l.url||"")});
-  var h='<div class="pp-wrap" style="--pa:'+accent+'"><div class="pp-card"><div class="pp-head">'+
-    (p.avatar_url?'<img class="pp-av" src="'+esc(p.avatar_url)+'" alt="">':'<span class="pp-av pp-ini">'+esc((p.display_name||p.handle||"?").slice(0,1).toUpperCase())+'</span>')+
-    '<div><h1>'+esc(p.display_name||p.handle)+'</h1><p class="pp-handle">@'+esc(p.handle)+'</p></div></div>'+
-    (p.tagline?'<p class="pp-tag">'+esc(p.tagline)+'</p>':"")+(p.bio?'<p class="pp-bio">'+esc(p.bio)+'</p>':"")+
-    (links.length||kit.on?'<div class="pp-links">'+(kit.on?'<a class="pp-link pp-kit" href="/u/'+esc(p.handle)+'/kit">Media kit</a>':"")+links.map(function(l){return '<a class="pp-link" href="'+esc(l.url)+'" target="_blank" rel="noopener noreferrer">'+esc(l.label||l.url)+'</a>'}).join("")+'</div>':"");
-  if(conns.length){
-    h+='<h2 class="pp-h">Numbers</h2><div class="pp-stats">'+conns.map(function(c){
-      var s=snaps[c.id]||{};
-      return '<div class="pp-stat"><span class="pp-pl">'+esc(PL[c.platform]||c.platform)+'</span><b>'+fmt(s.followers)+'</b><small>'+(c.platform==="youtube"?"subscribers":"followers")+'</small>'+
-        '<span class="pp-meta">'+fmt(s.views)+' views · '+fmt(s.posts)+' posts</span>'+(s.ts?'<span class="pp-asof">as of '+new Date(s.ts).toLocaleDateString("en-IN",{day:"numeric",month:"short"})+'</span>':"")+'</div>';
-    }).join("")+'</div>';
-  }
-  if(vids.length){
-    h+='<h2 class="pp-h">Recent videos</h2><div class="pp-vids">'+vids.map(function(v){
-      return '<a class="pp-vid" href="https://www.youtube.com/watch?v='+esc(v.video_id)+'" target="_blank" rel="noopener noreferrer">'+(v.thumb?'<img src="'+esc(v.thumb)+'" alt="" loading="lazy">':"")+'<span>'+esc(v.title||"")+'</span><small>'+fmt(v.views)+' views</small></a>';
-    }).join("")+'</div>';
-  }
-  h+='</div><p class="pp-foot">Made with <a href="/">Creator Space</a></p></div>';
-  el.innerHTML=h;
-  var sb=document.createElement("button");sb.className="btn pp-share";sb.type="button";sb.textContent="Share as image";
-  sb.addEventListener("click",function(){csShare({name:p.display_name||p.handle,handle:p.handle,tagline:p.tagline,accent:p.accent,look:p.look,avatar:p.avatar_url,stats:conns.map(function(c){var s=snaps[c.id]||{};return [PL[c.platform]||c.platform,s.followers]}).filter(function(x){return x[1]!=null})})});
-  var ft=el.querySelector(".pp-foot");if(ft)ft.parentNode.insertBefore(sb,ft)
+  function host(u){try{return new URL(u).hostname.replace(/^www\./,"")+new URL(u).pathname.replace(/\/$/,"")}catch(e){return u}}
+  var h='<div class="pg" style="--pa:'+accent+';--on-pa:'+onA+'">'+bar+
+    '<section class="pg-hero"><div class="pg-ht"><h1 class="pg-name">'+esc(name)+'</h1>'+(p.tagline?'<p class="pg-tag">'+esc(p.tagline)+'</p>':"")+'</div>'+av+'</section>';
+  if(nums.length)h+='<section class="pg-band" aria-labelledby="pnum"><h2 id="pnum" class="pg-h">Where people watch</h2><div class="pg-nums">'+nums.map(function(x){
+    return '<div class="pg-n"><b>'+fmt(x.f)+'</b><span>'+esc(x.pl)+' '+x.unit+'</span><small>'+fmt(x.v)+' views · '+fmt(x.n)+' posts'+(x.ts?' · '+new Date(x.ts).toLocaleDateString("en-IN",{day:"numeric",month:"short"}):"")+'</small></div>'}).join("")+'</div></section>';
+  if(vids.length)h+='<section class="pg-sec" aria-labelledby="pvid"><h2 id="pvid" class="pg-h2">Latest videos</h2><div class="pg-vids">'+vids.map(function(v,i){
+    return '<a class="pg-vid" href="https://www.youtube.com/watch?v='+esc(v.video_id)+'" target="_blank" rel="noopener noreferrer"><span class="pg-th'+(v.thumb?"":" none")+'">'+(v.thumb?'<img src="'+esc(v.thumb)+'" alt="" loading="lazy">':'<i>'+esc(String(v.title||"").replace(/^#Shorts\s*/i,""))+'</i>')+'</span><b>'+esc(v.title||"")+'</b><small>'+fmt(v.views)+' views</small></a>'}).join("")+'</div></section>';
+  h+='<section class="pg-about" aria-labelledby="pab"><h2 id="pab" class="pg-h2">About</h2><div>'+(p.bio?'<p class="pg-bio">'+esc(p.bio)+'</p>':"")+
+    (links.length?'<ul class="pg-links">'+links.map(function(l){return '<li><a class="pp-link" href="'+esc(l.url)+'" target="_blank" rel="noopener noreferrer"><b>'+esc(l.label||host(l.url))+'</b><span>'+esc(host(l.url))+'</span><i aria-hidden="true">↗</i></a></li>'}).join("")+'</ul>':"")+'</div></section>';
+  if(kit.on||kit.email)h+='<section class="pg-cta" aria-labelledby="pct"><h2 id="pct" class="pg-h2">Working with brands</h2><div class="pg-ctas">'+(kit.on?'<a class="pg-btn big" href="/u/'+esc(p.handle)+'/kit">See the media kit</a>':"")+(kit.email?'<a class="pg-mail" href="mailto:'+esc(kit.email)+'">'+esc(kit.email)+'</a>':"")+'</div></section>';
+  el.innerHTML=h+foot+'</div>';
+  var sb=document.createElement("button");sb.className="pg-btn pp-share";sb.type="button";sb.textContent="Share as image";
+  sb.addEventListener("click",function(){csShare({name:name,handle:p.handle,tagline:p.tagline,accent:p.accent,look:p.look,avatar:p.avatar_url,stats:conns.map(function(c){var s=snaps[c.id]||{};return [PL[c.platform]||c.platform,s.followers]}).filter(function(x){return x[1]!=null})})});
+  var nv=el.querySelector(".pg-nav");if(nv)nv.insertBefore(sb,nv.firstChild);
 }
 
 /* ---------- start the app after sign-in ---------- */

@@ -47,7 +47,7 @@ await p.click('.cc-side [data-act="bk_use"] >> nth=0');await p.waitForTimeout(30
 ok((await p.inputValue('.cc-side .cp-cap')).length>5,'drop a bank item into a planned post');
 
 // repurpose
-await nav('ideas');const before=await p.evaluate(()=>document.querySelectorAll('.idea').length);
+await nav('ideas');const before=await p.evaluate(()=>document.querySelectorAll('.icard').length);
 await p.click('[data-act="rp_open"] >> nth=0');await p.waitForTimeout(300);
 ok(await p.locator('.rp-row').count()===9,'repurpose offers 9 formats');
 await p.selectOption('[data-rp-n="shorts"]','2');await p.check('[data-rp="thread"]');

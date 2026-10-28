@@ -1010,7 +1010,7 @@ var ICONS={
 function I(n){return '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">'+ICONS[n]+'</svg>'}
 
 var S=null, db=null, ref=null, assets=null, saving=false, dirty=false, timer=null, lastJson="";
-var selNote=null, ideaFilter="all", moodForm=null, addingSpace=false, readOnly=false;
+var selNote=null, noteOpen=false, noteMode="write", ideaFilter="all", moodForm=null, addingSpace=false, readOnly=false;
 
 function uid(){return Math.random().toString(36).slice(2,10)}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
@@ -1854,7 +1854,7 @@ function vNotes(){
   var h=hero("notes","Notes",null,'<button class="btn pri" data-act="newnote"'+(readOnly?" disabled":"")+'>'+I("plus")+'New note</button>');
   if(!list.length)return h+emptyCard("notes","Write your first note","Scripts, outlines, briefs and pitches live here. Start from a template so you're never facing a blank page.",readOnly?"":NTPL.map(function(t){return '<button class="btn sm" data-act="ntpl" data-id="'+t[0]+'">'+t[1]+'</button>'}).join(""));
   if(!readOnly)h+='<div class="ntpl"><span>Start from</span>'+NTPL.map(function(t){return '<button class="chip" data-act="ntpl" data-id="'+t[0]+'">'+t[1]+'</button>'}).join("")+'</div>';
-  h+='<div class="notes"><div><input class="in" id="nsearch" placeholder="Filter notes" aria-label="Filter notes" style="margin-bottom:10px"><div class="nlist" id="nlist"></div></div><div id="neditor"></div></div>';
+  h+='<div class="notes'+(noteOpen?" nopen":"")+'"><div><input class="in" id="nsearch" placeholder="Filter notes" aria-label="Filter notes" style="margin-bottom:10px"><div class="nlist" id="nlist"></div></div><div id="neditor"></div></div>';
   return h;
 }
 function noteListHTML(q){
@@ -1868,13 +1868,14 @@ function noteListHTML(q){
 function noteEditorHTML(){
   var n=S.notes.filter(function(x){return x.id===selNote})[0];
   if(!n)return '<div class="panel empty">Create a note to start writing.</div>';
-  var ro=readOnly?" readonly":"",outl=nOutline(n.body);
-  return '<div class="panel npaper"><div class="nbar">'+nToolbar()+'<span class="nacts"><button class="btn sm" data-act="tp_open">'+I("play")+'Teleprompter</button>'+cbtn("#neditor .panel")+
+  var ro=readOnly?" readonly":"",outl=nOutline(n.body),rd=noteMode==="read"||readOnly;
+  return '<div class="panel npaper'+(rd?" nread":"")+'"><div class="nbar"><button class="btn sm nback" data-act="nback">'+I("left")+'All notes</button>'+
+    '<div class="nmode" role="group" aria-label="Note mode"><button data-act="nmode" data-id="write" aria-pressed="'+!rd+'"'+(readOnly?" disabled":"")+'>Write</button><button data-act="nmode" data-id="read" aria-pressed="'+rd+'">Read</button></div>'+(rd?"":nToolbar())+'<span class="nacts"><button class="btn sm" data-act="tp_open">'+I("play")+'Teleprompter</button>'+cbtn("#neditor .panel")+
     '<button class="ico" data-act="pinnote" aria-label="'+(n.pin?"Unpin note":"Pin note")+'" title="'+(n.pin?"Unpin":"Pin")+'" aria-pressed="'+!!n.pin+'">'+I("pin")+'</button>'+
     '<button class="ico" data-act="delnote" aria-label="Delete note" title="Delete"'+(readOnly?" disabled":"")+'>'+I("trash")+'</button></span></div>'+
     '<div class="nout" id="nout"'+(/nsec/.test(outl)?"":" hidden")+'>'+outl+'</div>'+
     '<input class="ghost ntitle" id="ntitle" value="'+esc(n.title)+'" placeholder="Untitled" aria-label="Note title"'+ro+'>'+
-    '<textarea class="nbody" id="nbody" placeholder="Start writing… use ## for headings, - [ ] for checklists" aria-label="Note body"'+ro+'>'+esc(n.body)+'</textarea>'+
+    (rd?'<div class="ndoc" id="ndoc">'+nRender(n.body)+'</div>':'<textarea class="nbody" id="nbody" placeholder="Start writing… use ## for headings, - [ ] for checklists" aria-label="Note body"'+ro+'>'+esc(n.body)+'</textarea>')+
     '<div class="nmeta"><span id="nwc">'+words(n.body)+' words · edited '+ago(n.ts)+'</span></div></div>';
 }
 
@@ -1886,23 +1887,25 @@ function vIdeas(){
   if(!all.length)return h+emptyCard("bulb","Catch your first idea","Type it above and press Add idea. Use #tags like #vlog to sort them. Any idea becomes a task or a planned post in one click.","");
   var shown=all.filter(function(i){return ideaFilter==="all"||(ideaFilter==="star"?i.star:(i.tags||[]).indexOf(ideaFilter)>-1)}).sort(function(a,b){return b.ts-a.ts});
   var starred=all.filter(function(i){return i.star}).length,onBoard=all.filter(function(i){return i.task}).length,planned=all.filter(function(i){return S.posts.some(function(p){return p.ideaId===i.id})}).length;
-  var label=ideaFilter==="all"?"All ideas":(ideaFilter==="star"?"Starred":"#"+ideaFilter);
-  h+='<div class="id-grid"><section class="panel id-main"><h2>'+esc(label)+' <span class="cnt">'+shown.length+'</span>'+(ideaFilter!=="all"?'<button class="lnk" data-act="ifilter" data-id="all">Show all</button>':"")+'</h2>';
-  if(!shown.length)h+='<div class="empty">No ideas match this filter.</div>';
-  h+='<div class="id-rows">'+shown.map(function(i){
+  var loose=all.filter(function(i){return !i.task&&!S.posts.some(function(p){return p.ideaId===i.id})}).length;
+  var tk=Object.keys(tags).sort(function(a,b){return tags[b]-tags[a]||(a<b?-1:1)});
+  h+='<div class="id-bar"><div class="id-chips" role="group" aria-label="Show ideas">'+
+    '<button class="chip" data-act="ifilter" data-id="all" aria-pressed="'+(ideaFilter==="all")+'">All <b>'+all.length+'</b></button>'+
+    '<button class="chip" data-act="ifilter" data-id="star" aria-pressed="'+(ideaFilter==="star")+'">'+I("star")+'Starred <b>'+starred+'</b></button>'+
+    tk.map(function(t){return '<button class="chip" data-act="ifilter" data-id="'+esc(t)+'" aria-pressed="'+(ideaFilter===t)+'">#'+esc(t)+' <b>'+tags[t]+'</b></button>'}).join("")+'</div>'+
+    '<p class="id-sum2"><span><b>'+loose+'</b> still loose</span><span><b>'+onBoard+'</b> on the board</span><span><b>'+planned+'</b> planned as posts</span></p></div>';
+  if(!shown.length)return h+'<div class="empty id-none">No ideas match this filter. <button class="lnk" data-act="ifilter" data-id="all">Show all</button></div>';
+  h+='<div class="id-wall">'+shown.map(function(i){
     var txt=String(i.text||"").replace(/\s*#[\w-]+/g,"").trim()||i.text;
     var planned1=S.posts.some(function(p){return p.ideaId===i.id});
-    return '<div class="idea"><button class="ico star" data-act="staridea" data-id="'+i.id+'" aria-pressed="'+!!i.star+'" aria-label="'+(i.star?"Unstar":"Star")+' idea">'+I("star")+'</button>'+
-      '<div class="body"><span class="it">'+esc(txt)+'</span><span class="im">'+(i.tags||[]).map(function(t){return '<button class="tag" data-act="ifilter" data-id="'+esc(t)+'">#'+esc(t)+'</button>'}).join("")+'<span>'+ago(i.ts)+'</span>'+(i.task?'<span class="id-st">On the board</span>':"")+(planned1?'<span class="id-st">Planned</span>':"")+'</span></div>'+
-      '<div class="acts">'+(i.task?"":'<button class="btn sm" data-act="idea2task" data-id="'+i.id+'"'+(readOnly?" disabled":"")+'>Make task</button>')+(planned1?"":'<button class="btn sm" data-act="idea2post" data-id="'+i.id+'"'+(readOnly?" disabled":"")+'>Plan post</button>')+(readOnly?'':'<button class="btn sm" data-act="rp_open" data-id="idea:'+i.id+'">Repurpose</button>')+
-      '<button class="ico" data-act="delidea" data-id="'+i.id+'" aria-label="Delete idea" title="Delete"'+(readOnly?" disabled":"")+'>'+I("trash")+'</button></div></div>';
-  }).join("")+'</div></section>';
-  var tk=Object.keys(tags).sort(function(a,b){return tags[b]-tags[a]||(a<b?-1:1)});
-  h+='<aside class="panel id-side"><h2>Sort by</h2><div class="id-f">'+
-    '<button data-act="ifilter" data-id="all" aria-pressed="'+(ideaFilter==="all")+'"><span>All ideas</span><b>'+all.length+'</b></button>'+
-    '<button data-act="ifilter" data-id="star" aria-pressed="'+(ideaFilter==="star")+'"><span>Starred</span><b>'+starred+'</b></button>'+
-    tk.map(function(t){return '<button data-act="ifilter" data-id="'+esc(t)+'" aria-pressed="'+(ideaFilter===t)+'"><span>#'+esc(t)+'</span><b>'+tags[t]+'</b></button>'}).join("")+'</div>'+
-    '<div class="id-sum"><div><b>'+onBoard+'</b><span>on the board</span></div><div><b>'+planned+'</b><span>planned as posts</span></div><div><b>'+all.filter(function(i){return !i.task&&!S.posts.some(function(p){return p.ideaId===i.id})}).length+'</b><span>still loose</span></div></div></aside></div>';
+    var st=i.task?"On the board":(planned1?"Planned":"Loose");
+    return '<article class="icard'+(i.star?" starred":"")+'"><header><span class="ic-st'+(st==="Loose"?"":" on")+'">'+st+'</span><span class="ic-when">'+ago(i.ts)+'</span>'+
+      '<button class="ico star" data-act="staridea" data-id="'+i.id+'" aria-pressed="'+!!i.star+'" aria-label="'+(i.star?"Unstar":"Star")+' idea">'+I("star")+'</button></header>'+
+      '<h3 class="ic-t">'+esc(txt)+'</h3>'+
+      ((i.tags||[]).length?'<div class="ic-tags">'+(i.tags||[]).map(function(t){return '<button class="tag" data-act="ifilter" data-id="'+esc(t)+'">#'+esc(t)+'</button>'}).join("")+'</div>':'')+
+      '<footer class="acts">'+(i.task?"":'<button class="btn sm" data-act="idea2task" data-id="'+i.id+'"'+(readOnly?" disabled":"")+'>'+I("board")+'Make task</button>')+(planned1?"":'<button class="btn sm" data-act="idea2post" data-id="'+i.id+'"'+(readOnly?" disabled":"")+'>'+I("calendar")+'Plan post</button>')+(readOnly?'':'<button class="btn sm" data-act="rp_open" data-id="idea:'+i.id+'">Repurpose</button>')+
+      '<button class="ico" data-act="delidea" data-id="'+i.id+'" aria-label="Delete idea" title="Delete"'+(readOnly?" disabled":"")+'>'+I("trash")+'</button></footer></article>';
+  }).join("")+'</div>';
   return h;
 }
 
@@ -1968,10 +1971,10 @@ function toHex(e){return "#"+[e.r,e.g,e.b].map(function(v){return Math.round(v).
 function bm(){
   if(!S.bmeta||typeof S.bmeta!=="object")S.bmeta={};
   var m=S.bmeta[S.cur];
-  if(!m||typeof m!=="object"){m=S.bmeta[S.cur]={kicker:"Brand board",title:"",tagline:"",about:"",keywords:[],head:"Inter",body:"Inter",layout:"poster"}}
+  if(!m||typeof m!=="object"){m=S.bmeta[S.cur]={kicker:"Brand board",title:"",tagline:"",about:"",keywords:[],head:"Inter",body:"Inter",layout:"canvas"}}
   if(!Array.isArray(m.keywords))m.keywords=[];
   if(!fontInfo(m.head))m.head="Inter";if(!fontInfo(m.body))m.body="Inter";
-  if(m.layout!=="collage")m.layout="poster";
+  if(m.layout!=="collage"&&m.layout!=="canvas")m.layout="poster";
   return m;
 }
 /* the text colour (white or near-black) with the higher contrast on a swatch */
@@ -2034,12 +2037,13 @@ function mTypeHTML(m){
   return h;
 }
 function vMood(){
-  var m=bm(),items=mine("mood"),poster=m.layout==="poster";
+  var m=bm(),items=mine("mood"),poster=m.layout==="poster",canvas=m.layout==="canvas";
   loadFont(m.head);loadFont(m.body);
-  var acts='<div class="hd-seg" role="group" aria-label="Board layout"><button data-act="mlayout" data-id="poster" aria-pressed="'+poster+'">Poster</button><button data-act="mlayout" data-id="collage" aria-pressed="'+!poster+'">Collage</button></div>'+
+  var acts='<div class="hd-seg" role="group" aria-label="Board layout"><button data-act="mlayout" data-id="poster" aria-pressed="'+poster+'">Poster</button><button data-act="mlayout" data-id="collage" aria-pressed="'+(!poster&&!canvas)+'">Collage</button><button data-act="mlayout" data-id="canvas" aria-pressed="'+canvas+'">Canvas</button></div>'+
     (readOnly?"":'<button class="btn" data-act="medit">'+(moodEdit?"Done":"Edit details")+'</button>')+'<button class="btn" data-act="mcopy">Copy as text</button><button class="btn pri" data-act="mexport">'+I("download")+'Download image</button>'+cbtn(".mb");
   var h=hero("mood","Moodboard","The look and feel of "+spaceName()+", in one place.",acts);
   var title=m.title||spaceName(),cols=items.filter(function(x){return x.kind==="color"});
+  if(canvas)return h+mCanvasHTML(m,items);
   h+='<div class="mb mb2 l-'+(poster?"poster":"collage")+'" style="--fh:'+fam(m.head)+';--fb:'+fam(m.body)+';--fhw:'+fontInfo(m.head)[3]+'">';
   /* cover: the name in its own heading font, beside its own colours */
   h+='<header class="mb-head"><div class="mb-ct"><div class="mb-kick">'+esc(m.kicker||"Brand board")+'</div><div class="mb-title">'+esc(title)+'</div>'+(m.tagline?'<div class="mb-tag">'+esc(m.tagline)+'</div>':"")+(m.about?'<p class="mb-about">'+esc(m.about)+'</p>':"");
@@ -2072,6 +2076,79 @@ function vMood(){
   h+='</div>';
   return h;
 }
+/* ---- free-form canvas: everything on one open board, placed by hand ---- */
+var MCV_W=1200,mcvSel=null;
+function mcvPlace(items){
+  var placed=items.filter(function(x){return x.cx!=null}),n=0;
+  items.forEach(function(x){if(x.cx!=null)return;var c=n%5,r=Math.floor(n/5);n++;
+    x.cx=40+c*228+(r%2?30:0);x.cy=50+r*260+((c*37)%50);x.cw=x.kind==="quote"||x.kind==="note"?260:(x.kind==="color"?170:(x.kind==="icon"?120:210));x.cr=+(rot(x.id)).toFixed(1);x.cz=placed.length+n});
+}
+function mCanvasHTML(m,items){
+  mcvPlace(items);
+  var hgt=Math.max(900,items.reduce(function(a,x){return Math.max(a,(x.cy||0)+(x.ch||320)+120)},0));
+  var tools=readOnly?"":'<div class="mcv-tools" role="toolbar" aria-label="Add to canvas">'+[["image","Image"],["note","Text"],["quote","Quote"],["color","Colour"],["link","Link"],["pattern","Pattern"],["icon","Icon"]].map(function(a){return '<button class="btn sm" data-act="mform" data-id="'+a[0]+'">'+I("plus")+a[1]+'</button>'}).join("")+
+    '<span class="mcv-tip">Drop or paste images and links anywhere on the board. Drag to move, pull the corner to resize, the dot to turn.</span></div>';
+  var h=tools+(moodForm?mForm():"");
+  h+='<div class="mcv" id="mcv" style="--fh:'+fam(m.head)+';--fb:'+fam(m.body)+'" tabindex="0" aria-label="Moodboard canvas"><div class="mcv-sz" id="mcvsz"></div><div class="mcv-in" id="mcvin" style="width:'+MCV_W+'px;height:'+hgt+'px">';
+  items.slice().sort(function(a,b){return (a.cz||0)-(b.cz||0)}).forEach(function(x){
+    h+='<div class="mcv-it'+(x.id===mcvSel?" sel":"")+'" data-mid="'+x.id+'" style="left:'+x.cx+'px;top:'+x.cy+'px;width:'+x.cw+'px;transform:rotate('+(x.cr||0)+'deg);z-index:'+(x.cz||1)+'">'+mItem(x)+
+      (readOnly?"":'<span class="mcv-rs" aria-hidden="true"></span><span class="mcv-rot" aria-hidden="true"></span>')+'</div>';
+  });
+  if(!items.length)h+='<div class="mcv-empty"><b>An empty board</b><span>Drop images here, paste a link, or use the buttons above. Put things wherever you like.</span>'+(readOnly?"":'<button class="btn pri" data-act="mstarter">Start with a sample set</button>')+'</div>';
+  return h+'</div></div>';
+}
+function mcvFit(){var c=$("mcv"),i=$("mcvin"),z=$("mcvsz");if(!c||!i)return;var k=Math.max(.55,Math.min(1,c.clientWidth/MCV_W));i.style.transform="scale("+k+")";
+  z.style.width=(MCV_W*k)+"px";z.style.height=(i.offsetHeight*k)+"px";c.style.height=Math.min(i.offsetHeight*k,c.clientWidth<700?window.innerHeight*.68:1e5)+"px";c.dataset.k=k}
+function mcvMount(){
+  var c=$("mcv");if(!c)return;mcvFit();
+  if(!window.__mcvRO){window.__mcvRO=1;window.addEventListener("resize",function(){mcvFit()})}
+  if(readOnly)return;
+  function k(){return +c.dataset.k||1}
+  function pt(e){var r=$("mcvin").getBoundingClientRect();return {x:(e.clientX-r.left)/k(),y:(e.clientY-r.top)/k()}}
+  c.addEventListener("pointerdown",function(e){
+    var el=e.target.closest(".mcv-it");
+    c.querySelectorAll(".mcv-it.sel").forEach(function(x){if(x!==el)x.classList.remove("sel")});
+    if(!el){mcvSel=null;return}
+    if(e.target.closest("button,a,input,select,textarea"))return;
+    var it=S.mood.filter(function(x){return x.id===el.dataset.mid})[0];if(!it)return;
+    mcvSel=it.id;el.classList.add("sel");
+    var top=S.mood.reduce(function(a,x){return Math.max(a,x.cz||0)},0);if((it.cz||0)<top){it.cz=top+1;el.style.zIndex=it.cz}
+    var mode=e.target.classList.contains("mcv-rs")?"rs":(e.target.classList.contains("mcv-rot")?"rot":"mv"),p0=pt(e),o={x:it.cx,y:it.cy,w:it.cw,r:it.cr||0};
+    var cx=o.x+o.w/2,cy=o.y+el.offsetHeight/2,a0=Math.atan2(p0.y-cy,p0.x-cx);
+    el.setPointerCapture(e.pointerId);e.preventDefault();el.classList.add("drag");
+    function mv(ev){var p=pt(ev);
+      if(mode==="mv"){it.cx=Math.round(Math.max(-o.w/2,Math.min(MCV_W-o.w/2,o.x+p.x-p0.x)));it.cy=Math.round(Math.max(0,o.y+p.y-p0.y));el.style.left=it.cx+"px";el.style.top=it.cy+"px"}
+      else if(mode==="rs"){it.cw=Math.round(Math.max(120,Math.min(1200,o.w+(p.x-p0.x))));el.style.width=it.cw+"px"}
+      else{var a=Math.atan2(p.y-cy,p.x-cx);it.cr=Math.round((o.r+(a-a0)*180/Math.PI)*2)/2;if(Math.abs(it.cr)<2)it.cr=0;el.style.transform="rotate("+it.cr+"deg)"}}
+    function up(){el.removeEventListener("pointermove",mv);el.removeEventListener("pointerup",up);el.removeEventListener("pointercancel",up);el.classList.remove("drag");it.ch=el.offsetHeight;touch();
+      var i=$("mcvin"),need=Math.max(900,it.cy+el.offsetHeight+120);if(need>i.offsetHeight){i.style.height=need+"px";mcvFit()}}
+    el.addEventListener("pointermove",mv);el.addEventListener("pointerup",up);el.addEventListener("pointercancel",up);
+  });
+  c.addEventListener("keydown",function(e){
+    if(!mcvSel||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;var it=S.mood.filter(function(x){return x.id===mcvSel})[0];if(!it)return;
+    var d=e.shiftKey?40:8,mvd=true;
+    if(e.key==="ArrowLeft")it.cx-=d;else if(e.key==="ArrowRight")it.cx+=d;else if(e.key==="ArrowUp")it.cy=Math.max(0,it.cy-d);else if(e.key==="ArrowDown")it.cy+=d;
+    else if(e.key==="Delete"||e.key==="Backspace"){S.mood=S.mood.filter(function(x){return x.id!==mcvSel});mcvSel=null;touch();render();return}else mvd=false;
+    if(mvd){e.preventDefault();touch();var el=c.querySelector('[data-mid="'+it.id+'"]');if(el){el.style.left=it.cx+"px";el.style.top=it.cy+"px"}}
+  });
+  function addAt(item,p){item.id=uid();item.sp=S.cur;item.cx=Math.round(p.x);item.cy=Math.round(p.y);item.cw=item.cw||260;item.cr=0;item.cz=S.mood.reduce(function(a,x){return Math.max(a,x.cz||0)},0)+1;S.mood.push(item);mcvSel=item.id;touch();render()}
+  function fromText(t,p){t=String(t||"").trim();if(!t)return;
+    if(/^#?[0-9a-f]{6}$/i.test(t))return addAt({kind:"color",value:("#"+t.replace("#","")).toUpperCase(),label:"",cw:200},p);
+    if(/^https?:\/\/\S+$/i.test(t))return addAt({kind:"link",value:t,label:""},p);
+    addAt({kind:"note",value:t.slice(0,400),cw:300},p)}
+  function upload(f,p){if(!assets)return toast("Image upload isn't available here");toast("Uploading…");
+    assets.upload(f).then(function(r){S.files.push({id:uid(),sp:S.cur,name:f.name,assetId:r.id,type:r.contentType,size:r.sizeBytes});addAt({kind:"image",assetId:r.id,label:"",value:"",cw:300},p)}).catch(function(e){toast(upErr(e))})}
+  c.addEventListener("dragover",function(e){e.preventDefault();c.classList.add("over")});
+  c.addEventListener("dragleave",function(){c.classList.remove("over")});
+  c.addEventListener("drop",function(e){e.preventDefault();c.classList.remove("over");var p=pt(e),fs=[].slice.call(e.dataTransfer.files||[]).filter(function(f){return /^image\//.test(f.type)});
+    if(fs.length)fs.forEach(function(f,i){upload(f,{x:p.x+i*24,y:p.y+i*24})});else fromText(e.dataTransfer.getData("text/uri-list")||e.dataTransfer.getData("text/plain"),p)});
+  if(!window.__mcvPaste){window.__mcvPaste=1;document.addEventListener("paste",function(e){
+    var cv=$("mcv");if(!cv||readOnly||/INPUT|TEXTAREA/.test((e.target||{}).tagName||""))return;
+    var r=cv.getBoundingClientRect(),k=+cv.dataset.k||1,p={x:Math.max(40,r.width/2/k-130),y:Math.max(40,(Math.max(0,-r.top)+160)/k)};
+    var its=[].slice.call((e.clipboardData||{}).items||[]),img=its.filter(function(i){return /^image\//.test(i.type)})[0];
+    if(img){e.preventDefault();var f=img.getAsFile();if(f)upload(f,p);return}
+    var t=e.clipboardData&&e.clipboardData.getData("text/plain");if(t){e.preventDefault();fromText(t,p)}})}
+}
 function saveMood(){
   var item=null,lab=$("mlabel")?$("mlabel").value.trim():"",sec=moodSec||undefined;
   if(moodForm==="color")item={kind:"color",value:$("mcolor").value.toUpperCase(),label:lab};
@@ -2093,7 +2170,7 @@ function saveMood(){
     }).catch(function(e){toast(upErr(e))});
     return;
   }
-  item.id=uid();item.sp=S.cur;if(sec)item.sec=sec;S.mood.push(item);moodForm=null;touch();render();
+  item.id=uid();item.sp=S.cur;if(sec)item.sec=sec;if(bm().layout==="canvas"){item.cx=80+Math.round(Math.random()*400);item.cy=60+Math.round(Math.random()*120);item.cw=item.kind==="color"?200:280;item.cr=0;item.cz=S.mood.reduce(function(a,x){return Math.max(a,x.cz||0)},0)+1}S.mood.push(item);moodForm=null;touch();render();
 }
 function mMove(id,d){
   var m=findIn(S.mood,id);if(!m)return;
@@ -2512,6 +2589,21 @@ var NTPL=[
   ["check","Checklist","Checklist","## Checklist\n- [ ] \n- [ ] \n- [ ] \n"],
   ["meet","Meeting notes","Meeting notes","## Agenda\n\n## Notes\n\n## Decisions\n\n## Action items\n- [ ] \n"]
 ];
+function nRender(body){
+  var h="",inList=false,lines=String(body||"").split("\n");
+  function close(){if(inList){h+="</ul>";inList=false}}
+  lines.forEach(function(l,i){var m;
+    if((m=l.match(/^\s*-\s\[( |x|X)\]\s?(.*)$/))){if(!inList){h+='<ul class="nd-l">';inList=true}var on=m[1]!==" ";
+      h+='<li class="nd-c'+(on?" done":"")+'"><label><input type="checkbox" data-act="nchk" data-line="'+i+'"'+(on?" checked":"")+(readOnly?" disabled":"")+'><span>'+esc(m[2])+'</span></label></li>';return}
+    if((m=l.match(/^\s*[-*]\s+(.*)$/))){if(!inList){h+='<ul class="nd-l">';inList=true}h+='<li>'+esc(m[1])+'</li>';return}
+    close();
+    if((m=l.match(/^(#{1,3})\s+(.+)$/))){h+='<h'+(m[1].length+1)+' class="nd-h">'+esc(m[2])+'</h'+(m[1].length+1)+'>';return}
+    if(/^-{3,}\s*$/.test(l)){h+='<hr class="nd-hr">';return}
+    if(!l.trim()){h+='<div class="nd-sp"></div>';return}
+    h+='<p>'+esc(l)+'</p>'});
+  close();
+  return h||'<p class="muted">This note is empty. Switch to Write to start.</p>';
+}
 function nOutline(body){
   var out=[],lines=String(body||"").split("\n"),pos=0;
   lines.forEach(function(l,i){var m=l.match(/^(#{1,3})\s+(.+)$/);if(m)out.push({i:i,pos:pos,lvl:m[1].length,t:m[2]});pos+=l.length+1});
@@ -2543,7 +2635,7 @@ function nToTasks(){
 function nFromTpl(key){
   var t=NTPL.filter(function(x){return x[0]===key})[0];if(!t||readOnly)return;
   var n={id:uid(),sp:S.cur,title:t[2],body:t[3],pin:false,ts:Date.now()};
-  S.notes.push(n);selNote=n.id;S.view="notes";touch();render();var b=$("nbody");if(b){b.focus();b.setSelectionRange(0,0)}
+  S.notes.push(n);selNote=n.id;noteOpen=true;noteMode="write";S.view="notes";touch();render();var b=$("nbody");if(b){b.focus();b.setSelectionRange(0,0)}
 }
 document.addEventListener("input",function(e){
   if(e.target.id==="nbody"){var o=$("nout");if(o){o.innerHTML=nOutline(e.target.value);o.hidden=!/nsec/.test(o.innerHTML)}}
@@ -2966,6 +3058,7 @@ function render0(){
   $("wrap").innerHTML=html;
   if(v==="notes"&&$("nlist")){$("nlist").innerHTML=noteListHTML("");$("neditor").innerHTML=noteEditorHTML()}
   if(v==="wb"){wbMount();wbBgApply()}
+  if(v==="mood"&&$("mcv"))mcvMount();
   renderDialog();
 }
 
@@ -3004,7 +3097,7 @@ function showSearch(q){
 /* ---------- actions ---------- */
 function findIn(arr,id){return arr.filter(function(x){return x.id===id})[0]}
 function moveTask(id,col){var t=findIn(S.tasks,id);if(t&&t.col!==col){if(col==="s")t.done=Date.now();else if(t.col==="s")t.done=0;t.col=col;touch();render()}}
-function newNote(){var n={id:uid(),sp:S.cur,title:"",body:"",pin:false,ts:Date.now()};S.notes.push(n);selNote=n.id;S.view="notes";touch();render();var t=$("ntitle");if(t)t.focus()}
+function newNote(){var n={id:uid(),sp:S.cur,title:"",body:"",pin:false,ts:Date.now()};S.notes.push(n);selNote=n.id;noteOpen=true;noteMode="write";S.view="notes";touch();render();var t=$("ntitle");if(t)t.focus()}
 
 var UNDO_ACTS=/^(bdel|cdel|clipdel|delfile|delidea|delmood|delnote|delspace|deltask|mkwdel)$/,undoPrev="",undoT=0;
 function showUndo(prev){
@@ -3019,7 +3112,7 @@ function act(a,b){
 }
 function act0(a,b){
   var id=b.dataset.id;
-  if(readOnly&&!/^(ed|ve)_/.test(a)&&["space","view","opennote","ifilter","mform","mcancel","copycolor","qtoggle","theme","gores","spacecancel","wbtool","wbcolor","wbundo","wbredo","wbdel","wbclear","wbzoom","wbfill","profile","profclose","undoall","datadlg","d_export","rerr_retry","rerr_home","bell","shortcuts","pmode","pacc","pbg","wbhi","wbfilter","wbtl","wbstart","vizrange","vizscope","mlayout","mcopy","sharehelp","dlgclose","comment","cmonth","cday","biztab","kitdl","kitcopy","vdl","clipf","aihelper","aistop","aicopy","pfilter","pmonth","pday","ptoday","pgroup","nsec","palopen","palrun","ftoggle","ftmode","ftreset"].indexOf(a)<0)return;
+  if(readOnly&&!/^(ed|ve)_/.test(a)&&["space","view","opennote","nback","nmode","ifilter","mform","mcancel","copycolor","qtoggle","theme","gores","spacecancel","wbtool","wbcolor","wbundo","wbredo","wbdel","wbclear","wbzoom","wbfill","profile","profclose","undoall","datadlg","d_export","rerr_retry","rerr_home","bell","shortcuts","pmode","pacc","pbg","wbhi","wbfilter","wbtl","wbstart","vizrange","vizscope","mlayout","mcopy","sharehelp","dlgclose","comment","cmonth","cday","biztab","kitdl","kitcopy","vdl","clipf","aihelper","aistop","aicopy","pfilter","pmonth","pday","ptoday","pgroup","nsec","palopen","palrun","ftoggle","ftmode","ftreset"].indexOf(a)<0)return;
   if(profAct(a,b)||dataAct(a,b)||rerrAct(a,b))return;
   if(v10act(a,b))return;
   switch(a){
@@ -3093,7 +3186,11 @@ function act0(a,b){
     case "vizrange":vizRange=+id;render();break;
     case "vizscope":vizAll=(id==="all");render();break;
     case "newnote":newNote();break;
-    case "opennote":selNote=id;S.view="notes";render();break;
+    case "opennote":selNote=id;noteOpen=true;S.view="notes";render();break;
+    case "nback":noteOpen=false;render();break;
+    case "nmode":noteMode=id==="read"?"read":"write";if($("neditor"))$("neditor").innerHTML=noteEditorHTML();break;
+    case "nchk":(function(){var n=S.notes.filter(function(x){return x.id===selNote})[0];if(!n)return;var L=n.body.split("\n"),i=+b.getAttribute("data-line");if(L[i]==null)return;
+      L[i]=/\[( )\]/.test(L[i])?L[i].replace("[ ]","[x]"):L[i].replace(/\[(x|X)\]/,"[ ]");n.body=L.join("\n");n.ts=Date.now();touch();$("neditor").innerHTML=noteEditorHTML();$("nlist").innerHTML=noteListHTML($("nsearch")?$("nsearch").value:"")})();break;
     case "pinnote":{var n2=findIn(S.notes,selNote);if(n2){n2.pin=!n2.pin;touch();render()}break}
     case "delnote":arm(b,function(){S.notes=S.notes.filter(function(x){return x.id!==selNote});selNote=null;touch();render()});break;
     /* ideas */
