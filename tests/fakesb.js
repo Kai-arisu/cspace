@@ -3,7 +3,7 @@ const crypto=require('crypto');
 function b64(o){return Buffer.from(JSON.stringify(o)).toString('base64url')}
 function jwt(user){return b64({alg:'HS256',typ:'JWT'})+'.'+b64({sub:user.id,email:user.email,role:'authenticated',aud:'authenticated',exp:Math.floor(Date.now()/1000)+3600})+'.sig'}
 module.exports=function(){
-  const st={users:[],tables:{docs:[],leases:[],profiles:[],shares:[],connections:[],snapshots:[],videos:[],cal_tokens:[],push_subs:[],team_members:[],team_work:[],team_pay:[]},files:{},ytConfigured:true,calls:[],snapId:1};
+  const st={users:[],tables:{docs:[],leases:[],profiles:[],shares:[],connections:[],snapshots:[],videos:[],cal_tokens:[],push_subs:[],team_members:[],team_work:[],team_pay:[]},files:{},ytConfigured:true,calls:[],snapId:1,socReady:{},socLinks:[]};
   const OWNER=['docs','leases','connections','snapshots','videos','cal_tokens','push_subs'];
   function session(u){const t=jwt(u);return {access_token:t,token_type:'bearer',expires_in:3600,expires_at:Math.floor(Date.now()/1000)+3600,refresh_token:'r_'+u.id,user:{id:u.id,aud:'authenticated',role:'authenticated',email:u.email,app_metadata:{},user_metadata:{},created_at:new Date().toISOString()}}}
   function uidOf(req){const a=req.headers()['authorization']||'';const m=a.match(/Bearer ([^ ]+)/);if(!m)return null;try{return JSON.parse(Buffer.from(m[1].split('.')[1],'base64url').toString()).sub||null}catch(e){return null}}
@@ -44,6 +44,7 @@ module.exports=function(){
     if(p==='/auth/v1/logout')return route.fulfill({status:204,headers:{'access-control-allow-origin':'*'}});
     if(p==='/auth/v1/recover')return J(200,{});
     if(p.startsWith('/rest/v1/rpc/acquire_lease')){return J(200,true)}
+    if(p.startsWith('/rest/v1/rpc/my_social_links')){return J(200,st.socLinks.filter(l=>l.user_id===uid).map(l=>({connection_id:l.connection_id,provider:l.provider,expires_at:null,refresh_expires_at:null,scopes:'',updated_at:new Date().toISOString()})))}
     if(p.startsWith('/rest/v1/rpc/my_team')){const em=emailOf(uid);if(!em)return J(200,[]);
       return J(200,st.tables.team_members.filter(m=>m.email&&m.email.toLowerCase()===em&&m.can_login&&m.status==='active').map(m=>({member_id:m.id,owner_email:emailOf(m.owner_id),name:m.name,role_title:m.role_title,kind:m.kind,start_date:m.start_date,end_date:m.end_date,see_pay:m.see_pay,amount:m.see_pay?m.amount:null,
         work:st.tables.team_work.filter(w=>w.member_id===m.id).map(w=>({id:w.id,title:w.title,due:w.due,status:w.status,done_at:w.done_at})),
@@ -101,6 +102,23 @@ module.exports=function(){
       if(!known)return J(403,{error:'not_invited',message:'Add this person first, then send the invite.'});
       st.invites=(st.invites||[]);if(st.invites.includes(uid+em))return J(429,{error:'already_sent',message:'An invite already went to this email today.'});
       st.invites.push(uid+em);return J(200,{ok:true,kind:'invite'});
+    }
+    /* sign in with a platform: the fake skips the platform's own page and comes straight back as connected */
+    if(p.startsWith('/functions/v1/social/')){
+      const r=p.slice('/functions/v1/social'.length);
+      if(r==='/status')return J(200,{ok:true,ready:st.socReady,redirect:{instagram:'https://proj.supabase.co/functions/v1/social/cb/instagram'}});
+      if(!uid)return J(401,{error:'unauthorized'});
+      if(r==='/start'){const pr=body&&body.provider;if(!st.socReady[pr])return J(503,{error:'not_configured',message:'This platform has not been set up yet.'});
+        const ext=pr+'-'+uid.slice(0,6);let c=st.tables.connections.find(c=>c.user_id===uid&&c.platform===pr&&c.external_id===ext);
+        if(!c){c={id:crypto.randomUUID(),user_id:uid,platform:pr,kind:'own',handle:'@cashtea',external_id:ext,title:'Cash Tea',avatar_url:null,url:'https://www.instagram.com/cashtea/',source:'api',auth:'oauth',show_public:false,status:'ok',goal:null,created_at:new Date().toISOString(),last_synced:new Date().toISOString()};st.tables.connections.push(c)}
+        st.tables.snapshots.push({id:st.snapId++,connection_id:c.id,user_id:uid,ts:new Date().toISOString(),followers:1234,views:20000,posts:12,extra:{period:'28d',reach:8000,views:20000,engaged:900,link_taps:31}});
+        st.tables.videos.push({connection_id:c.id,video_id:'m'+st.snapId,user_id:uid,title:'Bhopal chai reel',thumb:null,published_at:new Date().toISOString(),views:5000,likes:90,comments:4});
+        if(!st.socLinks.some(l=>l.connection_id===c.id))st.socLinks.push({connection_id:c.id,user_id:uid,provider:pr});
+        return J(200,{ok:true,url:'/?connected='+pr+'&n=1&name=%40cashtea'})}
+      if(r==='/sync'){st.socSyncs=(st.socSyncs||0)+1;const n=st.socLinks.filter(l=>l.user_id===uid).length;return J(200,{ok:true,refreshed:n,skipped:0,errors:[]})}
+      if(r==='/disconnect'){const id=body.connection_id;st.socLinks=st.socLinks.filter(l=>l.connection_id!==id);
+        st.tables.connections=st.tables.connections.filter(c=>!(c.id===id&&c.user_id===uid));['snapshots','videos'].forEach(x=>{st.tables[x]=st.tables[x].filter(z=>z.connection_id!==id)});return J(200,{ok:true})}
+      return J(404,{error:'not_found'});
     }
     if(p==='/functions/v1/youtube-sync'){
       if(!st.ytConfigured)return J(503,{error:'not_configured',message:'The YouTube API key has not been added yet.'});
