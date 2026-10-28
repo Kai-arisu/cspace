@@ -961,6 +961,7 @@ var ICONS={
   chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
   video:'<rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
+  download:'<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
   search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/>',
   moon:'<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>',
   sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
@@ -1958,17 +1959,23 @@ function bm(){
   if(m.layout!=="collage")m.layout="poster";
   return m;
 }
+/* the text colour (white or near-black) with the higher contrast on a swatch */
+function inkOn(c){c=hx(c).slice(1);if(c.length<6)c=c.replace(/./g,"$&$&");var L=[0,2,4].map(function(i){var v=parseInt(c.slice(i,i+2),16)/255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)}),l=.2126*L[0]+.7152*L[1]+.0722*L[2];
+  return (1.05/(l+.05))>=((l+.05)/.05)?"#fff":"#000"}
 function palColors(){return mine("mood").filter(function(m){return m.kind==="color"}).map(function(m){return hx(m.value)})}
 var PATS=[["stripes","Stripes"],["dots","Dots"],["grid","Grid"],["checker","Checker"],["rings","Rings"],["lines","Lines"],["mesh","Soft mesh"]];
 function patCSS(m){
-  var a=hx(m.c1),b=hx(m.c2),p=m.value;
-  if(p==="dots")return "radial-gradient(circle,"+a+" 2.5px,transparent 3px) 0 0/16px 16px,"+b;
-  if(p==="grid")return "linear-gradient("+a+" 1px,transparent 1px) 0 0/18px 18px,linear-gradient(90deg,"+a+" 1px,transparent 1px) 0 0/18px 18px,"+b;
-  if(p==="checker")return "conic-gradient("+a+" 25%,"+b+" 0 50%,"+a+" 0 75%,"+b+" 0) 0 0/30px 30px";
-  if(p==="rings")return "repeating-radial-gradient(circle at 50% 120%,"+a+" 0 6px,"+b+" 6px 15px)";
-  if(p==="lines")return "repeating-linear-gradient(0deg,"+a+" 0 2px,"+b+" 2px 12px)";
-  if(p==="mesh")return "radial-gradient(circle at 18% 22%,"+a+",transparent 58%),radial-gradient(circle at 82% 72%,"+b+",transparent 58%),"+(hx(m.c3)||"#fff");
-  return "repeating-linear-gradient(45deg,"+a+" 0 10px,"+b+" 10px 20px)";
+  /* textures are drawn as small SVG tiles, so they stay crisp and print the same in the download */
+  var a=hx(m.c1),b=hx(m.c2),c=hx(m.c3||"#ffffff"),p=m.value,w=20,h=20,body;
+  if(p==="dots"){w=h=16;body='<rect width="16" height="16" fill="'+b+'"/><circle cx="8" cy="8" r="2.5" fill="'+a+'"/>'}
+  else if(p==="grid"){w=h=18;body='<rect width="18" height="18" fill="'+b+'"/><path d="M0 .5H18M.5 0V18" stroke="'+a+'"/>'}
+  else if(p==="checker"){w=h=30;body='<rect width="30" height="30" fill="'+b+'"/><path d="M0 0h15v15H0zM15 15h15v15H15z" fill="'+a+'"/>'}
+  else if(p==="rings"){w=h=30;body='<rect width="30" height="30" fill="'+b+'"/><circle cx="15" cy="15" r="9" fill="none" stroke="'+a+'" stroke-width="5"/>'}
+  else if(p==="lines"){w=h=12;body='<rect width="12" height="12" fill="'+b+'"/><rect width="12" height="2" fill="'+a+'"/>'}
+  else if(p==="mesh"){w=h=200;body='<defs><filter id="f"><feGaussianBlur stdDeviation="34"/></filter></defs><rect width="200" height="200" fill="'+c+'"/><g filter="url(#f)"><circle cx="40" cy="45" r="70" fill="'+a+'"/><circle cx="165" cy="150" r="70" fill="'+b+'"/></g>'}
+  else{body='<rect width="20" height="20" fill="'+b+'"/><path d="M-5 5L5-5M0 20L20 0M15 25L25 15" stroke="'+a+'" stroke-width="7.07"/>'}
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'">'+body+'</svg>';
+  return "url(&quot;data:image/svg+xml,"+encodeURIComponent(svg).replace(/'/g,"%27")+"&quot;) 0 0/"+(p==="mesh"?"cover":w+"px "+h+"px")+" "+b;
 }
 var MICONS=["star","bulb","pen","notes","image","video","chart","code","folder","pin","timer","flag","sticky","circle","square","text","sun","moon","home","board","search","arrow"];
 function rot(id){var h=0;for(var i=0;i<id.length;i++)h=(h*31+id.charCodeAt(i))>>>0;return ((h%7)-3)*.9}
@@ -1981,7 +1988,7 @@ function mCtl(m){
 }
 function mItem(m){
   var k=m.kind,b="";
-  if(k==="color"){var c=hx(m.value),dk=lum(c)<.55;b='<button class="mb-sw" data-act="copycolor" data-id="'+c+'" style="background:'+c+';color:'+(dk?"#fff":"#111")+'" aria-label="Copy '+c+'"><span class="nm">'+esc(m.label||"")+'</span><span class="hex">'+c.toUpperCase()+'</span></button>'}
+  if(k==="color"){var c=hx(m.value),dk=lum(c)<.55;b='<button class="mb-sw" data-act="copycolor" data-id="'+c+'" aria-label="Copy '+c.toUpperCase()+'"><span class="pc" style="background:'+c+'"></span><span class="mt"><span class="nm">'+esc(m.label||"Untitled")+'</span><span class="hex">'+c.toUpperCase()+'</span></span></button>'}
   else if(k==="image")b='<div class="mb-img"><img src="/_blob/'+esc(m.assetId)+'" alt="'+esc(m.label||"Board image")+'" loading="lazy"></div>'+(m.label?'<figcaption>'+esc(m.label)+'</figcaption>':"");
   else if(k==="pattern")b='<div class="mb-pat" style="background:'+patCSS(m)+'"></div>'+(m.label?'<figcaption>'+esc(m.label)+'</figcaption>':"");
   else if(k==="quote")b='<blockquote class="mb-quote"><span class="qm" aria-hidden="true">“</span><p>'+esc(m.value)+'</p>'+(m.label?'<cite>'+esc(m.label)+'</cite>':"")+'</blockquote>';
@@ -2014,32 +2021,37 @@ function mTypeHTML(m){
 function vMood(){
   var m=bm(),items=mine("mood"),poster=m.layout==="poster";
   loadFont(m.head);loadFont(m.body);
-  var acts='<div class="chips" style="margin:0" role="group" aria-label="Board layout"><button class="chip" data-act="mlayout" data-id="poster" aria-pressed="'+poster+'">Poster</button><button class="chip" data-act="mlayout" data-id="collage" aria-pressed="'+!poster+'">Collage</button></div>'+
-    (readOnly?"":'<button class="btn" data-act="medit">'+(moodEdit?"Done":"Edit details")+'</button>')+'<button class="btn" data-act="mcopy">Copy as text</button>'+(true?'<button class="btn" data-act="mexport">Download image</button>':"")+cbtn(".mb");
-  var h=hero("mood","Moodboard","Build the look and feel of "+spaceName()+" in one place.",acts);
-  var title=m.title||spaceName();
-  h+='<div class="mb" style="--fh:'+fam(m.head)+';--fb:'+fam(m.body)+';--fhw:'+fontInfo(m.head)[3]+'">';
-  h+='<header class="mb-head"><div class="mb-kick">'+esc(m.kicker||"Brand board")+'</div><div class="mb-title">'+esc(title)+'</div>'+(m.tagline?'<div class="mb-tag">'+esc(m.tagline)+'</div>':"")+(m.about?'<p class="mb-about">'+esc(m.about)+'</p>':"");
-  h+='<div class="mb-kw">'+m.keywords.map(function(k,i){return '<span class="mb-chip">'+esc(k)+(readOnly?"":'<button data-act="mkwdel" data-i="'+i+'" aria-label="Remove '+esc(k)+'">×</button>')+'</span>'}).join("")+(readOnly?"":'<input id="mkw" class="mb-kwin" placeholder="+ keyword, press Enter" maxlength="24" aria-label="Add keyword">')+'</div></header>';
+  var acts='<div class="hd-seg" role="group" aria-label="Board layout"><button data-act="mlayout" data-id="poster" aria-pressed="'+poster+'">Poster</button><button data-act="mlayout" data-id="collage" aria-pressed="'+!poster+'">Collage</button></div>'+
+    (readOnly?"":'<button class="btn" data-act="medit">'+(moodEdit?"Done":"Edit details")+'</button>')+'<button class="btn" data-act="mcopy">Copy as text</button><button class="btn pri" data-act="mexport">'+I("download")+'Download image</button>'+cbtn(".mb");
+  var h=hero("mood","Moodboard","The look and feel of "+spaceName()+", in one place.",acts);
+  var title=m.title||spaceName(),cols=items.filter(function(x){return x.kind==="color"});
+  h+='<div class="mb mb2 l-'+(poster?"poster":"collage")+'" style="--fh:'+fam(m.head)+';--fb:'+fam(m.body)+';--fhw:'+fontInfo(m.head)[3]+'">';
+  /* cover: the name in its own heading font, beside its own colours */
+  h+='<header class="mb-head"><div class="mb-ct"><div class="mb-kick">'+esc(m.kicker||"Brand board")+'</div><div class="mb-title">'+esc(title)+'</div>'+(m.tagline?'<div class="mb-tag">'+esc(m.tagline)+'</div>':"")+(m.about?'<p class="mb-about">'+esc(m.about)+'</p>':"");
+  h+='<div class="mb-kw">'+m.keywords.map(function(k,i){return '<span class="mb-chip">'+esc(k)+(readOnly?"":'<button data-act="mkwdel" data-i="'+i+'" aria-label="Remove '+esc(k)+'">×</button>')+'</span>'}).join("")+(readOnly?"":'<input id="mkw" class="mb-kwin" placeholder="Add a keyword…" maxlength="24" aria-label="Add keyword" autocomplete="off">')+'</div></div>';
+  h+='<div class="mb-band'+(cols.length?"":" none")+'">'+(cols.length?cols.slice(0,6).map(function(c){var v=hx(c.value);return '<button class="mb-bs" data-act="copycolor" data-id="'+v+'" style="background:'+v+';color:'+inkOn(v)+'" aria-label="Copy '+v.toUpperCase()+'"><span>'+esc(c.label||"")+'</span><b>'+v.toUpperCase()+'</b></button>'}).join(""):
+    '<span>No colours yet</span>'+(readOnly?"":'<button class="btn sm" data-act="mform" data-id="color" data-sec="palette">Add a colour</button>'))+'</div></header>';
   if(moodEdit&&!readOnly){
-    h+='<div class="form mb-form"><label>Small heading<input class="in" data-bm="kicker" value="'+esc(m.kicker)+'" maxlength="40"></label><label>Title<input class="in" data-bm="title" value="'+esc(m.title)+'" placeholder="'+esc(spaceName())+'" maxlength="60"></label><label>Tagline<input class="in" data-bm="tagline" value="'+esc(m.tagline)+'" maxlength="80" placeholder="wisdom · depth · clarity"></label><label style="flex-basis:100%">About<textarea class="in" data-bm="about" maxlength="300" placeholder="A collection of colours, type and textures that inspire this project.">'+esc(m.about)+'</textarea></label></div>';
+    h+='<div class="form mb-form"><label>Small heading<input class="in" data-bm="kicker" value="'+esc(m.kicker)+'" maxlength="40"></label><label>Title<input class="in" data-bm="title" value="'+esc(m.title)+'" placeholder="'+esc(spaceName())+'" maxlength="60"></label><label>Tagline<input class="in" data-bm="tagline" value="'+esc(m.tagline)+'" maxlength="80" placeholder="wisdom · depth · clarity"></label><label style="flex-basis:100%">About<textarea class="in" data-bm="about" maxlength="300" rows="2" placeholder="What the brand stands for, in a sentence or two">'+esc(m.about)+'</textarea></label></div>';
   }
-  if(!items.length&&!readOnly)h+='<div class="mb-empty"><b>Start with a ready-made set</b><span>Adds a palette, a quote, patterns and icons you can change, so you can see how the board works.</span><button class="btn pri" data-act="mstarter">Add starter set</button></div>';
+  if(!items.length&&!readOnly)h+='<div class="mb-empty"><div><b>Start with a ready-made set</b><span>Adds a palette, a quote, patterns and icons you can change, so you can see how the board works.</span></div><button class="btn pri" data-act="mstarter">Add starter set</button></div>';
   if(poster){
+    var rest=[];
     SECS.forEach(function(s){
       var its=items.filter(function(x){return secOf(x)===s.id});
-      var adds=readOnly?"":s.add.map(function(a){return '<button class="btn sm" data-act="mform" data-id="'+a[0]+'" data-sec="'+s.id+'">+ '+a[1]+'</button>'}).join("")+
-        "";
-      var emp=!its.length&&s.id!=="type";
-      h+='<section class="mb-sec s-'+s.id+(emp?" empty":"")+'"><div class="mb-lbl"><h3>'+s.name+'</h3><p>'+s.hint+'</p>'+(emp?'':'<div class="mb-add">'+adds+'</div>')+'</div><div class="mb-body">';
-      if(moodForm&&moodSec===s.id)h+=mForm(s.id);
+      var adds=readOnly?"":s.add.map(function(a){return '<button class="btn sm" data-act="mform" data-id="'+a[0]+'" data-sec="'+s.id+'">'+I("plus")+a[1]+'</button>'}).join("");
+      var open=moodForm&&moodSec===s.id;
+      if(!its.length&&s.id!=="type"&&!open){rest.push({s:s,adds:adds});return}
+      h+='<section class="mb-sec s-'+s.id+'"><div class="mb-lbl"><h3>'+s.name+(its.length?' <span class="cnt">'+its.length+'</span>':"")+'</h3><p>'+s.hint+'</p>'+(adds?'<div class="mb-add">'+adds+'</div>':"")+'</div><div class="mb-body">';
+      if(open)h+=mForm(s.id);
       if(s.id==="type")h+=mTypeHTML(m);
-      else h+=its.length?'<div class="mb-wrap">'+its.map(mItem).join("")+'</div>':'<div class="mb-none">'+(readOnly?'<span>Nothing here yet</span>':adds)+'</div>';
+      else if(its.length)h+='<div class="mb-wrap">'+its.map(mItem).join("")+'</div>';
       h+='</div></section>';
     });
+    if(rest.length)h+='<section class="mb-rest"><h3>'+(readOnly?"Not filled in yet":"Still to fill")+'</h3><div class="mb-rl">'+rest.map(function(r){return '<div class="mb-rr"><span><b>'+r.s.name+'</b><i>'+r.s.hint+'</i></span><span class="mb-add">'+r.adds+'</span></div>'}).join("")+'</div></section>';
   }else{
     if(moodForm)h+=mForm();
-    var adds2=readOnly?"":'<div class="mb-addrow">'+[["color","Colour"],["image","Image"],["quote","Quote"],["note","Note"],["pattern","Pattern"],["icon","Icon"],["link","Link"]].map(function(a){return '<button class="btn sm" data-act="mform" data-id="'+a[0]+'" data-sec="">+ '+a[1]+'</button>'}).join("")+'</div>';
+    var adds2=readOnly?"":'<div class="mb-addrow">'+[["color","Colour"],["image","Image"],["quote","Quote"],["note","Note"],["pattern","Pattern"],["icon","Icon"],["link","Link"]].map(function(a){return '<button class="btn sm" data-act="mform" data-id="'+a[0]+'" data-sec="">'+I("plus")+a[1]+'</button>'}).join("")+'</div>';
     h+=adds2+'<div class="mb-collage">'+'<div class="mb-it k-type" style="--r:0deg">'+mTypeHTML(m).split('<div class="form')[0]+'</div>'+items.map(mItem).join("")+'</div>';
   }
   h+='</div>';
@@ -2864,33 +2876,54 @@ document.addEventListener("change",function(e){
 
 /* ---------- moodboard export ---------- */
 function loadScript(src){return new Promise(function(res,rej){if(window.htmlToImage)return res();var s=document.createElement("script");s.src=src;s.onload=res;s.onerror=function(){rej(new Error("load"))};document.head.appendChild(s)})}
+function patSVG(m,k){var c=patCSS(m),i=c.indexOf("data:image/svg+xml,"),j=c.indexOf("&quot;)",i),v=decodeURIComponent(c.slice(i+19,j));k=k||1;return v.replace(/width="(\d+)" height="(\d+)"/,function(_,w,h){return 'width="'+w*k+'" height="'+h*k+'"'})}
+function icoURL(n,col){return "data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="'+col+'" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">'+(ICONS[n]||ICONS.star)+'</svg>')}
+/* the download mirrors the on-screen sheet: name in its heading font beside the palette band, then the board */
 function mExport(){
   if(exportBusy)return;exportBusy=true;toast("Preparing image…");
-  var items=mine("mood"),W=2000,pad=48,gap=28,cols=3,cw=(W-pad*2-gap*(cols-1))/cols,title=(bm().title||spaceName()||"Moodboard");
-  var loads=items.map(function(m){return m.kind==="image"&&m.assetId?edLoadImg("/_blob/"+m.assetId).catch(function(){return null}):Promise.resolve(null)});
-  Promise.all(loads).then(function(imgs){
-    var dark=isDark(),bg=dark?"#141417":"#F4F4F6",card=dark?"#1F1F24":"#FFFFFF",fg=dark?"#F4F4F5":"#151518",mu=dark?"#A0A0A8":"#6A6A74";
-    var cv=document.createElement("canvas"),ctx0=cv.getContext("2d"),lay=[],ys=[0,0,0],i;
-    function hOf(m,im){var k=m.kind;if(k==="image"&&im)return Math.max(180,Math.min(cw*1.5,cw*im.naturalHeight/im.naturalWidth));if(k==="color")return 260;if(k==="note"||k==="quote")return 320;if(k==="pattern")return 300;if(k==="icon")return 260;return 220}
+  var m0=bm(),all=mine("mood"),cols0=all.filter(function(x){return x.kind==="color"}),items=all.filter(function(x){return x.kind!=="color"||cols0.length>6});
+  var dark=isDark(),bg=dark?"#000000":"#FFFFFF",card=dark?"#111111":"#F7F7F6",line=dark?"#262626":"#EAEAEA",fg=dark?"#F5F5F4":"#1F201D",mu=dark?"#B4B4B4":"#636361";
+  var W=2000,pad=80,gap=28,cols=3,cw=(W-pad*2-gap*(cols-1))/cols,title=(m0.title||spaceName()||"Moodboard");
+  var FH=fam(m0.head),FB=fam(m0.body),HW=fontInfo(m0.head)[3];
+  var loads=items.map(function(m){
+    if(m.kind==="image"&&m.assetId)return edLoadImg("/_blob/"+m.assetId).catch(function(){return null});
+    if(m.kind==="pattern")return edLoadImg("data:image/svg+xml,"+encodeURIComponent(patSVG(m,2))).catch(function(){return null});
+    if(m.kind==="icon")return edLoadImg(icoURL(m.value,fg)).catch(function(){return null});
+    return Promise.resolve(null)});
+  var fonts=document.fonts&&document.fonts.load?Promise.all([document.fonts.load(HW+' 120px '+FH),document.fonts.load('400 30px '+FB),document.fonts.load('500 28px "Instrument Sans"')]).catch(function(){}):Promise.resolve();
+  Promise.all([Promise.all(loads),fonts]).then(function(r){
+    var imgs=r[0],cv=document.createElement("canvas"),lay=[],ys=[0,0,0],i;
+    function hOf(m,im){var k=m.kind;if(k==="image"&&im)return Math.max(200,Math.min(cw*1.4,cw*im.naturalHeight/im.naturalWidth));if(k==="color")return 300;if(k==="quote")return 340;if(k==="note")return 300;if(k==="pattern")return cw*.75;if(k==="icon")return 240;return 200}
     for(i=0;i<items.length;i++){var c=ys.indexOf(Math.min.apply(null,ys)),h=hOf(items[i],imgs[i]);lay.push({x:pad+c*(cw+gap),y:ys[c],w:cw,h:h,m:items[i],im:imgs[i]});ys[c]+=h+gap}
-    var top=pad+110,H=top+Math.max.apply(null,ys)+pad;cv.width=W;cv.height=Math.max(H,400);var ctx=cv.getContext("2d");
-    ctx.fillStyle=bg;ctx.fillRect(0,0,W,cv.height);
-    ctx.fillStyle=fg;ctx.font='800 64px "Inter",Helvetica,Arial,sans-serif';ctx.textBaseline="alphabetic";ctx.fillText(title,pad,pad+64);
-    ctx.fillStyle=mu;ctx.font='500 26px "Inter",Helvetica,Arial,sans-serif';ctx.fillText(spaceName()+" · Moodboard",pad,pad+104);
-    function wrap(t,x,y,mw,lh,max){var words=String(t).split(/\s+/),line="",n=0;words.forEach(function(w){var tt=line?line+" "+w:w;if(ctx.measureText(tt).width>mw&&line){if(n<max){ctx.fillText(line,x,y+n*lh)}n++;line=w}else line=tt});if(n<max)ctx.fillText(line,x,y+n*lh)}
+    var headH=640,top=headH+pad,H=top+(items.length?Math.max.apply(null,ys)-gap:0)+pad;cv.width=W;cv.height=Math.max(H,headH+pad);var ctx=cv.getContext("2d");
+    ctx.fillStyle=bg;ctx.fillRect(0,0,W,cv.height);ctx.textBaseline="alphabetic";
+    function wrap(t,x,y,mw,lh,max){var words=String(t).split(/\s+/),line="",n=0;words.forEach(function(w){var tt=line?line+" "+w:w;if(ctx.measureText(tt).width>mw&&line){if(n<max)ctx.fillText(line,x,y+n*lh);n++;line=w}else line=tt});if(n<max)ctx.fillText(line,x,y+n*lh);return Math.min(n+1,max)}
+    /* cover */
+    var bandW=cols0.length?Math.round(W*.4):0,tx=pad,tw=W-bandW-pad*2;
+    if(cols0.length){var bw=bandW/Math.min(cols0.length,6);cols0.slice(0,6).forEach(function(c,k){var v=hx(c.value),x=W-bandW+k*bw;ctx.fillStyle=v;ctx.fillRect(x,0,Math.ceil(bw),headH);ctx.fillStyle=inkOn(v);ctx.font='500 22px "Instrument Sans",Helvetica,Arial,sans-serif';
+      if(c.label){ctx.globalAlpha=.85;ctx.fillText(c.label.length>14?c.label.slice(0,13)+"…":c.label,x+20,headH-62);ctx.globalAlpha=1}ctx.fillText(v.toUpperCase(),x+20,headH-30)})}
+    var y=headH-pad;
+    ctx.font='400 30px '+FB;var kwLine=m0.keywords.join("   ·   ");
+    if(kwLine){ctx.fillStyle=mu;ctx.fillText(kwLine,tx,y);y-=58}
+    if(m0.tagline){ctx.fillStyle=mu;ctx.font='400 34px '+FB;ctx.fillText(m0.tagline,tx,y);y-=70}
+    var ts=132;ctx.font=HW+' '+ts+'px '+FH;while(ctx.measureText(title).width>tw&&ts>64){ts-=6;ctx.font=HW+' '+ts+'px '+FH}
+    ctx.fillStyle=fg;ctx.fillText(title,tx,y);y-=ts+20;
+    ctx.fillStyle=mu;ctx.font='500 26px "Instrument Sans",Helvetica,Arial,sans-serif';ctx.fillText(m0.kicker||"Brand board",tx,y);
+    ctx.fillStyle=line;ctx.fillRect(0,headH,W,2);
+    /* board */
     lay.forEach(function(L){
-      var m=L.m,x=L.x,y=top+L.y,w=L.w,h=L.h;ctx.save();edRound(ctx,x,y,w,h,28);ctx.clip();
-      if(m.kind==="image"&&L.im){var s2=Math.max(w/L.im.naturalWidth,h/L.im.naturalHeight);ctx.drawImage(L.im,x+(w-L.im.naturalWidth*s2)/2,y+(h-L.im.naturalHeight*s2)/2,L.im.naturalWidth*s2,L.im.naturalHeight*s2)}
-      else if(m.kind==="color"){var cc=hx(m.value);ctx.fillStyle=cc;ctx.fillRect(x,y,w,h);ctx.fillStyle=lum(cc)<.55?"#FFFFFF":"#111111";ctx.font='700 30px "Inter",Helvetica,Arial,sans-serif';ctx.fillText(m.label||"",x+28,y+h-62);ctx.font='500 24px "Inter",Helvetica,Arial,sans-serif';ctx.fillText(cc.toUpperCase(),x+28,y+h-28)}
-      else if(m.kind==="pattern"){var g=ctx.createLinearGradient(x,y,x+w,y+h);g.addColorStop(0,hx(m.c1));g.addColorStop(.5,hx(m.c2));g.addColorStop(1,hx(m.c3));ctx.fillStyle=g;ctx.fillRect(x,y,w,h);ctx.fillStyle="rgba(255,255,255,.18)";for(var d=-h;d<w;d+=44){ctx.fillRect(x+d,y,14,h+1)}}
+      var m=L.m,x=L.x,y=top+L.y,w=L.w,h=L.h,k=m.kind;ctx.save();edRound(ctx,x,y,w,h,24);ctx.clip();
+      if(k==="image"&&L.im){var s2=Math.max(w/L.im.naturalWidth,h/L.im.naturalHeight);ctx.drawImage(L.im,x+(w-L.im.naturalWidth*s2)/2,y+(h-L.im.naturalHeight*s2)/2,L.im.naturalWidth*s2,L.im.naturalHeight*s2)}
+      else if(k==="color"){var cc=hx(m.value);ctx.fillStyle=cc;ctx.fillRect(x,y,w,h-96);ctx.fillStyle=card;ctx.fillRect(x,y+h-96,w,96);ctx.fillStyle=fg;ctx.font='500 28px '+FB;ctx.fillText(m.label||cc.toUpperCase(),x+24,y+h-52);ctx.fillStyle=mu;ctx.font='400 24px "Instrument Sans",sans-serif';ctx.fillText(cc.toUpperCase(),x+24,y+h-20)}
+      else if(k==="pattern"){if(L.im){var pt=ctx.createPattern(L.im,"repeat");if(m.value==="mesh")ctx.drawImage(L.im,x,y,w,h);else{ctx.save();ctx.translate(x,y);ctx.fillStyle=pt;ctx.fillRect(0,0,w,h);ctx.restore()}}else{ctx.fillStyle=hx(m.c2);ctx.fillRect(x,y,w,h)}}
       else{ctx.fillStyle=card;ctx.fillRect(x,y,w,h);ctx.fillStyle=fg;
-        if(m.kind==="quote"){ctx.font='italic 600 34px Georgia,serif';wrap("“"+m.value+"”",x+30,y+60,w-60,46,5);ctx.fillStyle=mu;ctx.font='500 24px "Inter",Helvetica,Arial,sans-serif';ctx.fillText(m.label?"— "+m.label:"",x+30,y+h-30)}
-        else if(m.kind==="note"){ctx.font='500 28px "Inter",Helvetica,Arial,sans-serif';wrap(m.value,x+30,y+56,w-60,40,6)}
-        else if(m.kind==="icon"){ctx.beginPath();ctx.arc(x+w/2,y+h/2-14,52,0,Math.PI*2);ctx.fillStyle=fg;ctx.fill();ctx.fillStyle=card;ctx.font='800 44px "Inter",Helvetica,Arial,sans-serif';ctx.textAlign="center";ctx.fillText(String(m.label||m.value||"★").charAt(0).toUpperCase(),x+w/2,y+h/2);ctx.fillStyle=mu;ctx.font='600 26px "Inter",Helvetica,Arial,sans-serif';ctx.fillText(m.label||"",x+w/2,y+h-34);ctx.textAlign="left"}
-        else if(m.kind==="link"){var dm="";try{dm=new URL(m.value).hostname}catch(e){}ctx.font='700 32px "Inter",Helvetica,Arial,sans-serif';wrap(m.label||dm||m.value,x+30,y+70,w-60,42,2);ctx.fillStyle=mu;ctx.font='500 24px "Inter",Helvetica,Arial,sans-serif';ctx.fillText(dm,x+30,y+h-34)}
+        if(k==="quote"){ctx.fillStyle=mu;ctx.font='400 90px '+FH;ctx.fillText("“",x+34,y+96);ctx.fillStyle=fg;ctx.font=HW+' 40px '+FH;wrap(m.value,x+36,y+136,w-72,50,3);if(m.label){ctx.fillStyle=mu;ctx.font='500 24px "Instrument Sans",sans-serif';ctx.fillText(m.label,x+36,y+h-34)}}
+        else if(k==="note"){ctx.font='400 30px '+FB;wrap(m.value,x+36,y+70,w-72,44,5)}
+        else if(k==="icon"){if(L.im)ctx.drawImage(L.im,x+w/2-48,y+h/2-70,96,96);ctx.fillStyle=mu;ctx.font='500 26px "Instrument Sans",sans-serif';ctx.textAlign="center";ctx.fillText(m.label||m.value,x+w/2,y+h/2+70);ctx.textAlign="left"}
+        else if(k==="link"){var dm="";try{dm=new URL(m.value).hostname}catch(e){}ctx.font='500 32px '+FB;wrap(m.label||dm||m.value,x+36,y+74,w-72,42,2);ctx.fillStyle=mu;ctx.font='400 24px "Instrument Sans",sans-serif';ctx.fillText(dm,x+36,y+h-36)}
       }
       ctx.restore();
-      ctx.save();edRound(ctx,x,y,w,h,28);ctx.lineWidth=2;ctx.strokeStyle=dark?"rgba(255,255,255,.12)":"rgba(0,0,0,.08)";ctx.stroke();ctx.restore();
+      if(k==="color"||k==="pattern"||k==="image"){ctx.save();edRound(ctx,x,y,w,h,24);ctx.lineWidth=2;ctx.strokeStyle=line;ctx.stroke();ctx.restore()}
     });
     return new Promise(function(res){cv.toBlob(res,"image/png")});
   }).then(function(blob){exportBusy=false;if(!blob)throw new Error("empty");return saveFile(title.replace(/[^\w-]+/g,"-")+"-moodboard.png",blob)})

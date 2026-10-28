@@ -74,6 +74,19 @@ A 1100px column on a 12-column grid, starting about 72px from the top:
 6. 12: Pipeline by stage, then the setup checklist (while unfinished) and the audience list
    (with two or more channels).
 
+## Moodboard
+
+The board is the creator's own brand sheet, so it uses *their* heading and body fonts and *their*
+colours, framed by the app's chrome (one white card, radius 22, hairline border):
+
+- Cover: kicker, title in the board's heading font, tagline, keywords; beside it the palette as a
+  full-height band (up to six colours, hex in white or black, whichever reads better). Click to copy.
+- Poster: filled sections only, each with a 220px label column and a grid of items (paint-chip
+  swatches, textures drawn as SVG tiles, quotes in the heading font, plain outline icons, link cards).
+  Empty sections gather at the foot under "Still to fill", one row each with its add buttons.
+- Collage: the same items in tilted columns, flat with hairlines, no drop shadows.
+- Download image: a 2000px PNG that mirrors the cover and board, light or dark with the app theme.
+
 ## Checking a change
 
 ```

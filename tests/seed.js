@@ -21,7 +21,11 @@ module.exports=function seed(fake,email,opt){opt=opt||{};
       {id:'t3',sp:s1,title:'Write captions for reels',col:'i',due:day(3),pri:0,ts:now-3e6},
       {id:'t4',sp:s1,title:'Reply to sponsor email',col:'s',due:day(-2),pri:0,ts:now-4e6,done:now-1e6},
       {id:'t5',sp:s2,title:'Unbox the test phone',col:'m',due:day(0),pri:0,ts:now-5e6}],
-    mood:[{id:'m1',sp:s1,kind:'color',sec:'palette',value:'#F5A524',label:''},{id:'m2',sp:s1,kind:'color',sec:'palette',value:'#111111',label:''},{id:'m3',sp:s1,kind:'color',sec:'palette',value:'#F2F2F2',label:''}],
+    mood:[{id:'m1',sp:s1,kind:'color',sec:'palette',value:'#B5651D',label:'Masala chai'},{id:'m2',sp:s1,kind:'color',sec:'palette',value:'#1F1A17',label:'Kettle black'},{id:'m3',sp:s1,kind:'color',sec:'palette',value:'#F4EDE1',label:'Milk froth'},{id:'m4',sp:s1,kind:'color',sec:'palette',value:'#6B8E4E',label:'Cardamom'},{id:'m5',sp:s1,kind:'color',sec:'palette',value:'#C9774D',label:'Kulhad clay'},
+      {id:'m6',sp:s1,kind:'quote',sec:'words',value:'Slow sips, honest stories.',label:'Channel promise'},{id:'m7',sp:s1,kind:'note',sec:'words',value:'Warm light, handheld frames, real street sound. One chai shot per video.'},
+      {id:'m8',sp:s1,kind:'pattern',sec:'texture',value:'stripes',label:'Market awning',c1:'#B5651D',c2:'#F4EDE1',c3:'#6B8E4E'},{id:'m9',sp:s1,kind:'pattern',sec:'texture',value:'dots',label:'Steam',c1:'#C9774D',c2:'#F4EDE1',c3:'#1F1A17'},
+      {id:'m10',sp:s1,kind:'icon',sec:'elements',value:'video',label:'Vlog'},{id:'m11',sp:s1,kind:'icon',sec:'elements',value:'pin',label:'Places'},{id:'m12',sp:s1,kind:'icon',sec:'elements',value:'sun',label:'Mornings'},
+      {id:'m13',sp:s1,kind:'link',sec:'links',value:'https://www.youtube.com/@NatGeo',label:'Pacing reference'}],
     files:[{id:'f1',sp:s1,name:'ladakh-broll.mp4',assetId:'a1',type:'video/mp4',size:48000000}],
     posts:[
       {id:'p1',sp:s1,title:'Ladakh vlog: 7 days',platform:'youtube',date:day(2),status:'editing',ideaId:'',ts:now},
@@ -32,7 +36,7 @@ module.exports=function seed(fake,email,opt){opt=opt||{};
     deals:[{id:'d1',sp:s1,brand:'Boat Audio',amount:25000,status:'talking',due:day(6),ts:now},{id:'d2',sp:s1,brand:'Nord VPN',amount:15000,status:'signed',due:day(10),ts:now}],
     income:[{id:'in1',sp:s1,date:day(-10),source:'YouTube AdSense',amount:8200,cat:'Ads'},{id:'in2',sp:s1,date:day(-4),source:'Brand deal',amount:20000,cat:'Sponsorship'}],
     invoices:[{id:'v1',sp:s1,no:'INV-001',client:'Boat Audio',date:day(-5),due:day(-1),items:[{d:'Integrated video',q:1,p:25000}],notes:'',paid:false,ts:now}],
-    cfg:{},kit:{},palette:{[s1]:['#F5A524','#111111','#F2F2F2'],[s2]:['#0091FF','#111111','#F2F2F2']},focus:{},bmeta:{},profile:{name:'Abhinav',role:'Creator'},edit:{},iso:opt.iso?[{id:'iso1',name:'Secret project'}]:[]};
+    cfg:{},kit:{},palette:{[s1]:['#F5A524','#111111','#F2F2F2'],[s2]:['#0091FF','#111111','#F2F2F2']},focus:{},bmeta:{[s1]:{kicker:'Brand board',title:'',tagline:'Street food, slow travel, one cup at a time',about:'',keywords:['Warm','Handmade','Unhurried'],head:'Playfair Display',body:'Inter',layout:'poster'}},profile:{name:'Abhinav',role:'Creator'},edit:{},iso:opt.iso?[{id:'iso1',name:'Secret project'}]:[]};
   const keys={},put=(path,data)=>fake.st.tables.docs.push({user_id:uid,path,data,updated_at:new Date().toISOString()});
   Object.keys(S).forEach(k=>{const j=JSON.stringify(S[k]);keys[k]={n:1,h:hsh(j)};put('store/k_'+k+'_0',{s:j,i:0})});
   put('store/meta',{ts:Date.now(),dev:'seed',keys,v:2});

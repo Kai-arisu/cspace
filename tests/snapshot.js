@@ -10,10 +10,12 @@ const srv=http.createServer((req,res)=>{let u=req.url.split('?')[0];if(u==='/')u
 await ctx.route('https://ohkecamneutxggqwhend.supabase.co/**',fake.handle);await ctx.route(/fonts\.(googleapis|gstatic)\.com/,r=>r.abort());const p=await ctx.newPage();
 await p.goto('http://localhost:'+srv.address().port+'/');await p.waitForTimeout(500);await p.click('[data-ag="up"]');await p.fill('#agemail','snap@x.co');await p.fill('#agpass','supersecret1');await p.click('#aggo');await p.waitForTimeout(1800);
 seed(fake,'snap@x.co');await p.reload();await p.waitForTimeout(3000);
-for(const v of views){
+for(const vv of views){const [v,sub]=vv.split(':');
   await p.evaluate(v=>{var b=document.querySelector('#nav [data-id="'+v+'"]');if(b)b.click()},v);await p.waitForTimeout(900);
   if(v==='aud'){await p.evaluate(()=>{var t=document.querySelector('[data-act="aud_tab"][data-id="ins"]');if(t)t.click()});await p.waitForTimeout(500)}
+  if(v==='mood'&&sub){await p.evaluate(s=>{var t=document.querySelector('[data-act="mlayout"][data-id="'+s+'"]');if(t)t.click()},sub);await p.waitForTimeout(400)}
   const html=await p.evaluate(()=>{var d=document.documentElement.cloneNode(true);d.querySelectorAll('script').forEach(s=>s.remove());d.classList.remove('authing');return '<!doctype html>'+d.outerHTML});
-  fs.writeFileSync(path.join(out,v+'.html'),html);
+  fs.writeFileSync(path.join(out,vv.replace(':','-')+'.html'),html);
+  if(v==='mood'&&sub){await p.evaluate(()=>{var t=document.querySelector('[data-act="mlayout"][data-id="poster"]');if(t)t.click()})}
 }
 await b.close();srv.close();console.log('saved',views.length,'views to',out)})();
