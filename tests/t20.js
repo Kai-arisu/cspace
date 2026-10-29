@@ -13,7 +13,7 @@ async function mkctx(){const ctx=await b.newContext({viewport:{width:1200,height
 const ctx=await mkctx();const p=await ctx.newPage();const errs=[],csps=[];
 p.on('pageerror',e=>errs.push(e.message));p.on('console',m=>{const t=m.text();if(/Content Security Policy|Refused to/.test(t))csps.push(t)});
 await p.goto(origin+'/');await p.waitForTimeout(700);
-ok(await p.locator('#landing').isVisible(),'landing shows first');ok((await p.textContent('.lp-hero h1')).includes('in one space'),'landing headline');await p.click('.lp-nav [data-ag="in"]');await p.waitForTimeout(400);ok(!(await p.locator('#landing').isVisible()),'landing hides for sign in');ok(await p.locator('#authgate .ag-card').isVisible(),'login gate shows');
+ok(await p.locator('#landing').isVisible(),'landing shows first');ok((await p.textContent('.lp-hero h1')).includes('in one space'),'landing headline');await p.mouse.move(400,400);await p.mouse.wheel(0,1200);await p.waitForTimeout(500);ok(await p.evaluate(()=>scrollY)>500,'landing page scrolls with the wheel');await p.evaluate(()=>scrollTo(0,0));await p.click('.lp-nav [data-ag="in"]');await p.waitForTimeout(400);ok(!(await p.locator('#landing').isVisible()),'landing hides for sign in');ok(await p.locator('#authgate .ag-card').isVisible(),'login gate shows');
 ok(!(await p.locator('#nav').isVisible()),'app hidden behind gate');
 await p.screenshot({path:'f-login.png'});
 // wrong password

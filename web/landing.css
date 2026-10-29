@@ -379,3 +379,6 @@ html.landing #landing{display:block!important}
 @media (max-width:640px){.lp-cta{padding-top:72px}.lp-cta-a{order:0;align-self:flex-end}}
 #landing .lp-dial{color:var(--ink)}
 .lp-timer,.lp-t{overflow:clip}
+/* the app shell locks body scrolling; the landing page is a normal scrolling page */
+html.landing,html.landing body{height:auto!important;min-height:100%;overflow-x:clip!important;overflow-y:auto!important}
+html.landing body{overflow-y:visible!important}

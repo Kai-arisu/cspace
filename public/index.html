@@ -3469,6 +3469,9 @@ html.landing #landing{display:block!important}
 @media (max-width:640px){.lp-cta{padding-top:72px}.lp-cta-a{order:0;align-self:flex-end}}
 #landing .lp-dial{color:var(--ink)}
 .lp-timer,.lp-t{overflow:clip}
+/* the app shell locks body scrolling; the landing page is a normal scrolling page */
+html.landing,html.landing body{height:auto!important;min-height:100%;overflow-x:clip!important;overflow-y:auto!important}
+html.landing body{overflow-y:visible!important}
 </style><script>try{if(location.pathname==="/"&&!/[?&](signin|signup)\b/.test(location.search)&&!/type=recovery/.test(location.hash+location.search)&&!Object.keys(localStorage).some(function(k){return /^sb-.*-auth-token$/.test(k)}))document.documentElement.className="landing"}catch(e){}</script></head><body><div id="authgate" hidden></div><div id="pubpage" hidden></div><div id="landing" hidden><header class="lp-nav">
   <a class="lp-word" href="/" aria-label="Creator Space, home"><span class="lp-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M17.2 8.4a6 6 0 1 0 0 7.2"/></svg></span>Creator Space</a>
   <nav class="lp-menu-links" aria-label="On this page"><a href="#lp-features">Features</a><a href="#lp-how">How it works</a><a href="#lp-menu">What's included</a><a href="#lp-faq">Questions</a></nav>
