@@ -1,6 +1,9 @@
 # The app is one script, built by joining these files in this order.
+# "@ts" is where the compiled TypeScript (src/ts/) goes.
 # They share one scope (the function opened in core/state.js and closed in core/boot.js).
 core/state.js
+@ts
+core/ts-bridge.js
 core/sync.js
 core/errors-theme-chrome.js
 core/profile-shortcuts.js

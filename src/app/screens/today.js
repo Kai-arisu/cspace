@@ -147,66 +147,7 @@ function tdRoad(){
     '<span class="tc">'+Number(left).toLocaleString("en-IN")+' to go'+(d30?" · "+(d30>0?"+":"−")+nf(Math.abs(d30))+" in 30 days":"")+'</span>'+(eta?'<span class="tc">'+eta+'</span>':"")+'</button></section>';
 }
 
-function vNotes(){
-  var list=mine("notes");
-  if(!list.some(function(n){return n.id===selNote}))selNote=list.length?list[0].id:null;
-  var h=hero("notes","Notes",null,'<button class="btn pri" data-act="newnote"'+(readOnly?" disabled":"")+'>'+I("plus")+'New note</button>');
-  if(!list.length)return h+emptyCard("notes","Write your first note","Scripts, outlines, briefs and pitches live here. Start from a template so you're never facing a blank page.",readOnly?"":NTPL.map(function(t){return '<button class="btn sm" data-act="ntpl" data-id="'+t[0]+'">'+t[1]+'</button>'}).join(""));
-  if(!readOnly)h+='<div class="ntpl"><span>Start from</span>'+NTPL.map(function(t){return '<button class="chip" data-act="ntpl" data-id="'+t[0]+'">'+t[1]+'</button>'}).join("")+'</div>';
-  h+='<div class="notes'+(noteOpen?" nopen":"")+'"><div><input class="in" id="nsearch" placeholder="Filter notes" aria-label="Filter notes" style="margin-bottom:10px"><div class="nlist" id="nlist"></div></div><div id="neditor"></div></div>';
-  return h;
-}
-function noteListHTML(q){
-  q=(q||"").toLowerCase();
-  var list=mine("notes").slice().sort(function(a,b){return (b.pin-a.pin)||(b.ts-a.ts)}).filter(function(n){return !q||(n.title+" "+n.body).toLowerCase().indexOf(q)>-1});
-  if(!list.length)return '<div class="empty">'+(q?"No notes match.":"No notes yet.")+'</div>';
-  return list.map(function(n){
-    return '<button class="ncard" data-act="opennote" data-id="'+n.id+'" aria-current="'+(n.id===selNote)+'"><b>'+esc(n.title||"Untitled")+(n.pin?'<i class="npin" aria-label="Pinned">'+I("pin")+'</i>':"")+'</b><span>'+esc((n.body||"").replace(/[#*\[\]]+/g,"").replace(/\s+/g," ").trim().slice(0,90)||"Empty note")+'</span><small>'+ago(n.ts)+'</small></button>';
-  }).join("");
-}
-function noteEditorHTML(){
-  var n=S.notes.filter(function(x){return x.id===selNote})[0];
-  if(!n)return '<div class="panel empty">Create a note to start writing.</div>';
-  var ro=readOnly?" readonly":"",outl=nOutline(n.body),rd=noteMode==="read"||readOnly;
-  return '<div class="panel npaper'+(rd?" nread":"")+'"><div class="nbar"><button class="btn sm nback" data-act="nback">'+I("left")+'All notes</button>'+
-    '<div class="nmode" role="group" aria-label="Note mode"><button data-act="nmode" data-id="write" aria-pressed="'+!rd+'"'+(readOnly?" disabled":"")+'>Write</button><button data-act="nmode" data-id="read" aria-pressed="'+rd+'">Read</button></div>'+(rd?"":nToolbar())+'<span class="nacts"><button class="btn sm" data-act="tp_open">'+I("play")+'Teleprompter</button>'+cbtn("#neditor .panel")+
-    '<button class="ico" data-act="pinnote" aria-label="'+(n.pin?"Unpin note":"Pin note")+'" title="'+(n.pin?"Unpin":"Pin")+'" aria-pressed="'+!!n.pin+'">'+I("pin")+'</button>'+
-    '<button class="ico" data-act="delnote" aria-label="Delete note" title="Delete"'+(readOnly?" disabled":"")+'>'+I("trash")+'</button></span></div>'+
-    '<div class="nout" id="nout"'+(/nsec/.test(outl)?"":" hidden")+'>'+outl+'</div>'+
-    '<input class="ghost ntitle" id="ntitle" value="'+esc(n.title)+'" placeholder="Untitled" aria-label="Note title"'+ro+'>'+
-    (rd?'<div class="ndoc" id="ndoc">'+nRender(n.body)+'</div>':'<textarea class="nbody" id="nbody" placeholder="Start writing… use ## for headings, - [ ] for checklists" aria-label="Note body"'+ro+'>'+esc(n.body)+'</textarea>')+
-    '<div class="nmeta"><span id="nwc">'+words(n.body)+' words · edited '+ago(n.ts)+'</span></div></div>';
-}
-
-function vIdeas(){
-  var all=mine("ideas"),tags={};
-  all.forEach(function(i){(i.tags||[]).forEach(function(t){tags[t]=(tags[t]||0)+1})});
-  var h=hero("ideas","Ideas","Catch ideas before they disappear. Any idea becomes a task or a planned post in one click.","");
-  h+='<div class="capture"><input class="in" id="ideain" placeholder="A video about…  add #tags to sort it later" maxlength="240" aria-label="New idea" autocomplete="off"'+(readOnly?" disabled":"")+'><button class="btn pri" data-act="addidea"'+(readOnly?" disabled":"")+'>Add idea</button></div>';
-  if(!all.length)return h+emptyCard("bulb","Catch your first idea","Type it above and press Add idea. Use #tags like #vlog to sort them. Any idea becomes a task or a planned post in one click.","");
-  var shown=all.filter(function(i){return ideaFilter==="all"||(ideaFilter==="star"?i.star:(i.tags||[]).indexOf(ideaFilter)>-1)}).sort(function(a,b){return b.ts-a.ts});
-  var starred=all.filter(function(i){return i.star}).length,onBoard=all.filter(function(i){return i.task}).length,planned=all.filter(function(i){return S.posts.some(function(p){return p.ideaId===i.id})}).length;
-  var loose=all.filter(function(i){return !i.task&&!S.posts.some(function(p){return p.ideaId===i.id})}).length;
-  var tk=Object.keys(tags).sort(function(a,b){return tags[b]-tags[a]||(a<b?-1:1)});
-  h+='<div class="id-bar"><div class="id-chips" role="group" aria-label="Show ideas">'+
-    '<button class="chip" data-act="ifilter" data-id="all" aria-pressed="'+(ideaFilter==="all")+'">All <b>'+all.length+'</b></button>'+
-    '<button class="chip" data-act="ifilter" data-id="star" aria-pressed="'+(ideaFilter==="star")+'">'+I("star")+'Starred <b>'+starred+'</b></button>'+
-    tk.map(function(t){return '<button class="chip" data-act="ifilter" data-id="'+esc(t)+'" aria-pressed="'+(ideaFilter===t)+'">#'+esc(t)+' <b>'+tags[t]+'</b></button>'}).join("")+'</div>'+
-    '<p class="id-sum2"><span><b>'+loose+'</b> still loose</span><span><b>'+onBoard+'</b> on the board</span><span><b>'+planned+'</b> planned as posts</span></p></div>';
-  if(!shown.length)return h+'<div class="empty id-none">No ideas match this filter. <button class="lnk" data-act="ifilter" data-id="all">Show all</button></div>';
-  h+='<div class="id-wall">'+shown.map(function(i){
-    var txt=String(i.text||"").replace(/\s*#[\w-]+/g,"").trim()||i.text;
-    var planned1=S.posts.some(function(p){return p.ideaId===i.id});
-    var st=i.task?"On the board":(planned1?"Planned":"Loose");
-    return '<article class="icard'+(i.star?" starred":"")+'"><header><span class="ic-st'+(st==="Loose"?"":" on")+'">'+st+'</span><span class="ic-when">'+ago(i.ts)+'</span>'+
-      '<button class="ico star" data-act="staridea" data-id="'+i.id+'" aria-pressed="'+!!i.star+'" aria-label="'+(i.star?"Unstar":"Star")+' idea">'+I("star")+'</button></header>'+
-      '<h3 class="ic-t">'+esc(txt)+'</h3>'+
-      ((i.tags||[]).length?'<div class="ic-tags">'+(i.tags||[]).map(function(t){return '<button class="tag" data-act="ifilter" data-id="'+esc(t)+'">#'+esc(t)+'</button>'}).join("")+'</div>':'')+
-      '<footer class="acts">'+(i.task?"":'<button class="btn sm" data-act="idea2task" data-id="'+i.id+'"'+(readOnly?" disabled":"")+'>'+I("board")+'Make task</button>')+(planned1?"":'<button class="btn sm" data-act="idea2post" data-id="'+i.id+'"'+(readOnly?" disabled":"")+'>'+I("calendar")+'Plan post</button>')+(readOnly?'':'<button class="btn sm" data-act="rp_open" data-id="idea:'+i.id+'">Repurpose</button>')+
-      '<button class="ico" data-act="delidea" data-id="'+i.id+'" aria-label="Delete idea" title="Delete"'+(readOnly?" disabled":"")+'>'+I("trash")+'</button></footer></article>';
-  }).join("")+'</div>';
-  return h;
-}
+/* Notes and Ideas screens: src/ts/screens/notes.ts and ideas.ts */
 
 function vBoard(){
   var t=mine("tasks"),today=ymd(new Date());

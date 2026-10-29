@@ -23,14 +23,7 @@ document.addEventListener("keydown",function(e){
 document.addEventListener("input",function(e){
   var t=e.target;
   if(t.id==="gsearch")showSearch(t.value);
-  if(t.id==="ntitle"||t.id==="nbody"){
-    var n=findIn(S.notes,selNote);if(!n)return;
-    if(t.id==="ntitle")n.title=t.value;else n.body=t.value;
-    n.ts=Date.now();touch();
-    var q=$("nsearch");$("nlist").innerHTML=noteListHTML(q?q.value:"");
-    var w=$("nwc");if(w)w.textContent=words(n.body)+" words · edited just now";
-  }
-  if(t.id==="nsearch")$("nlist").innerHTML=noteListHTML(t.value);
+  if(noteInput(t))return;
   if(t.dataset&&t.dataset.f==="task"){if(t.tagName==="TEXTAREA"&&/\n/.test(t.value))t.value=t.value.replace(/\n+/g," ");var k=findIn(S.tasks,t.dataset.id);if(k){k.title=t.value;touch()}}
 });
 document.addEventListener("change",function(e){

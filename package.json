@@ -3,11 +3,15 @@
   "private": true,
   "scripts": {
     "build": "python3 build.py",
+    "typecheck": "tsc -p .",
     "lint": "python3 build.py && eslint build/check-app.js build/check-boot.js src/landing/landing.js desktop/main.js",
+    "check": "npm run typecheck && npm run lint",
     "test": "bash tests/all.sh"
   },
   "devDependencies": {
+    "esbuild": "^0.25.12",
     "eslint": "^9.39.1",
-    "globals": "^16.5.0"
+    "globals": "^16.5.0",
+    "typescript": "5.9"
   }
 }

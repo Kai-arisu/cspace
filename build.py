@@ -3,6 +3,7 @@
   src/index.html      the page, with {{placeholders}} for the parts below
   src/shell.html      the app's own markup: sidebar, top bar, the main column, dialogs
   src/app/            the app script, one file per feature, joined in src/app/ORDER
+  src/ts/             screens written in TypeScript, compiled with esbuild into the same script
   src/styles/         stylesheets, base.css in the head, the rest joined in src/styles/ORDER
   src/boot/boot.js    sign-in, the storage layer the app talks to, public pages
   src/landing/        the page signed-out visitors see, and its illustrations
@@ -10,7 +11,7 @@
 
 Run:  python3 build.py
 """
-import re, os, shutil, json, hashlib
+import re, os, shutil, json, hashlib, subprocess
 from PIL import Image, ImageDraw
 
 base = os.path.dirname(os.path.abspath(__file__)) + '/'
@@ -19,12 +20,19 @@ SRC = base + 'src/'
 def read(p): return open(SRC + p, encoding='utf-8').read()
 def ordered(folder):
     names = [l.strip() for l in read(folder + '/ORDER').splitlines() if l.strip() and not l.startswith('#')]
-    missing = [n for n in names if not os.path.exists(SRC + folder + '/' + n)]
+    missing = [n for n in names if not n.startswith('@') and not os.path.exists(SRC + folder + '/' + n)]
     assert not missing, 'listed in ORDER but missing: %s' % missing
     return names
 
+# the TypeScript screens, compiled into one block that joins the app's scope
+def typescript():
+    r = subprocess.run(['npx', 'esbuild', SRC + 'ts/index.ts', '--bundle', '--format=iife', '--global-name=TS',
+                        '--target=es2019', '--charset=utf8', '--log-level=warning'], cwd=base, capture_output=True, text=True)
+    assert r.returncode == 0, 'esbuild failed:\n' + r.stderr
+    return '/* ---------- compiled from src/ts ---------- */\n' + r.stdout.rstrip('\n')
+
 # the app script: files joined in order, sharing one scope
-app = '\n'.join(read('app/' + n)[:-1] for n in ordered('app'))
+app = '\n'.join(typescript() if n == '@ts' else read('app/' + n)[:-1] for n in ordered('app'))
 css = '\n'.join(read('styles/' + n) for n in ordered('styles'))
 landing = re.sub(r'\{\{ill:(\w+)\}\}', lambda m: read('landing/ill/' + m.group(1) + '.svg').strip(), read('landing/landing.html'))
 parts = {'shell': read('shell.html'), 'app': app, 'css': css, 'landing': landing, 'boot': read('boot/boot.js'),

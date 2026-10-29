@@ -1,7 +1,6 @@
 /* ---------- actions ---------- */
 function findIn(arr,id){return arr.filter(function(x){return x.id===id})[0]}
 function moveTask(id,col){var t=findIn(S.tasks,id);if(t&&t.col!==col){if(col==="s")t.done=Date.now();else if(t.col==="s")t.done=0;t.col=col;touch();render()}}
-function newNote(){var n={id:uid(),sp:S.cur,title:"",body:"",pin:false,ts:Date.now()};S.notes.push(n);selNote=n.id;noteOpen=true;noteMode="write";S.view="notes";touch();render();var t=$("ntitle");if(t)t.focus()}
 
 var UNDO_ACTS=/^(bdel|cdel|clipdel|delfile|delidea|delmood|delnote|delspace|deltask|mkwdel)$/,undoPrev="",undoT=0;
 function showUndo(prev){
@@ -19,6 +18,7 @@ function act0(a,b){
   if(readOnly&&!/^(ed|ve)_/.test(a)&&["space","view","opennote","nback","nmode","ifilter","mform","mcancel","copycolor","qtoggle","theme","gores","spacecancel","wbtool","wbcolor","wbundo","wbredo","wbdel","wbclear","wbzoom","wbfill","profile","profclose","undoall","datadlg","d_export","rerr_retry","rerr_home","bell","shortcuts","pmode","pacc","pbg","wbhi","wbfilter","wbtl","wbstart","vizrange","vizscope","mlayout","mcopy","sharehelp","dlgclose","comment","cmonth","cday","biztab","kitdl","kitcopy","vdl","clipf","aihelper","aistop","aicopy","pfilter","pmonth","pday","ptoday","pgroup","nsec","palopen","palrun","ftoggle","ftmode","ftreset"].indexOf(a)<0)return;
   if(profAct(a,b)||dataAct(a,b)||rerrAct(a,b)||webAct(a,b))return;
   if(v10act(a,b))return;
+  if(ideaAct(a,b,id)||noteAct(a,b,id))return;
   switch(a){
     case "view":go(id);break;
     case "space":S.cur=id;touch();render();break;
@@ -57,10 +57,6 @@ function act0(a,b){
     case "ptoday":planSel=ymd(new Date());{var tdd=new Date();planMonth=new Date(tdd.getFullYear(),tdd.getMonth(),1)}render();break;
     case "pgroup":planOpen[id]=!planOpen[id];render();break;
     case "ptoggle":{var pt=findIn(S.tasks,id);if(pt){if(pt.col==="s"){pt.col=pt.prevCol||"i";pt.done=0}else{pt.prevCol=pt.col;pt.col="s";pt.done=Date.now()}pt.ts=Date.now();touch();render()}break}
-    case "ntpl":nFromTpl(id);break;
-    case "ninsert":nInsert(b.dataset.t);break;
-    case "n2tasks":nToTasks();break;
-    case "nsec":{var ta=$("nbody");if(ta){ta.focus();var ps=+b.dataset.pos;ta.setSelectionRange(ps,ps);ta.scrollTop=Math.max(0,(+b.dataset.line)*27-40);ta.scrollIntoView&&0}break}
     case "tpri":{var tk=findIn(S.tasks,id);if(tk){tk.pri=((tk.pri||0)+1)%4;touch();render()}break}
     case "palopen":palOpen();break;
     case "palrun":palRun(+b.dataset.i);break;
@@ -86,24 +82,8 @@ function act0(a,b){
     case "wbclear":arm(b,function(){if(WB.items.length){wbSnap();WB.items=[];WB.sel=null;wbTouch();wbPaint()}});break;
     case "wbzoom":{var sv=$("wbsvg").getBoundingClientRect();
       if(id==="fit")wbFit();else wbZoomTo(WB.z*(id==="in"?1.25:0.8),sv.width/2,sv.height/2);break}
-    /* notes */
     case "vizrange":vizRange=+id;render();break;
     case "vizscope":vizAll=(id==="all");render();break;
-    case "newnote":newNote();break;
-    case "opennote":selNote=id;noteOpen=true;S.view="notes";render();break;
-    case "nback":noteOpen=false;render();break;
-    case "nmode":noteMode=id==="read"?"read":"write";if($("neditor"))$("neditor").innerHTML=noteEditorHTML();break;
-    case "nchk":(function(){var n=S.notes.filter(function(x){return x.id===selNote})[0];if(!n)return;var L=n.body.split("\n"),i=+b.getAttribute("data-line");if(L[i]==null)return;
-      L[i]=/\[( )\]/.test(L[i])?L[i].replace("[ ]","[x]"):L[i].replace(/\[(x|X)\]/,"[ ]");n.body=L.join("\n");n.ts=Date.now();touch();$("neditor").innerHTML=noteEditorHTML();$("nlist").innerHTML=noteListHTML($("nsearch")?$("nsearch").value:"")})();break;
-    case "pinnote":{var n2=findIn(S.notes,selNote);if(n2){n2.pin=!n2.pin;touch();render()}break}
-    case "delnote":arm(b,function(){S.notes=S.notes.filter(function(x){return x.id!==selNote});selNote=null;touch();render()});break;
-    /* ideas */
-    case "addidea":addIdea();break;
-    case "ifilter":ideaFilter=id;render();break;
-    case "staridea":{var i=findIn(S.ideas,id);if(i){i.star=!i.star;touch();render()}break}
-    case "delidea":arm(b,function(){S.ideas=S.ideas.filter(function(x){return x.id!==id});touch();render()});break;
-    case "idea2post":{var ip=findIn(S.ideas,id);if(ip){var dt=ymd(new Date(Date.now()+86400000));S.posts.push({id:uid(),sp:S.cur,title:ip.text.replace(/\s*#[\w-]+/g,"").trim()||ip.text,platform:"YouTube",date:dt,status:"idea",ideaId:ip.id,ts:Date.now()});calSel=dt;{var cd2=dparse(dt);calMonth=new Date(cd2.getFullYear(),cd2.getMonth(),1)}touch();go("cal");toast("Planned for tomorrow. Pick another day any time.")}break}
-    case "idea2task":{var i2=findIn(S.ideas,id);if(i2){S.tasks.push({id:uid(),sp:S.cur,title:i2.text.replace(/\s*#[\w-]+/g,"").trim()||i2.text,col:"i",due:"",ts:Date.now()});i2.task=true;touch();render();toast("Added to Progress")}break}
     /* tasks */
     case "tleft":case "tright":{
       var t2=findIn(S.tasks,id);if(!t2)break;
@@ -135,15 +115,6 @@ function act0(a,b){
       touch();render();
       if(f&&assets)setTimeout(function(){if(!S.files.some(function(x){return x.assetId===f.assetId}))assets.delete(f.assetId).catch(function(){})},9000)});break;
   }
-}
-function addIdea(){
-  var el=$("ideain");if(!el)return;var text=el.value.trim();if(!text){toast("Type an idea first");el.focus();return}
-  addIdeaText(text,true);
-}
-function addIdeaText(text,keep){
-  var tags=(text.match(/#[\w-]+/g)||[]).map(function(t){return t.slice(1).toLowerCase()});
-  S.ideas.push({id:uid(),sp:S.cur,text:text,tags:tags,star:false,task:false,ts:Date.now()});
-  touch();if(!keep)S.view="ideas";render();var n=$("ideain");if(keep&&n)n.focus();
 }
 function uploadFile(btn){
   var fi=$("ffile");if(!fi||!fi.files[0])return toast("Choose a file first");

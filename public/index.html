@@ -4381,6 +4381,452 @@ function fix(){
   if(S.view==="library")S.view="clips";if(!vmeta(S.view))S.view="home";
 }
 
+/* ---------- compiled from src/ts ---------- */
+"use strict";
+var TS = (() => {
+  var __defProp = Object.defineProperty;
+  var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  var __getOwnPropNames = Object.getOwnPropertyNames;
+  var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __export = (target, all) => {
+    for (var name in all)
+      __defProp(target, name, { get: all[name], enumerable: true });
+  };
+  var __copyProps = (to, from, except, desc) => {
+    if (from && typeof from === "object" || typeof from === "function") {
+      for (let key of __getOwnPropNames(from))
+        if (!__hasOwnProp.call(to, key) && key !== except)
+          __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+    }
+    return to;
+  };
+  var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+  // src/ts/index.ts
+  var index_exports = {};
+  __export(index_exports, {
+    NTPL: () => NTPL,
+    addIdea: () => addIdea,
+    addIdeaText: () => addIdeaText,
+    ideaAct: () => ideaAct,
+    ideaTitle: () => ideaTitle,
+    nFromTpl: () => nFromTpl,
+    nInsert: () => nInsert,
+    nOutline: () => nOutline,
+    nRender: () => nRender,
+    nToTasks: () => nToTasks,
+    nToolbar: () => nToolbar,
+    newNote: () => newNote,
+    noteAct: () => noteAct,
+    noteEditorHTML: () => noteEditorHTML,
+    noteInput: () => noteInput,
+    noteListHTML: () => noteListHTML,
+    vIdeas: () => vIdeas,
+    vNotes: () => vNotes
+  });
+
+  // src/ts/screens/ideas.ts
+  var TAG = /#[\w-]+/g;
+  function ideaTitle(text) {
+    return String(text || "").replace(/\s*#[\w-]+/g, "").trim() || text;
+  }
+  function isPlanned(i) {
+    return S.posts.some((p) => p.ideaId === i.id);
+  }
+  function statusOf(i) {
+    return i.task ? "On the board" : isPlanned(i) ? "Planned" : "Loose";
+  }
+  function matches(i, filter) {
+    if (filter === "all") return true;
+    if (filter === "star") return !!i.star;
+    return (i.tags || []).indexOf(filter) > -1;
+  }
+  var dis = () => readOnly ? " disabled" : "";
+  function card(i) {
+    const st = statusOf(i);
+    const planned = isPlanned(i);
+    const tags = i.tags || [];
+    return `<article class="icard${i.star ? " starred" : ""}"><header><span class="ic-st${st === "Loose" ? "" : " on"}">${st}</span><span class="ic-when">${ago(i.ts)}</span><button class="ico star" data-act="staridea" data-id="${i.id}" aria-pressed="${!!i.star}" aria-label="${i.star ? "Unstar" : "Star"} idea">${I("star")}</button></header><h3 class="ic-t">${esc(ideaTitle(i.text))}</h3>` + (tags.length ? `<div class="ic-tags">${tags.map((t) => `<button class="tag" data-act="ifilter" data-id="${esc(t)}">#${esc(t)}</button>`).join("")}</div>` : "") + `<footer class="acts">` + (i.task ? "" : `<button class="btn sm" data-act="idea2task" data-id="${i.id}"${dis()}>${I("board")}Make task</button>`) + (planned ? "" : `<button class="btn sm" data-act="idea2post" data-id="${i.id}"${dis()}>${I("calendar")}Plan post</button>`) + (readOnly ? "" : `<button class="btn sm" data-act="rp_open" data-id="idea:${i.id}">Repurpose</button>`) + `<button class="ico" data-act="delidea" data-id="${i.id}" aria-label="Delete idea" title="Delete"${dis()}>${I("trash")}</button></footer></article>`;
+  }
+  function vIdeas() {
+    const all = mine("ideas");
+    const tags = {};
+    all.forEach((i) => (i.tags || []).forEach((t) => tags[t] = (tags[t] || 0) + 1));
+    let h = hero("ideas", "Ideas", "Catch ideas before they disappear. Any idea becomes a task or a planned post in one click.", "");
+    h += `<div class="capture"><input class="in" id="ideain" placeholder="A video about…  add #tags to sort it later" maxlength="240" aria-label="New idea" autocomplete="off"${dis()}><button class="btn pri" data-act="addidea"${dis()}>Add idea</button></div>`;
+    if (!all.length)
+      return h + emptyCard("bulb", "Catch your first idea", "Type it above and press Add idea. Use #tags like #vlog to sort them. Any idea becomes a task or a planned post in one click.", "");
+    const shown = all.filter((i) => matches(i, ideaFilter)).sort((a, b) => b.ts - a.ts);
+    const starred = all.filter((i) => i.star).length;
+    const onBoard = all.filter((i) => i.task).length;
+    const planned = all.filter(isPlanned).length;
+    const loose = all.filter((i) => statusOf(i) === "Loose").length;
+    const byCount = Object.keys(tags).sort((a, b) => tags[b] - tags[a] || (a < b ? -1 : 1));
+    const chip = (id, label, n) => `<button class="chip" data-act="ifilter" data-id="${esc(id)}" aria-pressed="${ideaFilter === id}">${label} <b>${n}</b></button>`;
+    h += `<div class="id-bar"><div class="id-chips" role="group" aria-label="Show ideas">` + chip("all", "All", all.length) + chip("star", I("star") + "Starred", starred) + byCount.map((t) => chip(t, "#" + esc(t), tags[t])).join("") + `</div><p class="id-sum2"><span><b>${loose}</b> still loose</span><span><b>${onBoard}</b> on the board</span><span><b>${planned}</b> planned as posts</span></p></div>`;
+    if (!shown.length)
+      return h + `<div class="empty id-none">No ideas match this filter. <button class="lnk" data-act="ifilter" data-id="all">Show all</button></div>`;
+    return h + `<div class="id-wall">${shown.map(card).join("")}</div>`;
+  }
+  function addIdeaText(text, keep) {
+    const tags = (text.match(TAG) || []).map((t) => t.slice(1).toLowerCase());
+    S.ideas.push({ id: uid(), sp: S.cur, text, tags, star: false, task: false, ts: Date.now() });
+    touch();
+    if (!keep) S.view = "ideas";
+    render();
+    const n = $("ideain");
+    if (keep && n) n.focus();
+  }
+  function addIdea() {
+    const el = $("ideain");
+    if (!el) return;
+    const text = el.value.trim();
+    if (!text) {
+      toast("Type an idea first");
+      el.focus();
+      return;
+    }
+    addIdeaText(text, true);
+  }
+  function ideaAct(a, b, id) {
+    switch (a) {
+      case "addidea":
+        addIdea();
+        return true;
+      case "ifilter":
+        ideaFilter = id;
+        render();
+        return true;
+      case "staridea": {
+        const i = findIn(S.ideas, id);
+        if (i) {
+          i.star = !i.star;
+          touch();
+          render();
+        }
+        return true;
+      }
+      case "delidea":
+        arm(b, () => {
+          S.ideas = S.ideas.filter((x) => x.id !== id);
+          touch();
+          render();
+        });
+        return true;
+      case "idea2post": {
+        const i = findIn(S.ideas, id);
+        if (i) {
+          const dt = ymd(new Date(Date.now() + 864e5));
+          S.posts.push({ id: uid(), sp: S.cur, title: ideaTitle(i.text), platform: "YouTube", date: dt, status: "idea", ideaId: i.id, ts: Date.now() });
+          calSel = dt;
+          const d = dparse(dt);
+          calMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+          touch();
+          go("cal");
+          toast("Planned for tomorrow. Pick another day any time.");
+        }
+        return true;
+      }
+      case "idea2task": {
+        const i = findIn(S.ideas, id);
+        if (i) {
+          S.tasks.push({ id: uid(), sp: S.cur, title: ideaTitle(i.text), col: "i", due: "", ts: Date.now() });
+          i.task = true;
+          touch();
+          render();
+          toast("Added to Progress");
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // src/ts/screens/notes.ts
+  var NTPL = [
+    ["blank", "Blank", "", ""],
+    ["video", "Video script", "Video script", "## Hook (0:00 to 0:15)\nShow the finished result first.\n\n## Problem\nWhy the old way wastes time.\n\n## Main points\n- Point one\n- Point two\n- Point three\n\n## Call to action\nWhat should they do next?\n\n## Checklist\n- [ ] Film A-roll\n- [ ] Record voiceover\n- [ ] Edit and colour grade\n- [ ] Thumbnail and title\n"],
+    ["brief", "Content brief", "Content brief", "## Goal\n\n## Audience\n\n## Key message\n\n## Format and length\n\n## References\n\n## Deadline\n"],
+    ["collab", "Collab pitch", "Collab pitch", "## Brand or person\n\n## What they want\n\n## What I offer\n\n## Rates and terms\n\n## Next steps\n- [ ] Reply\n- [ ] Send media kit\n"],
+    ["check", "Checklist", "Checklist", "## Checklist\n- [ ] \n- [ ] \n- [ ] \n"],
+    ["meet", "Meeting notes", "Meeting notes", "## Agenda\n\n## Notes\n\n## Decisions\n\n## Action items\n- [ ] \n"]
+  ];
+  var CHECK = /^\s*-\s\[( |x|X)\]\s?(.*)$/;
+  var BULLET = /^\s*[-*]\s+(.*)$/;
+  var HEADING = /^(#{1,3})\s+(.+)$/;
+  var current = () => findIn(S.notes, selNote);
+  var ro = () => readOnly ? " readonly" : "";
+  var dis2 = () => readOnly ? " disabled" : "";
+  function nRender(body) {
+    let h = "";
+    let inList = false;
+    const close = () => {
+      if (inList) {
+        h += "</ul>";
+        inList = false;
+      }
+    };
+    const open = () => {
+      if (!inList) {
+        h += '<ul class="nd-l">';
+        inList = true;
+      }
+    };
+    String(body || "").split("\n").forEach((l, i) => {
+      let m;
+      if (m = l.match(CHECK)) {
+        open();
+        const on = m[1] !== " ";
+        h += `<li class="nd-c${on ? " done" : ""}"><label><input type="checkbox" data-act="nchk" data-line="${i}"${on ? " checked" : ""}${dis2()}><span>${esc(m[2])}</span></label></li>`;
+        return;
+      }
+      if (m = l.match(BULLET)) {
+        open();
+        h += `<li>${esc(m[1])}</li>`;
+        return;
+      }
+      close();
+      if (m = l.match(HEADING)) {
+        const n = m[1].length + 1;
+        h += `<h${n} class="nd-h">${esc(m[2])}</h${n}>`;
+        return;
+      }
+      if (/^-{3,}\s*$/.test(l)) {
+        h += '<hr class="nd-hr">';
+        return;
+      }
+      if (!l.trim()) {
+        h += '<div class="nd-sp"></div>';
+        return;
+      }
+      h += `<p>${esc(l)}</p>`;
+    });
+    close();
+    return h || '<p class="muted">This note is empty. Switch to Write to start.</p>';
+  }
+  function nOutline(body) {
+    const out = [];
+    let pos = 0;
+    String(body || "").split("\n").forEach((l, i) => {
+      const m = l.match(HEADING);
+      if (m) out.push({ i, pos, lvl: m[1].length, t: m[2] });
+      pos += l.length + 1;
+    });
+    if (!out.length) return '<span class="muted" style="font-size:13px">Add headings with ## to get a section outline.</span>';
+    return out.map((o) => `<button class="nsec l${o.lvl}" data-act="nsec" data-pos="${o.pos}" data-line="${o.i}">${esc(o.t)}</button>`).join("");
+  }
+  function paintOutline(body) {
+    const o = $("nout");
+    if (o) {
+      o.innerHTML = nOutline(body);
+      o.hidden = !/nsec/.test(o.innerHTML);
+    }
+  }
+  function nToolbar() {
+    if (readOnly) return "";
+    const b = (t, label) => `<button class="btn sm" data-act="ninsert" data-t="${t}">${label}</button>`;
+    return '<div class="ntool" role="toolbar" aria-label="Insert">' + b("## ", "Heading") + b("- ", "Bullet") + b("- [ ] ", "Checklist") + b("---", "Divider") + '<button class="btn sm" data-act="n2tasks" title="Turn unchecked checklist lines into tasks">Checklist to tasks</button></div>';
+  }
+  function nInsert(pre) {
+    var _a;
+    const ta = $("nbody"), n = current();
+    if (!ta || !n || readOnly) return;
+    const v = ta.value, s = (_a = ta.selectionStart) != null ? _a : 0, ls = v.lastIndexOf("\n", s - 1) + 1;
+    const end = v.indexOf("\n", s);
+    const line = v.slice(ls, end < 0 ? v.length : end);
+    const ins = (line.trim() === "" ? "" : "\n") + pre;
+    const at = line.trim() === "" ? ls : ls + line.length;
+    ta.value = v.slice(0, at) + ins + v.slice(at);
+    const c = at + ins.length;
+    ta.focus();
+    ta.setSelectionRange(c, c);
+    n.body = ta.value;
+    n.ts = Date.now();
+    touch();
+    paintOutline(n.body);
+  }
+  function nToTasks() {
+    const n = current();
+    if (!n || readOnly) return;
+    let cnt = 0;
+    n.body = n.body.replace(/^(\s*[-*]\s*)\[ \]\s*(.+)$/gm, (all, pre, t) => {
+      t = t.trim();
+      if (!t) return all;
+      S.tasks.push({ id: uid(), sp: S.cur, title: t, col: "i", due: "", pri: 0, ts: Date.now(), from: n.id });
+      cnt++;
+      return pre + "[→] " + t;
+    });
+    if (!cnt) return toast("No unchecked lines like “- [ ] task” found");
+    n.ts = Date.now();
+    touch();
+    render();
+    toast(cnt + (cnt === 1 ? " task" : " tasks") + " added to Progress");
+  }
+  function openNew(title, body) {
+    const n = { id: uid(), sp: S.cur, title, body, pin: false, ts: Date.now() };
+    S.notes.push(n);
+    selNote = n.id;
+    noteOpen = true;
+    noteMode = "write";
+    S.view = "notes";
+    touch();
+    render();
+    return n;
+  }
+  function newNote() {
+    openNew("", "");
+    const t = $("ntitle");
+    if (t) t.focus();
+  }
+  function nFromTpl(key) {
+    const t = NTPL.find((x) => x[0] === key);
+    if (!t || readOnly) return;
+    openNew(t[2], t[3]);
+    const b = $("nbody");
+    if (b) {
+      b.focus();
+      b.setSelectionRange(0, 0);
+    }
+  }
+  function vNotes() {
+    const list = mine("notes");
+    if (!list.some((n) => n.id === selNote)) selNote = list.length ? list[0].id : null;
+    let h = hero("notes", "Notes", null, `<button class="btn pri" data-act="newnote"${dis2()}>${I("plus")}New note</button>`);
+    if (!list.length)
+      return h + emptyCard(
+        "notes",
+        "Write your first note",
+        "Scripts, outlines, briefs and pitches live here. Start from a template so you're never facing a blank page.",
+        readOnly ? "" : NTPL.map((t) => `<button class="btn sm" data-act="ntpl" data-id="${t[0]}">${t[1]}</button>`).join("")
+      );
+    if (!readOnly) h += `<div class="ntpl"><span>Start from</span>${NTPL.map((t) => `<button class="chip" data-act="ntpl" data-id="${t[0]}">${t[1]}</button>`).join("")}</div>`;
+    h += `<div class="notes${noteOpen ? " nopen" : ""}"><div><input class="in" id="nsearch" placeholder="Filter notes" aria-label="Filter notes" style="margin-bottom:10px"><div class="nlist" id="nlist"></div></div><div id="neditor"></div></div>`;
+    return h;
+  }
+  function noteListHTML(q) {
+    q = (q || "").toLowerCase();
+    const list = mine("notes").slice().sort((a, b) => Number(b.pin) - Number(a.pin) || b.ts - a.ts).filter((n) => !q || (n.title + " " + n.body).toLowerCase().indexOf(q) > -1);
+    if (!list.length) return `<div class="empty">${q ? "No notes match." : "No notes yet."}</div>`;
+    return list.map((n) => {
+      const preview = (n.body || "").replace(/[#*\[\]]+/g, "").replace(/\s+/g, " ").trim().slice(0, 90) || "Empty note";
+      return `<button class="ncard" data-act="opennote" data-id="${n.id}" aria-current="${n.id === selNote}"><b>${esc(n.title || "Untitled")}${n.pin ? `<i class="npin" aria-label="Pinned">${I("pin")}</i>` : ""}</b><span>${esc(preview)}</span><small>${ago(n.ts)}</small></button>`;
+    }).join("");
+  }
+  function noteEditorHTML() {
+    const n = current();
+    if (!n) return '<div class="panel empty">Create a note to start writing.</div>';
+    const outl = nOutline(n.body), rd = noteMode === "read" || readOnly;
+    return `<div class="panel npaper${rd ? " nread" : ""}"><div class="nbar"><button class="btn sm nback" data-act="nback">${I("left")}All notes</button><div class="nmode" role="group" aria-label="Note mode"><button data-act="nmode" data-id="write" aria-pressed="${!rd}"${dis2()}>Write</button><button data-act="nmode" data-id="read" aria-pressed="${rd}">Read</button></div>` + (rd ? "" : nToolbar()) + `<span class="nacts"><button class="btn sm" data-act="tp_open">${I("play")}Teleprompter</button>${cbtn("#neditor .panel")}<button class="ico" data-act="pinnote" aria-label="${n.pin ? "Unpin note" : "Pin note"}" title="${n.pin ? "Unpin" : "Pin"}" aria-pressed="${!!n.pin}">${I("pin")}</button><button class="ico" data-act="delnote" aria-label="Delete note" title="Delete"${dis2()}>${I("trash")}</button></span></div><div class="nout" id="nout"${/nsec/.test(outl) ? "" : " hidden"}>${outl}</div><input class="ghost ntitle" id="ntitle" value="${esc(n.title)}" placeholder="Untitled" aria-label="Note title"${ro()}>` + (rd ? `<div class="ndoc" id="ndoc">${nRender(n.body)}</div>` : `<textarea class="nbody" id="nbody" placeholder="Start writing… use ## for headings, - [ ] for checklists" aria-label="Note body"${ro()}>${esc(n.body)}</textarea>`) + `<div class="nmeta"><span id="nwc">${words(n.body)} words · edited ${ago(n.ts)}</span></div></div>`;
+  }
+  function repaint() {
+    const ed = $("neditor"), li = $("nlist"), q = $("nsearch");
+    if (ed) ed.innerHTML = noteEditorHTML();
+    if (li) li.innerHTML = noteListHTML(q ? q.value : "");
+  }
+  function noteAct(a, b, id) {
+    switch (a) {
+      case "newnote":
+        newNote();
+        return true;
+      case "ntpl":
+        nFromTpl(id);
+        return true;
+      case "ninsert":
+        nInsert(b.dataset.t || "");
+        return true;
+      case "n2tasks":
+        nToTasks();
+        return true;
+      case "opennote":
+        selNote = id;
+        noteOpen = true;
+        S.view = "notes";
+        render();
+        return true;
+      case "nback":
+        noteOpen = false;
+        render();
+        return true;
+      case "nmode": {
+        noteMode = id === "read" ? "read" : "write";
+        const ed = $("neditor");
+        if (ed) ed.innerHTML = noteEditorHTML();
+        return true;
+      }
+      case "nchk": {
+        const n = current();
+        if (!n) return true;
+        const L = n.body.split("\n"), i = +(b.getAttribute("data-line") || -1);
+        if (L[i] == null) return true;
+        L[i] = /\[( )\]/.test(L[i]) ? L[i].replace("[ ]", "[x]") : L[i].replace(/\[(x|X)\]/, "[ ]");
+        n.body = L.join("\n");
+        n.ts = Date.now();
+        touch();
+        repaint();
+        return true;
+      }
+      case "nsec": {
+        const ta = $("nbody");
+        if (ta) {
+          ta.focus();
+          const ps = +(b.dataset.pos || 0);
+          ta.setSelectionRange(ps, ps);
+          ta.scrollTop = Math.max(0, +(b.dataset.line || 0) * 27 - 40);
+        }
+        return true;
+      }
+      case "pinnote": {
+        const n = current();
+        if (n) {
+          n.pin = !n.pin;
+          touch();
+          render();
+        }
+        return true;
+      }
+      case "delnote":
+        arm(b, () => {
+          S.notes = S.notes.filter((x) => x.id !== selNote);
+          selNote = null;
+          touch();
+          render();
+        });
+        return true;
+    }
+    return false;
+  }
+  function noteInput(t) {
+    if (t.id === "ntitle" || t.id === "nbody") {
+      const n = current();
+      if (!n) return true;
+      if (t.id === "ntitle") n.title = t.value;
+      else {
+        n.body = t.value;
+        paintOutline(n.body);
+      }
+      n.ts = Date.now();
+      touch();
+      const q = $("nsearch"), li = $("nlist");
+      if (li) li.innerHTML = noteListHTML(q ? q.value : "");
+      const w = $("nwc");
+      if (w) w.textContent = words(n.body) + " words · edited just now";
+      return true;
+    }
+    if (t.id === "nsearch") {
+      const li = $("nlist");
+      if (li) li.innerHTML = noteListHTML(t.value);
+      return true;
+    }
+    return false;
+  }
+  return __toCommonJS(index_exports);
+})();
+/* ---------- TypeScript screens ---------- */
+/* src/ts/ is compiled to `var TS` just above this file (see build.py). These names
+   keep the rest of the app calling the screens the way it always has. */
+var vIdeas=TS.vIdeas, addIdea=TS.addIdea, addIdeaText=TS.addIdeaText, ideaAct=TS.ideaAct, ideaTitle=TS.ideaTitle;
+var NTPL=TS.NTPL, vNotes=TS.vNotes, noteListHTML=TS.noteListHTML, noteEditorHTML=TS.noteEditorHTML, nRender=TS.nRender, nOutline=TS.nOutline,
+    nToolbar=TS.nToolbar, nInsert=TS.nInsert, nToTasks=TS.nToTasks, nFromTpl=TS.nFromTpl, newNote=TS.newNote, noteAct=TS.noteAct, noteInput=TS.noteInput;
 /* ---------- persistence ---------- */
 function setStatus(t){var e=$("status");if(e)e.textContent=t}
 function touch(){
@@ -5160,66 +5606,7 @@ function tdRoad(){
     '<span class="tc">'+Number(left).toLocaleString("en-IN")+' to go'+(d30?" · "+(d30>0?"+":"−")+nf(Math.abs(d30))+" in 30 days":"")+'</span>'+(eta?'<span class="tc">'+eta+'</span>':"")+'</button></section>';
 }
 
-function vNotes(){
-  var list=mine("notes");
-  if(!list.some(function(n){return n.id===selNote}))selNote=list.length?list[0].id:null;
-  var h=hero("notes","Notes",null,'<button class="btn pri" data-act="newnote"'+(readOnly?" disabled":"")+'>'+I("plus")+'New note</button>');
-  if(!list.length)return h+emptyCard("notes","Write your first note","Scripts, outlines, briefs and pitches live here. Start from a template so you're never facing a blank page.",readOnly?"":NTPL.map(function(t){return '<button class="btn sm" data-act="ntpl" data-id="'+t[0]+'">'+t[1]+'</button>'}).join(""));
-  if(!readOnly)h+='<div class="ntpl"><span>Start from</span>'+NTPL.map(function(t){return '<button class="chip" data-act="ntpl" data-id="'+t[0]+'">'+t[1]+'</button>'}).join("")+'</div>';
-  h+='<div class="notes'+(noteOpen?" nopen":"")+'"><div><input class="in" id="nsearch" placeholder="Filter notes" aria-label="Filter notes" style="margin-bottom:10px"><div class="nlist" id="nlist"></div></div><div id="neditor"></div></div>';
-  return h;
-}
-function noteListHTML(q){
-  q=(q||"").toLowerCase();
-  var list=mine("notes").slice().sort(function(a,b){return (b.pin-a.pin)||(b.ts-a.ts)}).filter(function(n){return !q||(n.title+" "+n.body).toLowerCase().indexOf(q)>-1});
-  if(!list.length)return '<div class="empty">'+(q?"No notes match.":"No notes yet.")+'</div>';
-  return list.map(function(n){
-    return '<button class="ncard" data-act="opennote" data-id="'+n.id+'" aria-current="'+(n.id===selNote)+'"><b>'+esc(n.title||"Untitled")+(n.pin?'<i class="npin" aria-label="Pinned">'+I("pin")+'</i>':"")+'</b><span>'+esc((n.body||"").replace(/[#*\[\]]+/g,"").replace(/\s+/g," ").trim().slice(0,90)||"Empty note")+'</span><small>'+ago(n.ts)+'</small></button>';
-  }).join("");
-}
-function noteEditorHTML(){
-  var n=S.notes.filter(function(x){return x.id===selNote})[0];
-  if(!n)return '<div class="panel empty">Create a note to start writing.</div>';
-  var ro=readOnly?" readonly":"",outl=nOutline(n.body),rd=noteMode==="read"||readOnly;
-  return '<div class="panel npaper'+(rd?" nread":"")+'"><div class="nbar"><button class="btn sm nback" data-act="nback">'+I("left")+'All notes</button>'+
-    '<div class="nmode" role="group" aria-label="Note mode"><button data-act="nmode" data-id="write" aria-pressed="'+!rd+'"'+(readOnly?" disabled":"")+'>Write</button><button data-act="nmode" data-id="read" aria-pressed="'+rd+'">Read</button></div>'+(rd?"":nToolbar())+'<span class="nacts"><button class="btn sm" data-act="tp_open">'+I("play")+'Teleprompter</button>'+cbtn("#neditor .panel")+
-    '<button class="ico" data-act="pinnote" aria-label="'+(n.pin?"Unpin note":"Pin note")+'" title="'+(n.pin?"Unpin":"Pin")+'" aria-pressed="'+!!n.pin+'">'+I("pin")+'</button>'+
-    '<button class="ico" data-act="delnote" aria-label="Delete note" title="Delete"'+(readOnly?" disabled":"")+'>'+I("trash")+'</button></span></div>'+
-    '<div class="nout" id="nout"'+(/nsec/.test(outl)?"":" hidden")+'>'+outl+'</div>'+
-    '<input class="ghost ntitle" id="ntitle" value="'+esc(n.title)+'" placeholder="Untitled" aria-label="Note title"'+ro+'>'+
-    (rd?'<div class="ndoc" id="ndoc">'+nRender(n.body)+'</div>':'<textarea class="nbody" id="nbody" placeholder="Start writing… use ## for headings, - [ ] for checklists" aria-label="Note body"'+ro+'>'+esc(n.body)+'</textarea>')+
-    '<div class="nmeta"><span id="nwc">'+words(n.body)+' words · edited '+ago(n.ts)+'</span></div></div>';
-}
-
-function vIdeas(){
-  var all=mine("ideas"),tags={};
-  all.forEach(function(i){(i.tags||[]).forEach(function(t){tags[t]=(tags[t]||0)+1})});
-  var h=hero("ideas","Ideas","Catch ideas before they disappear. Any idea becomes a task or a planned post in one click.","");
-  h+='<div class="capture"><input class="in" id="ideain" placeholder="A video about…  add #tags to sort it later" maxlength="240" aria-label="New idea" autocomplete="off"'+(readOnly?" disabled":"")+'><button class="btn pri" data-act="addidea"'+(readOnly?" disabled":"")+'>Add idea</button></div>';
-  if(!all.length)return h+emptyCard("bulb","Catch your first idea","Type it above and press Add idea. Use #tags like #vlog to sort them. Any idea becomes a task or a planned post in one click.","");
-  var shown=all.filter(function(i){return ideaFilter==="all"||(ideaFilter==="star"?i.star:(i.tags||[]).indexOf(ideaFilter)>-1)}).sort(function(a,b){return b.ts-a.ts});
-  var starred=all.filter(function(i){return i.star}).length,onBoard=all.filter(function(i){return i.task}).length,planned=all.filter(function(i){return S.posts.some(function(p){return p.ideaId===i.id})}).length;
-  var loose=all.filter(function(i){return !i.task&&!S.posts.some(function(p){return p.ideaId===i.id})}).length;
-  var tk=Object.keys(tags).sort(function(a,b){return tags[b]-tags[a]||(a<b?-1:1)});
-  h+='<div class="id-bar"><div class="id-chips" role="group" aria-label="Show ideas">'+
-    '<button class="chip" data-act="ifilter" data-id="all" aria-pressed="'+(ideaFilter==="all")+'">All <b>'+all.length+'</b></button>'+
-    '<button class="chip" data-act="ifilter" data-id="star" aria-pressed="'+(ideaFilter==="star")+'">'+I("star")+'Starred <b>'+starred+'</b></button>'+
-    tk.map(function(t){return '<button class="chip" data-act="ifilter" data-id="'+esc(t)+'" aria-pressed="'+(ideaFilter===t)+'">#'+esc(t)+' <b>'+tags[t]+'</b></button>'}).join("")+'</div>'+
-    '<p class="id-sum2"><span><b>'+loose+'</b> still loose</span><span><b>'+onBoard+'</b> on the board</span><span><b>'+planned+'</b> planned as posts</span></p></div>';
-  if(!shown.length)return h+'<div class="empty id-none">No ideas match this filter. <button class="lnk" data-act="ifilter" data-id="all">Show all</button></div>';
-  h+='<div class="id-wall">'+shown.map(function(i){
-    var txt=String(i.text||"").replace(/\s*#[\w-]+/g,"").trim()||i.text;
-    var planned1=S.posts.some(function(p){return p.ideaId===i.id});
-    var st=i.task?"On the board":(planned1?"Planned":"Loose");
-    return '<article class="icard'+(i.star?" starred":"")+'"><header><span class="ic-st'+(st==="Loose"?"":" on")+'">'+st+'</span><span class="ic-when">'+ago(i.ts)+'</span>'+
-      '<button class="ico star" data-act="staridea" data-id="'+i.id+'" aria-pressed="'+!!i.star+'" aria-label="'+(i.star?"Unstar":"Star")+' idea">'+I("star")+'</button></header>'+
-      '<h3 class="ic-t">'+esc(txt)+'</h3>'+
-      ((i.tags||[]).length?'<div class="ic-tags">'+(i.tags||[]).map(function(t){return '<button class="tag" data-act="ifilter" data-id="'+esc(t)+'">#'+esc(t)+'</button>'}).join("")+'</div>':'')+
-      '<footer class="acts">'+(i.task?"":'<button class="btn sm" data-act="idea2task" data-id="'+i.id+'"'+(readOnly?" disabled":"")+'>'+I("board")+'Make task</button>')+(planned1?"":'<button class="btn sm" data-act="idea2post" data-id="'+i.id+'"'+(readOnly?" disabled":"")+'>'+I("calendar")+'Plan post</button>')+(readOnly?'':'<button class="btn sm" data-act="rp_open" data-id="idea:'+i.id+'">Repurpose</button>')+
-      '<button class="ico" data-act="delidea" data-id="'+i.id+'" aria-label="Delete idea" title="Delete"'+(readOnly?" disabled":"")+'>'+I("trash")+'</button></footer></article>';
-  }).join("")+'</div>';
-  return h;
-}
+/* Notes and Ideas screens: src/ts/screens/notes.ts and ideas.ts */
 
 function vBoard(){
   var t=mine("tasks"),today=ymd(new Date());
@@ -5892,67 +6279,7 @@ document.addEventListener("keydown",function(e){
   if(e.key==="Enter"&&t.id==="planin"&&!readOnly){e.preventDefault();var v=t.value.trim();if(v)planAdd(v)}
 });
 
-/* ---------- notes: sections ---------- */
-var NTPL=[
-  ["blank","Blank","",""],
-  ["video","Video script","Video script","## Hook (0:00 to 0:15)\nShow the finished result first.\n\n## Problem\nWhy the old way wastes time.\n\n## Main points\n- Point one\n- Point two\n- Point three\n\n## Call to action\nWhat should they do next?\n\n## Checklist\n- [ ] Film A-roll\n- [ ] Record voiceover\n- [ ] Edit and colour grade\n- [ ] Thumbnail and title\n"],
-  ["brief","Content brief","Content brief","## Goal\n\n## Audience\n\n## Key message\n\n## Format and length\n\n## References\n\n## Deadline\n"],
-  ["collab","Collab pitch","Collab pitch","## Brand or person\n\n## What they want\n\n## What I offer\n\n## Rates and terms\n\n## Next steps\n- [ ] Reply\n- [ ] Send media kit\n"],
-  ["check","Checklist","Checklist","## Checklist\n- [ ] \n- [ ] \n- [ ] \n"],
-  ["meet","Meeting notes","Meeting notes","## Agenda\n\n## Notes\n\n## Decisions\n\n## Action items\n- [ ] \n"]
-];
-function nRender(body){
-  var h="",inList=false,lines=String(body||"").split("\n");
-  function close(){if(inList){h+="</ul>";inList=false}}
-  lines.forEach(function(l,i){var m;
-    if((m=l.match(/^\s*-\s\[( |x|X)\]\s?(.*)$/))){if(!inList){h+='<ul class="nd-l">';inList=true}var on=m[1]!==" ";
-      h+='<li class="nd-c'+(on?" done":"")+'"><label><input type="checkbox" data-act="nchk" data-line="'+i+'"'+(on?" checked":"")+(readOnly?" disabled":"")+'><span>'+esc(m[2])+'</span></label></li>';return}
-    if((m=l.match(/^\s*[-*]\s+(.*)$/))){if(!inList){h+='<ul class="nd-l">';inList=true}h+='<li>'+esc(m[1])+'</li>';return}
-    close();
-    if((m=l.match(/^(#{1,3})\s+(.+)$/))){h+='<h'+(m[1].length+1)+' class="nd-h">'+esc(m[2])+'</h'+(m[1].length+1)+'>';return}
-    if(/^-{3,}\s*$/.test(l)){h+='<hr class="nd-hr">';return}
-    if(!l.trim()){h+='<div class="nd-sp"></div>';return}
-    h+='<p>'+esc(l)+'</p>'});
-  close();
-  return h||'<p class="muted">This note is empty. Switch to Write to start.</p>';
-}
-function nOutline(body){
-  var out=[],lines=String(body||"").split("\n"),pos=0;
-  lines.forEach(function(l,i){var m=l.match(/^(#{1,3})\s+(.+)$/);if(m)out.push({i:i,pos:pos,lvl:m[1].length,t:m[2]});pos+=l.length+1});
-  if(!out.length)return '<span class="muted" style="font-size:13px">Add headings with ## to get a section outline.</span>';
-  return out.map(function(o){return '<button class="nsec l'+o.lvl+'" data-act="nsec" data-pos="'+o.pos+'" data-line="'+o.i+'">'+esc(o.t)+'</button>'}).join("");
-}
-function nToolbar(){
-  if(readOnly)return "";
-  return '<div class="ntool" role="toolbar" aria-label="Insert"><button class="btn sm" data-act="ninsert" data-t="## ">Heading</button><button class="btn sm" data-act="ninsert" data-t="- ">Bullet</button><button class="btn sm" data-act="ninsert" data-t="- [ ] ">Checklist</button><button class="btn sm" data-act="ninsert" data-t="---">Divider</button><button class="btn sm" data-act="n2tasks" title="Turn unchecked checklist lines into tasks">Checklist to tasks</button></div>';
-}
-function nInsert(pre){
-  var ta=$("nbody"),n=findIn(S.notes,selNote);if(!ta||!n||readOnly)return;
-  var v=ta.value,s=ta.selectionStart,ls=v.lastIndexOf("\n",s-1)+1;
-  var line=v.slice(ls,v.indexOf("\n",s)<0?v.length:v.indexOf("\n",s));
-  var ins=(line.trim()===""?"":"\n")+pre;
-  var at=line.trim()===""?ls:ls+line.length;
-  ta.value=v.slice(0,at)+ins+v.slice(at);
-  var c=at+ins.length;ta.focus();ta.setSelectionRange(c,c);
-  n.body=ta.value;n.ts=Date.now();touch();
-  var o=$("nout");if(o){o.innerHTML=nOutline(n.body);o.hidden=!/nsec/.test(o.innerHTML)}
-}
-function nToTasks(){
-  var n=findIn(S.notes,selNote);if(!n||readOnly)return;
-  var cnt=0;
-  n.body=n.body.replace(/^(\s*[-*]\s*)\[ \]\s*(.+)$/gm,function(all,pre,t){t=t.trim();if(!t)return all;S.tasks.push({id:uid(),sp:S.cur,title:t,col:"i",due:"",pri:0,ts:Date.now(),from:n.id});cnt++;return pre+"[→] "+t});
-  if(!cnt)return toast("No unchecked lines like “- [ ] task” found");
-  n.ts=Date.now();touch();render();toast(cnt+(cnt===1?" task":" tasks")+" added to Progress");
-}
-function nFromTpl(key){
-  var t=NTPL.filter(function(x){return x[0]===key})[0];if(!t||readOnly)return;
-  var n={id:uid(),sp:S.cur,title:t[2],body:t[3],pin:false,ts:Date.now()};
-  S.notes.push(n);selNote=n.id;noteOpen=true;noteMode="write";S.view="notes";touch();render();var b=$("nbody");if(b){b.focus();b.setSelectionRange(0,0)}
-}
-document.addEventListener("input",function(e){
-  if(e.target.id==="nbody"){var o=$("nout");if(o){o.innerHTML=nOutline(e.target.value);o.hidden=!/nsec/.test(o.innerHTML)}}
-});
-
+/* ---------- notes: moved to src/ts/screens/notes.ts ---------- */
 /* ---------- shared helpers (v10) ---------- */
 var downloadsApi=null, sampleApi=null, commentsApi=null, roomApi=null, userApi=null, peers=[], infoHTML="", exportBusy=false;
 function cur(){return (S.cfg&&S.cfg.cur)||"₹"}
@@ -6406,7 +6733,6 @@ function showSearch(q){
 /* ---------- actions ---------- */
 function findIn(arr,id){return arr.filter(function(x){return x.id===id})[0]}
 function moveTask(id,col){var t=findIn(S.tasks,id);if(t&&t.col!==col){if(col==="s")t.done=Date.now();else if(t.col==="s")t.done=0;t.col=col;touch();render()}}
-function newNote(){var n={id:uid(),sp:S.cur,title:"",body:"",pin:false,ts:Date.now()};S.notes.push(n);selNote=n.id;noteOpen=true;noteMode="write";S.view="notes";touch();render();var t=$("ntitle");if(t)t.focus()}
 
 var UNDO_ACTS=/^(bdel|cdel|clipdel|delfile|delidea|delmood|delnote|delspace|deltask|mkwdel)$/,undoPrev="",undoT=0;
 function showUndo(prev){
@@ -6424,6 +6750,7 @@ function act0(a,b){
   if(readOnly&&!/^(ed|ve)_/.test(a)&&["space","view","opennote","nback","nmode","ifilter","mform","mcancel","copycolor","qtoggle","theme","gores","spacecancel","wbtool","wbcolor","wbundo","wbredo","wbdel","wbclear","wbzoom","wbfill","profile","profclose","undoall","datadlg","d_export","rerr_retry","rerr_home","bell","shortcuts","pmode","pacc","pbg","wbhi","wbfilter","wbtl","wbstart","vizrange","vizscope","mlayout","mcopy","sharehelp","dlgclose","comment","cmonth","cday","biztab","kitdl","kitcopy","vdl","clipf","aihelper","aistop","aicopy","pfilter","pmonth","pday","ptoday","pgroup","nsec","palopen","palrun","ftoggle","ftmode","ftreset"].indexOf(a)<0)return;
   if(profAct(a,b)||dataAct(a,b)||rerrAct(a,b)||webAct(a,b))return;
   if(v10act(a,b))return;
+  if(ideaAct(a,b,id)||noteAct(a,b,id))return;
   switch(a){
     case "view":go(id);break;
     case "space":S.cur=id;touch();render();break;
@@ -6462,10 +6789,6 @@ function act0(a,b){
     case "ptoday":planSel=ymd(new Date());{var tdd=new Date();planMonth=new Date(tdd.getFullYear(),tdd.getMonth(),1)}render();break;
     case "pgroup":planOpen[id]=!planOpen[id];render();break;
     case "ptoggle":{var pt=findIn(S.tasks,id);if(pt){if(pt.col==="s"){pt.col=pt.prevCol||"i";pt.done=0}else{pt.prevCol=pt.col;pt.col="s";pt.done=Date.now()}pt.ts=Date.now();touch();render()}break}
-    case "ntpl":nFromTpl(id);break;
-    case "ninsert":nInsert(b.dataset.t);break;
-    case "n2tasks":nToTasks();break;
-    case "nsec":{var ta=$("nbody");if(ta){ta.focus();var ps=+b.dataset.pos;ta.setSelectionRange(ps,ps);ta.scrollTop=Math.max(0,(+b.dataset.line)*27-40);ta.scrollIntoView&&0}break}
     case "tpri":{var tk=findIn(S.tasks,id);if(tk){tk.pri=((tk.pri||0)+1)%4;touch();render()}break}
     case "palopen":palOpen();break;
     case "palrun":palRun(+b.dataset.i);break;
@@ -6491,24 +6814,8 @@ function act0(a,b){
     case "wbclear":arm(b,function(){if(WB.items.length){wbSnap();WB.items=[];WB.sel=null;wbTouch();wbPaint()}});break;
     case "wbzoom":{var sv=$("wbsvg").getBoundingClientRect();
       if(id==="fit")wbFit();else wbZoomTo(WB.z*(id==="in"?1.25:0.8),sv.width/2,sv.height/2);break}
-    /* notes */
     case "vizrange":vizRange=+id;render();break;
     case "vizscope":vizAll=(id==="all");render();break;
-    case "newnote":newNote();break;
-    case "opennote":selNote=id;noteOpen=true;S.view="notes";render();break;
-    case "nback":noteOpen=false;render();break;
-    case "nmode":noteMode=id==="read"?"read":"write";if($("neditor"))$("neditor").innerHTML=noteEditorHTML();break;
-    case "nchk":(function(){var n=S.notes.filter(function(x){return x.id===selNote})[0];if(!n)return;var L=n.body.split("\n"),i=+b.getAttribute("data-line");if(L[i]==null)return;
-      L[i]=/\[( )\]/.test(L[i])?L[i].replace("[ ]","[x]"):L[i].replace(/\[(x|X)\]/,"[ ]");n.body=L.join("\n");n.ts=Date.now();touch();$("neditor").innerHTML=noteEditorHTML();$("nlist").innerHTML=noteListHTML($("nsearch")?$("nsearch").value:"")})();break;
-    case "pinnote":{var n2=findIn(S.notes,selNote);if(n2){n2.pin=!n2.pin;touch();render()}break}
-    case "delnote":arm(b,function(){S.notes=S.notes.filter(function(x){return x.id!==selNote});selNote=null;touch();render()});break;
-    /* ideas */
-    case "addidea":addIdea();break;
-    case "ifilter":ideaFilter=id;render();break;
-    case "staridea":{var i=findIn(S.ideas,id);if(i){i.star=!i.star;touch();render()}break}
-    case "delidea":arm(b,function(){S.ideas=S.ideas.filter(function(x){return x.id!==id});touch();render()});break;
-    case "idea2post":{var ip=findIn(S.ideas,id);if(ip){var dt=ymd(new Date(Date.now()+86400000));S.posts.push({id:uid(),sp:S.cur,title:ip.text.replace(/\s*#[\w-]+/g,"").trim()||ip.text,platform:"YouTube",date:dt,status:"idea",ideaId:ip.id,ts:Date.now()});calSel=dt;{var cd2=dparse(dt);calMonth=new Date(cd2.getFullYear(),cd2.getMonth(),1)}touch();go("cal");toast("Planned for tomorrow. Pick another day any time.")}break}
-    case "idea2task":{var i2=findIn(S.ideas,id);if(i2){S.tasks.push({id:uid(),sp:S.cur,title:i2.text.replace(/\s*#[\w-]+/g,"").trim()||i2.text,col:"i",due:"",ts:Date.now()});i2.task=true;touch();render();toast("Added to Progress")}break}
     /* tasks */
     case "tleft":case "tright":{
       var t2=findIn(S.tasks,id);if(!t2)break;
@@ -6540,15 +6847,6 @@ function act0(a,b){
       touch();render();
       if(f&&assets)setTimeout(function(){if(!S.files.some(function(x){return x.assetId===f.assetId}))assets.delete(f.assetId).catch(function(){})},9000)});break;
   }
-}
-function addIdea(){
-  var el=$("ideain");if(!el)return;var text=el.value.trim();if(!text){toast("Type an idea first");el.focus();return}
-  addIdeaText(text,true);
-}
-function addIdeaText(text,keep){
-  var tags=(text.match(/#[\w-]+/g)||[]).map(function(t){return t.slice(1).toLowerCase()});
-  S.ideas.push({id:uid(),sp:S.cur,text:text,tags:tags,star:false,task:false,ts:Date.now()});
-  touch();if(!keep)S.view="ideas";render();var n=$("ideain");if(keep&&n)n.focus();
 }
 function uploadFile(btn){
   var fi=$("ffile");if(!fi||!fi.files[0])return toast("Choose a file first");
@@ -7106,14 +7404,7 @@ document.addEventListener("keydown",function(e){
 document.addEventListener("input",function(e){
   var t=e.target;
   if(t.id==="gsearch")showSearch(t.value);
-  if(t.id==="ntitle"||t.id==="nbody"){
-    var n=findIn(S.notes,selNote);if(!n)return;
-    if(t.id==="ntitle")n.title=t.value;else n.body=t.value;
-    n.ts=Date.now();touch();
-    var q=$("nsearch");$("nlist").innerHTML=noteListHTML(q?q.value:"");
-    var w=$("nwc");if(w)w.textContent=words(n.body)+" words · edited just now";
-  }
-  if(t.id==="nsearch")$("nlist").innerHTML=noteListHTML(t.value);
+  if(noteInput(t))return;
   if(t.dataset&&t.dataset.f==="task"){if(t.tagName==="TEXTAREA"&&/\n/.test(t.value))t.value=t.value.replace(/\n+/g," ");var k=findIn(S.tasks,t.dataset.id);if(k){k.title=t.value;touch()}}
 });
 document.addEventListener("change",function(e){
