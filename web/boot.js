@@ -125,7 +125,7 @@ function gateHTML(){
     '<label id="agpwrap">Password<input id="agpass" type="password" minlength="8" required></label>'+
     '<p class="ag-msg" id="agmsg" role="alert"></p>'+
     '<button class="btn pri ag-go" id="aggo" type="submit"></button></form>'+
-    '<div class="ag-foot"><button type="button" class="ag-link" id="agforgot">Forgot your password?</button>'+(document.getElementById("landing")?'<button type="button" class="ag-link" id="agback">Back to the start</button>':'')+'</div></div>';
+    '<div class="ag-foot"><button type="button" class="ag-link" id="agforgot">Forgot your password?</button>'+(document.getElementById("landing")&&!DESKTOP?'<button type="button" class="ag-link" id="agback">Back to the start</button>':'')+'</div></div>';
 }
 function setMode(m){
   mode=m;
@@ -150,8 +150,10 @@ function friendly(e){
   if(/fetch|network/i.test(m))return "No connection. Check your internet and try again.";
   return m||"Something went wrong. Try again.";
 }
+/* the Windows and Mac apps open the site with ?app=desktop: they skip the marketing page */
+var DESKTOP=(function(){try{if(/[?&]app=desktop\b/.test(location.search))localStorage.setItem("cs-desktop","1");return localStorage.getItem("cs-desktop")==="1"}catch(e){return /[?&]app=desktop\b/.test(location.search)}})();
 function showLanding(){
-  var l=$("landing");if(!l){showGate("in");return}
+  var l=$("landing");if(!l||DESKTOP){showGate("in");return}
   root.className="landing";l.hidden=false;$("authgate").hidden=true;window.scrollTo(0,0);
 }
 window.__lpGate=function(m){showGate(m||"up");window.scrollTo(0,0);setTimeout(function(){var e=$("agemail");if(e)e.focus()},50)};
