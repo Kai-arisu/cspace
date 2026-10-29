@@ -1,6 +1,6 @@
 const {chromium}=require('playwright');const fs=require('fs');const {execSync}=require('child_process');
 // build test copy with hooks
-let h=fs.readFileSync('creator-space.html','utf8');
+let h=fs.readFileSync('build/standalone.html','utf8');
 h=h.replace('var DATA={open:false','window.__T={SY:function(){return SY},S:function(){return S},flush:function(f){return syFlush(f)},wb:function(){return WB},touch:function(){touch()},ro:function(){return readOnly},render:function(){render()},wbTouch:function(){wbTouch()},cloudBackup:function(l){return cloudBackup(l)},cloud:function(){return cloudList()},bk:function(){return backupObj()},val:function(o){return validState(o)}};\nvar DATA={open:false');
 fs.writeFileSync('test-copy.html',h);
 const store=new Map();const cfg={failSets:0,maxDoc:256*1024,sets:0};

@@ -1,8 +1,8 @@
 # Creator Space design system
 
 Style: **Editorial greeting** (tasteskill app style, seed 1891630665). The stylesheet is
-`web/editorial.css`, which loads last and overrides the older layers (`web.css`, `frost.css`,
-`studio.css`). Change the look there, not in the older files.
+`src/styles/mid.css` (yellow on white, Jost and Young Serif), loaded after the older layers (`web.css`, `frost.css`,
+`studio.css`, `editorial.css`) in `src/styles/ORDER`. Change the look there, not in the older files.
 
 ## Idea
 

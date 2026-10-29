@@ -1,0 +1,53 @@
+
+
+<div class="app">
+  <aside class="side">
+    <button class="brand" id="railbtn" data-act="rail" aria-expanded="true" aria-label="Collapse sidebar" title="Collapse sidebar  ["><span class="logo" id="logo"></span><b>Creator Space</b><span class="rail-ic" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M14 6l-6 6 6 6"/></svg></span></button>
+    <div>
+      <div class="slbl">Spaces</div>
+      <div class="slist" id="spaces"></div>
+      <div class="sadd" id="addspace"></div>
+    </div>
+    <div>
+      <nav class="slist" id="nav" aria-label="Tools"></nav>
+    </div>
+    <div>
+      <div class="slbl">On the way</div>
+      <div class="slist" id="soon"></div>
+    </div>
+    <button class="status" id="statusbtn" data-act="datadlg" data-s="busy" aria-label="Data and backup" title="Data and backup"><i></i><span id="status" role="status"></span></button>
+    <button class="pcard" id="pcard" data-act="profile" aria-label="Your handles"></button>
+  </aside>
+  <div class="col-main" id="colmain" data-v="home">
+    <header class="top">
+      <div class="mbrand"><span class="logo" id="logo2" style="width:32px;height:32px"></span><select id="spsel" class="spsel" aria-label="Space"></select></div>
+      <div class="search">
+        <span class="si" id="sico"></span>
+        <input id="gsearch" placeholder="Search all your spaces" aria-label="Search everything" autocomplete="off">
+        <div class="sres" id="sres" hidden></div>
+      </div>
+      <div class="topr">
+        <span class="peers" id="peers" hidden></span>
+        <div class="ftimer" id="ftimer"></div>
+        <button class="btn kcmd" data-act="palopen" aria-label="Open command palette"><kbd id="kbdlabel">Ctrl K</kbd></button>
+        <button class="ico" data-act="sharehelp" id="sharebtn" aria-label="Share and collaborate" title="Share and collaborate"></button><div class="qwrap bellwrap"><button class="ico" data-act="bell" id="bellbtn" aria-haspopup="true" aria-label="Reminders" title="Reminders"></button><div class="qmenu bellm" id="bellm" hidden></div></div><button class="ico" data-act="profile" id="pavbtn" aria-label="Your handles" title="Profile and appearance"></button><span class="date" id="today"></span>
+        <div class="qwrap">
+          <button class="btn pri" data-act="qtoggle" aria-haspopup="true"><span id="plusico"></span>New</button>
+          <div class="qmenu" id="qmenu" hidden>
+            <button data-act="qnote"><span class="tile" style="--c:var(--c-notes)" id="qi1"></span>Note</button>
+            <button data-act="qidea"><span class="tile" style="--c:var(--c-ideas)" id="qi2"></span>Idea</button>
+            <button data-act="qtask"><span class="tile" style="--c:var(--c-board)" id="qi3"></span>Task</button>
+          </div>
+        </div>
+        <button class="ico" data-act="theme" id="themebtn" aria-label="Switch light or dark theme"></button>
+      </div>
+    </header>
+    <main class="sheet" id="main"><div class="wrap" id="wrap"></div></main>
+  </div>
+  <nav class="tabbar" id="tabbar" aria-label="Tools"></nav>
+</div>
+<div class="dlg" id="dlg" hidden></div>
+<div class="cmdk" id="pal" hidden></div>
+<div class="toast" id="toast" hidden></div>
+<div class="utoast" id="utoast" hidden role="status"><span>Deleted.</span><button data-act="undoall">Undo</button></div>
+

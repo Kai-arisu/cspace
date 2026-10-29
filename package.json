@@ -1,0 +1,13 @@
+{
+  "name": "creator-space",
+  "private": true,
+  "scripts": {
+    "build": "python3 build.py",
+    "lint": "python3 build.py && eslint build/check-app.js build/check-boot.js src/landing/landing.js desktop/main.js",
+    "test": "bash tests/all.sh"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.1",
+    "globals": "^16.5.0"
+  }
+}

@@ -8,7 +8,5 @@ desktop/node_modules/
 desktop/dist/
 .playwright-cli/
 .taste-skill/
-desktop/node_modules/
-desktop/dist/
 !desktop/build/
 !desktop/build/icon.png

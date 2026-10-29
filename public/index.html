@@ -7813,7 +7813,7 @@ function webAct(a,b){
     case "aud_man":W.manual=id;audPaint();return true;
     case "aud_mcancel":W.manual=null;audPaint();return true;
     case "aud_msave":audSaveManual(id);return true;
-    case "aud_pub":{var on=!!b.checked;WSB.from("connections").update({show_public:on}).eq("id",id).then(function(r){if(r.error){toast("Couldn't change that");audLoad()}else{var c=W.conns.filter(function(x){return x.id===id})[0];if(c)c.show_public=on;toast(on?"Shown on your public page":"Hidden from your public page")}});return true}
+    case "aud_pub":{var pub=!!b.checked;WSB.from("connections").update({show_public:pub}).eq("id",id).then(function(r){if(r.error){toast("Couldn't change that");audLoad()}else{var c=W.conns.filter(function(x){return x.id===id})[0];if(c)c.show_public=pub;toast(pub?"Shown on your public page":"Hidden from your public page")}});return true}
     case "aud_del":arm(b,function(){WSB.from("connections").delete().eq("id",id).then(function(r){if(r.error)toast("Couldn't remove it");else{W.conns=W.conns.filter(function(c){return c.id!==id});audPaint();toast("Removed")}})});return true;
     case "cp_save":cpSave();return true;
     case "sh_invite":{
@@ -7835,7 +7835,7 @@ function webAct(a,b){
       var who=(S.profile&&S.profile.name)||String(window.__EMAIL||"").split("@")[0],role=mx.role==="editor"?"edit":"view";
       var body="Hi,\n\n"+who+" invited you to "+role+" their Creator Space.\n\n1. Open "+location.origin+"\n2. Sign in (or create an account) with this email: "+mx.invitee_email+"\n3. Open the Handles page and choose "+who+"'s workspace under \"Shared with you\".\n\nSee you there.";
       var href="mailto:"+encodeURIComponent(mx.invitee_email)+"?subject="+encodeURIComponent(who+" invited you to Creator Space")+"&body="+encodeURIComponent(body);
-      var a=document.createElement("a");a.href=href;document.body.appendChild(a);a.click();a.remove();
+      var lk=document.createElement("a");lk.href=href;document.body.appendChild(lk);lk.click();lk.remove();
       try{navigator.clipboard&&navigator.clipboard.writeText(body).catch(function(){})}catch(e){}
       shMsg("Your email app opened with the invite. The text is also copied in case it didn't.");return true}
     case "sh_del":WSB.from("shares").delete().eq("id",id).then(function(r){if(r.error)shMsg("Couldn't remove.");else{SH.loaded=false;shLoad()}});return true;

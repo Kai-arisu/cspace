@@ -14,7 +14,7 @@ async function run(tag,vp,scheme){
   const p=await ctx.newPage();await p.goto(origin+'/');await p.waitForTimeout(600);
   await p.screenshot({path:`${out}/${tag}-login.png`});
   await p.click('[data-ag="up"]');await p.fill('#agemail','a'+Math.random().toString(36).slice(2,6)+'@x.co');await p.fill('#agpass','supersecret1');await p.click('#aggo');await p.waitForTimeout(2200);
-  const ids=[...fs.readFileSync('creator-space.html','utf8').slice(0,200000).match(/var VIEWS=\[[\s\S]*?\n\];/)[0].matchAll(/\{id:"(\w+)"/g)].map(m=>m[1]).concat(['cp']);
+  const ids=[...fs.readFileSync('src/app/core/state.js','utf8').match(/var VIEWS=\[[\s\S]*?\n\];/)[0].matchAll(/\{id:"(\w+)"/g)].map(m=>m[1]).concat(['cp']);
   for(const id of ids){await p.evaluate(i=>{var b=document.querySelector('[data-act="view"][data-id="'+i+'"]');if(b)b.click()},id);await p.waitForTimeout(350);await p.screenshot({path:`${out}/${tag}-${id}.png`})}
   await ctx.close()}
 await run('d-l',{width:1280,height:800},'light');

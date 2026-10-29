@@ -1,0 +1,34 @@
+# The app is one script, built by joining these files in this order.
+# They share one scope (the function opened in core/state.js and closed in core/boot.js).
+core/state.js
+core/sync.js
+core/errors-theme-chrome.js
+core/profile-shortcuts.js
+screens/today.js
+screens/moodboard.js
+screens/visualizer.js
+features/focus-timer.js
+features/command-palette.js
+screens/planner.js
+screens/notes.js
+core/shared.js
+screens/calendar.js
+screens/business.js
+screens/clips.js
+features/ai.js
+core/actions-extra.js
+features/moodboard-export.js
+core/render.js
+features/search.js
+core/actions.js
+screens/whiteboard.js
+core/events.js
+web/rail-sounds-crumb.js
+web/calls.js
+screens/audience.js
+screens/creator-page.js
+web/teammates.js
+web/actions.js
+web/extras.js
+screens/team.js
+core/boot.js

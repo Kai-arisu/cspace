@@ -2,7 +2,7 @@ name: Tests
 on:
   push:
     branches: [main]
-    paths-ignore: ['desktop/**', 'README.md']
+    paths-ignore: ['README.md']
   pull_request:
 jobs:
   test:
@@ -19,10 +19,13 @@ jobs:
           pip install pillow >/dev/null
           python3 build.py
           git diff --exit-code -- public/index.html public/sw.js || (echo "public/ is out of date. Run python3 build.py and commit." && exit 1)
+      - name: Lint (undefined names, duplicate keys, unreachable code)
+        run: |
+          npm install --no-audit --no-fund >/dev/null
+          npx eslint build/check-app.js build/check-boot.js src/landing/landing.js desktop/main.js
       - name: Install Playwright
         run: |
-          npm init -y >/dev/null
-          npm i playwright@1.63.0 >/dev/null
+          npm i --no-save playwright@1.63.0 >/dev/null
           npx playwright install --with-deps chromium
       - name: Run test suites
         run: |
