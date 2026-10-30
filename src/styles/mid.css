@@ -289,3 +289,15 @@ img{max-width:100%;height:auto}
 .aic-l{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}
 .aic-l li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
 .aic-l small{display:block}
+/* review units */
+.un-f{align-items:end}
+.un-l{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:10px}
+.un{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--ink);border-radius:16px;background:var(--card)}
+.un.back{opacity:.6;border-style:dashed}
+.un b{display:block}
+.un-bs{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.un-b{font:600 12px var(--f-body,inherit);padding:3px 10px;border:1.5px solid var(--ink);border-radius:999px}
+.un-b.hot{background:var(--yel)}
+.un-b.late{background:#b3261e;border-color:#b3261e;color:#fff}
+.un-a{display:flex;gap:8px;align-items:center;flex:none}
+.un-h{margin:18px 0 0;font-size:14px}

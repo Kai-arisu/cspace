@@ -2687,6 +2687,18 @@ img{max-width:100%;height:auto}
 .aic-l{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}
 .aic-l li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
 .aic-l small{display:block}
+/* review units */
+.un-f{align-items:end}
+.un-l{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:10px}
+.un{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--ink);border-radius:16px;background:var(--card)}
+.un.back{opacity:.6;border-style:dashed}
+.un b{display:block}
+.un-bs{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.un-b{font:600 12px var(--f-body,inherit);padding:3px 10px;border:1.5px solid var(--ink);border-radius:999px}
+.un-b.hot{background:var(--yel)}
+.un-b.late{background:#b3261e;border-color:#b3261e;color:#fff}
+.un-a{display:flex;gap:8px;align-items:center;flex:none}
+.un-h{margin:18px 0 0;font-size:14px}
 
 /* ===================================================================
    Public creator page and media kit: a one-person front page.
@@ -4061,7 +4073,7 @@ function defaults(){
   };
 }
 function sanitize(){
-  var arr=["notes","ideas","tasks","mood","files","posts","clips","deals","income","invoices"];
+  var arr=["notes","ideas","tasks","mood","files","posts","clips","deals","income","invoices","units"];
   if(!Array.isArray(S.spaces))S.spaces=[];
   S.spaces=S.spaces.filter(function(x){return x&&typeof x==="object"});
   var sid={};S.spaces.forEach(function(x){if(typeof x.id!=="string"||!x.id||sid[x.id])x.id="s"+uid();sid[x.id]=1;if(typeof x.name!=="string"||!x.name)x.name="Untitled"});
@@ -4083,7 +4095,7 @@ function fix(){
   var d=defaults();
   if(!S||typeof S!=="object"||Array.isArray(S))S=d;
   sanitize();
-  ["spaces","notes","ideas","tasks","mood","files","posts","clips","deals","income","invoices"].forEach(function(k){if(!Array.isArray(S[k]))S[k]=[]});
+  ["spaces","notes","ideas","tasks","mood","files","posts","clips","deals","income","invoices","units"].forEach(function(k){if(!Array.isArray(S[k]))S[k]=[]});
   if(!S.cfg||typeof S.cfg!=="object")S.cfg={};if(!S.kit||typeof S.kit!=="object")S.kit={};
   if(!S.palette||typeof S.palette!=="object")S.palette={};
   if(!S.focus||typeof S.focus!=="object")S.focus={};
@@ -4145,6 +4157,9 @@ var TS = (() => {
     surveyDone: () => surveyDone,
     surveyHTML: () => surveyHTML,
     surveySteps: () => surveySteps,
+    unitAct: () => unitAct,
+    unitsDueSoon: () => unitsDueSoon,
+    unitsHTML: () => unitsHTML,
     vIdeas: () => vIdeas,
     vNotes: () => vNotes
   });
@@ -4769,6 +4784,83 @@ var TS = (() => {
     }
     return false;
   }
+
+  // src/ts/screens/units.ts
+  var DAY = 864e5;
+  function when(ms) {
+    const d = Math.round((ms - Date.now()) / DAY);
+    return d === 0 ? "today" : d > 0 ? `in ${d} day${d === 1 ? "" : "s"}` : `${-d} day${d === -1 ? "" : "s"} ago`;
+  }
+  function nextDue(u) {
+    const t = [];
+    if (u.embargo) t.push(Date.parse(u.embargo));
+    if (u.ret) t.push(Date.parse(u.ret + "T23:59:00"));
+    return t.length ? Math.min(...t.filter((n) => !isNaN(n))) : Infinity;
+  }
+  function row(u) {
+    const emb = u.embargo ? Date.parse(u.embargo) : NaN;
+    const ret = u.ret ? Date.parse(u.ret + "T23:59:00") : NaN;
+    const out = u.status === "with";
+    const embLive = !isNaN(emb) && emb > Date.now();
+    const late = out && !isNaN(ret) && ret < Date.now();
+    const badges = (!isNaN(emb) ? `<span class="un-b${embLive && out ? " hot" : ""}">${embLive ? "Embargo lifts " : "Embargo lifted "}${esc(when(emb))}</span>` : "") + (!isNaN(ret) ? `<span class="un-b${late ? " late" : ""}">${out ? "Return " : "Returned, was due "}${esc(when(ret))}</span>` : "");
+    return `<li class="un${out ? "" : " back"}"><div><b>${esc(u.name)}</b><span class="muted">${esc(u.brand)}${u.brand && u.holder ? " · " : ""}${u.holder ? "with " + esc(u.holder) : ""}</span><div class="un-bs">${badges}</div></div><div class="un-a">` + (out && !readOnly ? `<button class="btn sm" data-act="unit_back" data-id="${esc(u.id)}">Mark returned</button>` : "") + (readOnly ? "" : `<button class="ico" data-act="unit_del" data-id="${esc(u.id)}" aria-label="Delete unit" title="Delete">${I("trash")}</button>`) + `</div></li>`;
+  }
+  function unitsHTML() {
+    const all = mine("units");
+    const out = all.filter((u) => u.status === "with").sort((a, b) => nextDue(a) - nextDue(b));
+    const back = all.filter((u) => u.status !== "with").sort((a, b) => b.ts - a.ts);
+    const holders = [...new Set(T.members.filter((m) => m.status === "active").map((m) => m.name))];
+    let h = `<section class="panel" style="margin-top:16px"><h2>Review units<span class="cnt">${out.length} out</span></h2>`;
+    h += `<p class="muted">Track loaner devices: who has each one, when the embargo lifts and when it goes back to the brand.</p>`;
+    if (!readOnly)
+      h += `<div class="form un-f"><label>Device<input class="in" id="un-name" maxlength="80" placeholder="Pixel 11 Pro"></label><label>Brand<input class="in" id="un-brand" maxlength="60" placeholder="Google"></label><label>With<input class="in" id="un-holder" maxlength="60" list="un-people" placeholder="Who has it"><datalist id="un-people">${holders.map((n) => `<option value="${esc(n)}">`).join("")}</datalist></label><label>Embargo lifts<input class="in" id="un-emb" type="datetime-local"></label><label>Return by<input class="in" id="un-ret" type="date"></label><button class="btn pri" data-act="unit_add">Add unit</button></div>`;
+    h += out.length ? `<ul class="un-l">${out.map(row).join("")}</ul>` : `<div class="empty">No units out. Add the next review sample when it arrives.</div>`;
+    if (back.length) h += `<h3 class="un-h">Returned</h3><ul class="un-l">${back.slice(0, 10).map(row).join("")}</ul>`;
+    return h + `</section>`;
+  }
+  function unitAct(a, b, id) {
+    var _a;
+    switch (a) {
+      case "unit_add": {
+        const v = (k) => {
+          var _a2;
+          return (((_a2 = $("un-" + k)) == null ? void 0 : _a2.value) || "").trim();
+        };
+        const name = v("name");
+        if (!name) {
+          toast("Name the device first");
+          (_a = $("un-name")) == null ? void 0 : _a.focus();
+          return true;
+        }
+        S.units.push({ id: uid(), sp: S.cur, name, brand: v("brand"), holder: v("holder"), embargo: v("emb"), ret: v("ret"), status: "with", ts: Date.now() });
+        touch();
+        render();
+        return true;
+      }
+      case "unit_back": {
+        const u = findIn(S.units, id);
+        if (u) {
+          u.status = "returned";
+          touch();
+          render();
+        }
+        return true;
+      }
+      case "unit_del":
+        arm(b, () => {
+          S.units = S.units.filter((u) => u.id !== id);
+          touch();
+          render();
+        });
+        return true;
+    }
+    return false;
+  }
+  function unitsDueSoon() {
+    const soon = Date.now() + 3 * DAY;
+    return mine("units").filter((u) => u.status === "with" && nextDue(u) <= soon);
+  }
   return __toCommonJS(index_exports);
 })();
 /* ---------- TypeScript screens ---------- */
@@ -4780,6 +4872,7 @@ var NTPL=TS.NTPL, vNotes=TS.vNotes, noteListHTML=TS.noteListHTML, noteEditorHTML
 var surveyHTML=TS.surveyHTML, surveySteps=TS.surveySteps, surveyAct=TS.surveyAct, surveyDone=TS.surveyDone;
 var agendaHTML=TS.agendaHTML;
 var aiConnectHTML=TS.aiConnectHTML, aiImport=TS.aiImport, aiAct=TS.aiAct;
+var unitsHTML=TS.unitsHTML, unitAct=TS.unitAct, unitsDueSoon=TS.unitsDueSoon;
 /* ---------- persistence ---------- */
 function setStatus(t){var e=$("status");if(e)e.textContent=t}
 function touch(){
@@ -6319,11 +6412,12 @@ function kit(){
 }
 function vBiz(){
   var deals=mine("deals"),inc=mine("income"),invs=mine("invoices"),mo=ymd(new Date()).slice(0,7);
-  var acts='<div class="chips" style="margin:0" role="tablist" aria-label="Business sections">'+[["deals","Sponsors"],["income","Income"],["invoices","Invoices"],["kit","Media kit"]].map(function(t){return '<button class="chip" role="tab" data-act="biztab" data-id="'+t[0]+'" aria-pressed="'+(bizTab===t[0])+'">'+t[1]+'</button>'}).join("")+'</div>';
+  var acts='<div class="chips" style="margin:0" role="tablist" aria-label="Business sections">'+[["deals","Sponsors"],["income","Income"],["invoices","Invoices"],["units","Review units"],["kit","Media kit"]].map(function(t){return '<button class="chip" role="tab" data-act="biztab" data-id="'+t[0]+'" aria-pressed="'+(bizTab===t[0])+'">'+t[1]+'</button>'}).join("")+'</div>';
   var h=hero("biz","Business","Sponsors, income, invoices and your media kit, in one place.",acts);
   var tiles=[["Income this month",money(sumBy(inc.filter(function(x){return x.date.slice(0,7)===mo}),"amount")),"--c-board","wallet"],["Income all time",money(sumBy(inc,"amount")),"--c-home","chart"],["Open pipeline",money(sumBy(deals.filter(function(d){return d.status!=="paid"}),"amount")),"--c-notes","flag"],["Unpaid invoices",money(sumBy(invs.filter(function(v){return !v.paid}),invTotal)),"--c-wb","notes"]];
   h+='<div class="biz-tiles">'+tiles.map(function(t){return '<div class="vz-tile" style="--c:var('+t[2]+')"><span class="vt-ic">'+I(t[3])+'</span><span class="vt-l">'+t[0]+'</span><b style="font-size:26px">'+t[1]+'</b></div>'}).join("")+'</div>';
   var cs='<label class="fix cursel">Currency<select class="wsel" data-cfg="cur"'+(readOnly?" disabled":"")+'>'+opts(["₹","$","€","£","¥"],cur())+'</select></label>';
+  if(bizTab==="units")h+=unitsHTML();
   if(bizTab==="deals"){
     h+='<section class="panel" style="margin-top:16px"><h2>Sponsorship deals'+cs+'</h2>';
     if(!readOnly)h+='<div class="form"><label>Brand<input class="in" id="dbrand" maxlength="60" placeholder="Brand name"></label><label>Amount<input class="in" id="damt" type="number" min="0" placeholder="0"></label><label>Stage<select class="in" id="dst">'+opts(DEALST.map(function(s){return [s[0],s[1]]}),"lead")+'</select></label><label>Deliver by<input class="in" id="ddue" type="date"></label><button class="btn pri" data-act="dadd">Add deal</button></div>';
@@ -6704,7 +6798,7 @@ function act0(a,b){
   if(readOnly&&!/^(ed|ve)_/.test(a)&&["space","view","opennote","nback","nmode","ifilter","mform","mcancel","copycolor","qtoggle","theme","gores","spacecancel","wbtool","wbcolor","wbundo","wbredo","wbdel","wbclear","wbzoom","wbfill","profile","profclose","undoall","datadlg","d_export","rerr_retry","rerr_home","bell","shortcuts","pmode","pacc","pbg","wbhi","wbfilter","wbtl","wbstart","vizrange","vizscope","mlayout","mcopy","sharehelp","dlgclose","comment","cmonth","cday","biztab","kitdl","kitcopy","vdl","clipf","aihelper","aistop","aicopy","pfilter","pmonth","pday","ptoday","pgroup","nsec","palopen","palrun","ftoggle","ftmode","ftreset"].indexOf(a)<0)return;
   if(profAct(a,b)||dataAct(a,b)||rerrAct(a,b)||webAct(a,b))return;
   if(v10act(a,b))return;
-  if(ideaAct(a,b,id)||noteAct(a,b,id)||surveyAct(a,b,id)||aiAct(a,b,id))return;
+  if(ideaAct(a,b,id)||noteAct(a,b,id)||surveyAct(a,b,id)||aiAct(a,b,id)||unitAct(a,b,id))return;
   switch(a){
     case "view":go(id);break;
     case "space":S.cur=id;touch();render();break;

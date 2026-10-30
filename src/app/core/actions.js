@@ -18,7 +18,7 @@ function act0(a,b){
   if(readOnly&&!/^(ed|ve)_/.test(a)&&["space","view","opennote","nback","nmode","ifilter","mform","mcancel","copycolor","qtoggle","theme","gores","spacecancel","wbtool","wbcolor","wbundo","wbredo","wbdel","wbclear","wbzoom","wbfill","profile","profclose","undoall","datadlg","d_export","rerr_retry","rerr_home","bell","shortcuts","pmode","pacc","pbg","wbhi","wbfilter","wbtl","wbstart","vizrange","vizscope","mlayout","mcopy","sharehelp","dlgclose","comment","cmonth","cday","biztab","kitdl","kitcopy","vdl","clipf","aihelper","aistop","aicopy","pfilter","pmonth","pday","ptoday","pgroup","nsec","palopen","palrun","ftoggle","ftmode","ftreset"].indexOf(a)<0)return;
   if(profAct(a,b)||dataAct(a,b)||rerrAct(a,b)||webAct(a,b))return;
   if(v10act(a,b))return;
-  if(ideaAct(a,b,id)||noteAct(a,b,id)||surveyAct(a,b,id)||aiAct(a,b,id))return;
+  if(ideaAct(a,b,id)||noteAct(a,b,id)||surveyAct(a,b,id)||aiAct(a,b,id)||unitAct(a,b,id))return;
   switch(a){
     case "view":go(id);break;
     case "space":S.cur=id;touch();render();break;

@@ -69,6 +69,21 @@ export interface TeamWork {
   done_at?: string | null;
 }
 
+/** A loaner device or review sample, with its embargo and return date. */
+export interface Unit {
+  id: string;
+  sp: string;
+  name: string;
+  brand: string;
+  holder: string;
+  /** local date and time the embargo lifts, "YYYY-MM-DDTHH:mm", or "" */
+  embargo: string;
+  /** date it goes back, "YYYY-MM-DD", or "" */
+  ret: string;
+  status: "with" | "returned";
+  ts: number;
+}
+
 /** An access token for an outside assistant (the secret itself is never kept). */
 export interface AiToken {
   id: string;
@@ -101,6 +116,7 @@ export interface State {
   tasks: Task[];
   posts: Post[];
   income: unknown[];
+  units: Unit[];
   cfg: { obDone?: boolean; survey?: Survey; [key: string]: unknown };
   [key: string]: unknown;
 }

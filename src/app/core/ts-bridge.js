@@ -7,3 +7,4 @@ var NTPL=TS.NTPL, vNotes=TS.vNotes, noteListHTML=TS.noteListHTML, noteEditorHTML
 var surveyHTML=TS.surveyHTML, surveySteps=TS.surveySteps, surveyAct=TS.surveyAct, surveyDone=TS.surveyDone;
 var agendaHTML=TS.agendaHTML;
 var aiConnectHTML=TS.aiConnectHTML, aiImport=TS.aiImport, aiAct=TS.aiAct;
+var unitsHTML=TS.unitsHTML, unitAct=TS.unitAct, unitsDueSoon=TS.unitsDueSoon;

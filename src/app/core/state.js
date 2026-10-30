@@ -101,7 +101,7 @@ function defaults(){
   };
 }
 function sanitize(){
-  var arr=["notes","ideas","tasks","mood","files","posts","clips","deals","income","invoices"];
+  var arr=["notes","ideas","tasks","mood","files","posts","clips","deals","income","invoices","units"];
   if(!Array.isArray(S.spaces))S.spaces=[];
   S.spaces=S.spaces.filter(function(x){return x&&typeof x==="object"});
   var sid={};S.spaces.forEach(function(x){if(typeof x.id!=="string"||!x.id||sid[x.id])x.id="s"+uid();sid[x.id]=1;if(typeof x.name!=="string"||!x.name)x.name="Untitled"});
@@ -123,7 +123,7 @@ function fix(){
   var d=defaults();
   if(!S||typeof S!=="object"||Array.isArray(S))S=d;
   sanitize();
-  ["spaces","notes","ideas","tasks","mood","files","posts","clips","deals","income","invoices"].forEach(function(k){if(!Array.isArray(S[k]))S[k]=[]});
+  ["spaces","notes","ideas","tasks","mood","files","posts","clips","deals","income","invoices","units"].forEach(function(k){if(!Array.isArray(S[k]))S[k]=[]});
   if(!S.cfg||typeof S.cfg!=="object")S.cfg={};if(!S.kit||typeof S.kit!=="object")S.kit={};
   if(!S.palette||typeof S.palette!=="object")S.palette={};
   if(!S.focus||typeof S.focus!=="object")S.focus={};
