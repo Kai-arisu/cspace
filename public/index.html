@@ -2700,6 +2700,16 @@ img{max-width:100%;height:auto}
 .un-a{display:flex;gap:8px;align-items:center;flex:none}
 .un-h{margin:18px 0 0;font-size:14px}
 .sv-foot{margin:14px 0;font-size:13px}
+.tg-plan{margin:0 0 16px;padding:12px 14px;border:1.5px solid var(--ink);border-radius:16px;background:var(--yel)}
+.tg-plan h3{margin:0 0 8px;font-size:15px}
+.tg-plan .muted{font-weight:400;font-size:12.5px;margin-left:6px}
+.ag-l{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.ag-l li{display:flex;align-items:center;gap:8px}
+.ag-l li.done>span:nth-child(2){text-decoration:line-through;opacity:.6}
+.ag-tk{all:unset;cursor:pointer;display:grid;place-items:center;padding:4px;margin:-4px;border-radius:50%}
+.ag-tk:focus-visible{outline:2px solid var(--ink)}
+.ag-l .ico{margin-left:auto}
+.tg-plan .ag-tick{background:#fff}.tg-plan li.done .ag-tick{background:var(--ink);color:#fff}
 
 /* ===================================================================
    Public creator page and media kit: a one-person front page.
@@ -4137,6 +4147,7 @@ var TS = (() => {
     NTPL: () => NTPL,
     addIdea: () => addIdea,
     addIdeaText: () => addIdeaText,
+    agendaAct: () => agendaAct,
     agendaHTML: () => agendaHTML,
     aiAct: () => aiAct,
     aiConnectHTML: () => aiConnectHTML,
@@ -4148,6 +4159,7 @@ var TS = (() => {
     clipListHTML: () => clipListHTML,
     ideaAct: () => ideaAct,
     ideaTitle: () => ideaTitle,
+    memberAgendaHTML: () => memberAgendaHTML,
     nFromTpl: () => nFromTpl,
     nInsert: () => nInsert,
     nOutline: () => nOutline,
@@ -4690,6 +4702,74 @@ var TS = (() => {
     const line = (w, isDone) => `<li class="${isDone ? "done" : w.due < td ? "late" : ""}"><span class="ag-tick" aria-hidden="true">${isDone ? I("check") : ""}</span><span>${esc(w.title)}</span>${!isDone && w.due < td ? `<em>late</em>` : ""}</li>`;
     return `<article class="tg-p"><header><b>${esc(m.name)}</b><span class="muted">${esc(m.role_title || "")}</span><span class="tg-n">${total ? `${done.length} of ${total}` : "free"}</span></header>` + (total ? `<div class="tg-bar" role="img" aria-label="${pct}% of today's work done"><i style="width:${pct}%"></i></div><ul>` + open.map((w) => line(w, false)).join("") + done.map((w) => line(w, true)).join("") + `</ul>` : `<p class="muted tg-free">Nothing due today.</p>`) + `</article>`;
   }
+  var todays = (items) => (items || []).filter((a) => a.day === today());
+  function agendaLine(a, act, canDelete) {
+    return `<li class="${a.done ? "done" : ""}"><button class="ag-tk" data-act="${act}" data-id="${esc(a.id)}" aria-pressed="${a.done}" aria-label="${a.done ? "Mark not done" : "Mark done"}: ${esc(a.text)}"><span class="ag-tick">${a.done ? I("check") : ""}</span></button><span>${esc(a.text)}</span>` + (canDelete ? `<button class="ico" data-act="ag_del" data-id="${esc(a.id)}" aria-label="Remove from agenda" title="Remove">${I("x")}</button>` : "") + `</li>`;
+  }
+  function plan() {
+    const items = todays(T.agenda);
+    const done = items.filter((a) => a.done).length;
+    return `<div class="tg-plan"><h3>Today's agenda <span class="muted">${items.length ? `${done} of ${items.length} done` : "what the team follows today"}</span></h3>` + (items.length ? `<ul class="ag-l">${items.map((a) => agendaLine(a, "ag_tick", true)).join("")}</ul>` : `<p class="muted">Nothing set yet. Add what the team should focus on today.</p>`) + `<div class="aic-row"><input class="in" id="ag-in" maxlength="200" placeholder="Add to today's agenda" aria-label="Add to today's agenda"><button class="btn" data-act="ag_add">Add</button></div></div>`;
+  }
+  function memberAgendaHTML(m) {
+    const items = todays(m.agenda);
+    if (!items.length) return "";
+    const done = items.filter((a) => a.done).length;
+    return `<section class="panel tg"><div class="tg-h"><div><h2 style="margin:0">Today's agenda</h2><span class="muted">From ${esc(m.owner_email || "your team lead")} · ${done} of ${items.length} done</span></div><span class="tg-live" title="Refreshes every 30 seconds"><i></i>Live</span></div><ul class="ag-l">${items.map((a) => agendaLine(a, "ag_mtick", false)).join("")}</ul></section>`;
+  }
+  function agendaAct(a, _b, id) {
+    switch (a) {
+      case "ag_add": {
+        const el = $("ag-in");
+        const text = ((el == null ? void 0 : el.value) || "").trim();
+        if (!text) {
+          toast("Type the agenda item first");
+          el == null ? void 0 : el.focus();
+          return true;
+        }
+        void WSB.from("team_agenda").insert({ day: today(), text }).select("*").single().then((r) => {
+          if (r.error || !r.data) toast("Couldn't add that. Try again.");
+          else T.agenda.push(r.data);
+          render();
+        });
+        return true;
+      }
+      case "ag_tick": {
+        const it = T.agenda.find((x) => x.id === id);
+        if (!it) return true;
+        it.done = !it.done;
+        render();
+        void WSB.from("team_agenda").update({ done: it.done, done_at: it.done ? (/* @__PURE__ */ new Date()).toISOString() : null }).eq("id", id).then(() => {
+        });
+        return true;
+      }
+      case "ag_mtick": {
+        let it;
+        T.my.forEach((m) => (m.agenda || []).forEach((x) => {
+          if (x.id === id) it = x;
+        }));
+        if (!it) return true;
+        const want = !it.done;
+        it.done = want;
+        render();
+        void WSB.rpc("my_agenda_tick", { p_id: id, p_done: want }).then((r) => {
+          if (r.error || r.data === false) {
+            if (it) it.done = !want;
+            toast("Couldn't update that");
+            render();
+          }
+        });
+        return true;
+      }
+      case "ag_del":
+        T.agenda = T.agenda.filter((x) => x.id !== id);
+        render();
+        void WSB.from("team_agenda").delete().eq("id", id).then(() => {
+        });
+        return true;
+    }
+    return false;
+  }
   function agendaHTML() {
     if (readOnly || window.__WS || !T.loaded) return "";
     const act = T.members.filter((m) => m.status === "active");
@@ -4698,7 +4778,7 @@ var TS = (() => {
     const done = all.reduce((n, d) => n + d.done.length, 0);
     const total = all.reduce((n, d) => n + d.open.length + d.done.length, 0);
     startPolling();
-    return `<section class="panel tg"><div class="tg-h"><div><h2 style="margin:0">Team today</h2><span class="muted">${total ? `${done} of ${total} pieces of work done` : "Nothing due today"}</span></div><span class="tg-live" title="Refreshes every 30 seconds"><i></i>Live</span></div><div class="tg-g">${act.map(person).join("")}</div></section>`;
+    return `<section class="panel tg"><div class="tg-h"><div><h2 style="margin:0">Team today</h2><span class="muted">${total ? `${done} of ${total} pieces of work done` : "Nothing due today"}</span></div><span class="tg-live" title="Refreshes every 30 seconds"><i></i>Live</span></div>` + plan() + `<div class="tg-g">${act.map(person).join("")}</div></section>`;
   }
   function startPolling() {
     if (timer !== void 0) return;
@@ -5082,7 +5162,7 @@ var vIdeas=TS.vIdeas, addIdea=TS.addIdea, addIdeaText=TS.addIdeaText, ideaAct=TS
 var NTPL=TS.NTPL, vNotes=TS.vNotes, noteListHTML=TS.noteListHTML, noteEditorHTML=TS.noteEditorHTML, nRender=TS.nRender, nOutline=TS.nOutline,
     nToolbar=TS.nToolbar, nInsert=TS.nInsert, nToTasks=TS.nToTasks, nFromTpl=TS.nFromTpl, newNote=TS.newNote, noteAct=TS.noteAct, noteInput=TS.noteInput;
 var surveyHTML=TS.surveyHTML, surveySteps=TS.surveySteps, surveyAct=TS.surveyAct, surveyDone=TS.surveyDone, surveyShows=TS.surveyShows, surveyFootHTML=TS.surveyFootHTML;
-var agendaHTML=TS.agendaHTML;
+var agendaHTML=TS.agendaHTML, memberAgendaHTML=TS.memberAgendaHTML, agendaAct=TS.agendaAct;
 var aiConnectHTML=TS.aiConnectHTML, aiImport=TS.aiImport, aiAct=TS.aiAct;
 var unitsHTML=TS.unitsHTML, unitAct=TS.unitAct, unitsDueSoon=TS.unitsDueSoon;
 var radarHTML=TS.radarHTML, radarAct=TS.radarAct;
@@ -6977,7 +7057,7 @@ function act0(a,b){
   if(readOnly&&!/^(ed|ve)_/.test(a)&&["space","view","opennote","nback","nmode","ifilter","mform","mcancel","copycolor","qtoggle","theme","gores","spacecancel","wbtool","wbcolor","wbundo","wbredo","wbdel","wbclear","wbzoom","wbfill","profile","profclose","undoall","datadlg","d_export","rerr_retry","rerr_home","bell","shortcuts","pmode","pacc","pbg","wbhi","wbfilter","wbtl","wbstart","vizrange","vizscope","mlayout","mcopy","sharehelp","dlgclose","comment","cmonth","cday","biztab","kitdl","kitcopy","vdl","clipf","aihelper","aistop","aicopy","pfilter","pmonth","pday","ptoday","pgroup","nsec","palopen","palrun","ftoggle","ftmode","ftreset"].indexOf(a)<0)return;
   if(profAct(a,b)||dataAct(a,b)||rerrAct(a,b)||webAct(a,b))return;
   if(v10act(a,b))return;
-  if(ideaAct(a,b,id)||noteAct(a,b,id)||surveyAct(a,b,id)||aiAct(a,b,id)||unitAct(a,b,id)||radarAct(a,b,id)||clipAct(a,b,id))return;
+  if(ideaAct(a,b,id)||noteAct(a,b,id)||surveyAct(a,b,id)||aiAct(a,b,id)||unitAct(a,b,id)||radarAct(a,b,id)||clipAct(a,b,id)||agendaAct(a,b,id))return;
   switch(a){
     case "view":go(id);break;
     case "space":S.cur=id;touch();render();break;
@@ -8637,7 +8717,7 @@ async function isolateSpace(id){
 
 
 /* ---------------- Team: people who work with you ---------------- */
-var T={loaded:false,loading:false,members:[],work:[],pay:[],my:[],sel:null,tab:"team",form:false,msg:"",f:{name:"",role:"",email:"",kind:"salary",amount:"",start:"",end:"",login:true,seepay:true},wf:{},pf:{}};
+var T={loaded:false,loading:false,members:[],work:[],pay:[],agenda:[],my:[],sel:null,tab:"team",form:false,msg:"",f:{name:"",role:"",email:"",kind:"salary",amount:"",start:"",end:"",login:true,seepay:true},wf:{},pf:{}};
 function tmM(id){return T.members.filter(function(x){return x.id===id})[0]}
 function tmErr(e){T.msg=(e&&e.message)||"Something went wrong. Try again.";render()}
 async function tmLoad(){
@@ -8648,9 +8728,10 @@ async function tmLoad(){
       WSB.from("team_members").select("*").eq("owner_id",uid).order("created_at"),
       WSB.from("team_work").select("*").eq("owner_id",uid).order("created_at",{ascending:false}),
       WSB.from("team_pay").select("*").eq("owner_id",uid).order("created_at",{ascending:false}),
-      WSB.rpc("my_team")]);
+      WSB.rpc("my_team"),
+      WSB.from("team_agenda").select("*").eq("owner_id",uid).gte("day",ymd(new Date(Date.now()-864e5))).order("created_at")]);
     if(r[0].error)throw r[0].error;
-    T.members=r[0].data||[];T.work=r[1].data||[];T.pay=r[2].data||[];T.my=Array.isArray(r[3].data)?r[3].data:[];
+    T.members=r[0].data||[];T.work=r[1].data||[];T.pay=r[2].data||[];T.my=Array.isArray(r[3].data)?r[3].data:[];T.agenda=r[4]&&!r[4].error?(r[4].data||[]):[];
     if(!T.members.length&&T.my.length&&!T.tabSet){T.tab="mywork"}
     T.msg="";
   }catch(e){T.msg="Couldn't load your team. "+((e&&e.message)||"")}
@@ -8742,7 +8823,8 @@ function tmMyHTML(){
   var td=ymd(new Date());
   return '<div class="tm-list">'+T.my.map(function(m,mi){
     var w=m.work||[],done=w.filter(function(x){return x.status==="done"}).length,pct=w.length?Math.round(done/w.length*100):0;
-    var h='<article class="panel tm-card"><div class="tm-top"><span class="av lg tm-av">'+esc((m.owner_email||"?").slice(0,1).toUpperCase())+'</span><div class="tm-id"><b>Working for '+esc(m.owner_email||"")+'</b><span class="muted">'+esc(m.role_title||"Team member")+'</span></div><span class="tm-badge '+(m.kind==="temp"?"temp":"sal")+'">'+tmKind(m)+'</span></div>';
+    var ag=typeof memberAgendaHTML==="function"?memberAgendaHTML(m):"";
+    var h=ag+'<article class="panel tm-card"><div class="tm-top"><span class="av lg tm-av">'+esc((m.owner_email||"?").slice(0,1).toUpperCase())+'</span><div class="tm-id"><b>Working for '+esc(m.owner_email||"")+'</b><span class="muted">'+esc(m.role_title||"Team member")+'</span></div><span class="tm-badge '+(m.kind==="temp"?"temp":"sal")+'">'+tmKind(m)+'</span></div>';
     if(m.see_pay&&m.amount!=null)h+='<div class="tm-meta"><span>'+tmAmt(m)+'</span>'+(m.start_date?'<span>From '+esc(fmtDue(m.start_date))+'</span>':'')+(m.end_date?'<span>Until '+esc(fmtDue(m.end_date))+'</span>':'')+'</div>';
     h+=(w.length?'<div class="tm-prog"><span>'+done+' of '+w.length+' done</span><span>'+pct+'%</span></div>'+tmBar(pct):'<p class="muted tm-none">No work assigned to you yet.</p>');
     h+=w.length?'<h4>Your work</h4><div class="tm-rows">'+w.map(function(x){var late=x.status!=="done"&&x.due&&x.due<td;return '<div class="tm-row"><span class="tm-t'+(x.status==="done"?" done":"")+'">'+esc(x.title)+(x.due?'<small class="'+(late?"late":"")+'"> · '+(late?"late · ":"")+esc(fmtDue(x.due))+'</small>':'')+'</span><select class="wsel" data-tmmy="'+x.id+'" aria-label="Status"><option value="todo"'+(x.status==="todo"?" selected":"")+'>To do</option><option value="doing"'+(x.status==="doing"?" selected":"")+'>Doing</option><option value="done"'+(x.status==="done"?" selected":"")+'>Done</option></select></div>'}).join("")+'</div>':'';

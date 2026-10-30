@@ -302,3 +302,13 @@ img{max-width:100%;height:auto}
 .un-a{display:flex;gap:8px;align-items:center;flex:none}
 .un-h{margin:18px 0 0;font-size:14px}
 .sv-foot{margin:14px 0;font-size:13px}
+.tg-plan{margin:0 0 16px;padding:12px 14px;border:1.5px solid var(--ink);border-radius:16px;background:var(--yel)}
+.tg-plan h3{margin:0 0 8px;font-size:15px}
+.tg-plan .muted{font-weight:400;font-size:12.5px;margin-left:6px}
+.ag-l{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.ag-l li{display:flex;align-items:center;gap:8px}
+.ag-l li.done>span:nth-child(2){text-decoration:line-through;opacity:.6}
+.ag-tk{all:unset;cursor:pointer;display:grid;place-items:center;padding:4px;margin:-4px;border-radius:50%}
+.ag-tk:focus-visible{outline:2px solid var(--ink)}
+.ag-l .ico{margin-left:auto}
+.tg-plan .ag-tick{background:#fff}.tg-plan li.done .ag-tick{background:var(--ink);color:#fff}

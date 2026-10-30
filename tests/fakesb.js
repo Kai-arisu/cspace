@@ -3,7 +3,7 @@ const crypto=require('crypto');
 function b64(o){return Buffer.from(JSON.stringify(o)).toString('base64url')}
 function jwt(user){return b64({alg:'HS256',typ:'JWT'})+'.'+b64({sub:user.id,email:user.email,role:'authenticated',aud:'authenticated',exp:Math.floor(Date.now()/1000)+3600})+'.sig'}
 module.exports=function(){
-  const st={users:[],tables:{docs:[],leases:[],profiles:[],shares:[],connections:[],snapshots:[],videos:[],cal_tokens:[],push_subs:[],ai_tokens:[],ai_inbox:[],team_members:[],team_work:[],team_pay:[]},files:{},ytConfigured:true,calls:[],snapId:1,socReady:{},socLinks:[]};
+  const st={users:[],tables:{docs:[],leases:[],profiles:[],shares:[],connections:[],snapshots:[],videos:[],cal_tokens:[],push_subs:[],ai_tokens:[],ai_inbox:[],team_members:[],team_work:[],team_pay:[],team_agenda:[]},files:{},ytConfigured:true,calls:[],snapId:1,socReady:{},socLinks:[]};
   const OWNER=['docs','leases','connections','snapshots','videos','cal_tokens','push_subs','ai_tokens','ai_inbox'];
   function session(u){const t=jwt(u);return {access_token:t,token_type:'bearer',expires_in:3600,expires_at:Math.floor(Date.now()/1000)+3600,refresh_token:'r_'+u.id,user:{id:u.id,aud:'authenticated',role:'authenticated',email:u.email,app_metadata:{},user_metadata:{},created_at:new Date().toISOString()}}}
   function uidOf(req){const a=req.headers()['authorization']||'';const m=a.match(/Bearer ([^ ]+)/);if(!m)return null;try{return JSON.parse(Buffer.from(m[1].split('.')[1],'base64url').toString()).sub||null}catch(e){return null}}
@@ -12,7 +12,7 @@ module.exports=function(){
   function visible(t,row,uid){
     if(t==='shares')return row.owner_id===uid||row.invitee_email.toLowerCase()===emailOf(uid);
     if(t==='docs'&&row.user_id!==uid&&uid&&shareFor(row.user_id,uid,row.path))return true;
-    if(t==='team_members'||t==='team_work'||t==='team_pay')return !!uid&&row.owner_id===uid;
+    if(t==='team_members'||t==='team_work'||t==='team_pay'||t==='team_agenda')return !!uid&&row.owner_id===uid;
     if(t==='profiles')return row.user_id===uid||row.is_public;
     if(OWNER.includes(t)&&row.user_id===uid)return true;
     if(t==='connections')return row.show_public&&row.kind==='own'&&st.tables.profiles.some(p=>p.user_id===row.user_id&&p.is_public);
@@ -49,9 +49,11 @@ module.exports=function(){
     if(p.startsWith('/rest/v1/rpc/my_team')){const em=emailOf(uid);if(!em)return J(200,[]);
       return J(200,st.tables.team_members.filter(m=>m.email&&m.email.toLowerCase()===em&&m.can_login&&m.status==='active').map(m=>({member_id:m.id,owner_email:emailOf(m.owner_id),name:m.name,role_title:m.role_title,kind:m.kind,start_date:m.start_date,end_date:m.end_date,see_pay:m.see_pay,amount:m.see_pay?m.amount:null,
         work:st.tables.team_work.filter(w=>w.member_id===m.id).map(w=>({id:w.id,title:w.title,due:w.due,status:w.status,done_at:w.done_at})),
+        agenda:st.tables.team_agenda.filter(a=>a.owner_id===m.owner_id).map(a=>({id:a.id,day:a.day,text:a.text,done:a.done})),
         pay:m.see_pay?st.tables.team_pay.filter(x=>x.member_id===m.id).map(x=>({id:x.id,label:x.label,amount:x.amount,status:x.status,paid_on:x.paid_on})):null})))}
     if(p.startsWith('/rest/v1/rpc/my_work_update')){const em=emailOf(uid);const w=st.tables.team_work.find(w=>w.id===body.p_id);const m=w&&st.tables.team_members.find(m=>m.id===w.member_id);
       if(!w||!m||!em||!m.email||m.email.toLowerCase()!==em||!m.can_login||m.status!=='active')return J(200,false);w.status=body.p_status;w.done_at=body.p_status==='done'?new Date().toISOString():null;return J(200,true)}
+    if(p.startsWith('/rest/v1/rpc/my_agenda_tick')){const em=emailOf(uid);const a=st.tables.team_agenda.find(a=>a.id===body.p_id);const ok=a&&em&&st.tables.team_members.some(m=>m.owner_id===a.owner_id&&m.email&&m.email.toLowerCase()===em&&m.can_login&&m.status==='active');if(!ok)return J(200,false);a.done=!!body.p_done;return J(200,true)}
     if(p.startsWith('/rest/v1/rpc/list_workspaces')){return J(200,st.tables.shares.filter(x=>x.invitee_email.toLowerCase()===emailOf(uid)).map(x=>({owner_id:x.owner_id,owner_email:emailOf(x.owner_id),role:x.role,space_id:x.space_id||null,space_name:x.space_name||null})))}
     if(p.startsWith('/rest/v1/')){
       const t=p.slice('/rest/v1/'.length);if(!st.tables[t])return J(404,{message:'no table'});
@@ -80,6 +82,7 @@ module.exports=function(){
             else{if(!st.tables.team_members.some(m=>m.id===row.member_id&&m.owner_id===uid))return J(403,{code:'42501',message:'new row violates row-level security policy'});
               if(t==='team_work'){row.status=row.status||'todo';row.done_at=null}else{row.status=row.status||'due';row.paid_on=null}}
           }
+          if(t==='team_agenda'){row.owner_id=uid;row.id=row.id||crypto.randomUUID();row.done=false;row.created_at=new Date().toISOString()}
           if(t==='connections'){row.id=row.id||crypto.randomUUID();row.kind=row.kind||'own';row.show_public=row.show_public||false;row.created_at=row.created_at||new Date().toISOString();row.source=row.source||'api';row.status=row.status||'ok'}
           if(t==='snapshots'){row.id=st.snapId++;row.ts=row.ts||new Date().toISOString()}
           if(t==='profiles'&&row.handle&&rows.some(r=>r.handle===row.handle&&r.user_id!==row.user_id))return J(409,{code:'23505',message:'duplicate key value violates unique constraint'});

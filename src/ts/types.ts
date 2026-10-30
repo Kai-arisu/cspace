@@ -106,6 +106,15 @@ export interface MoodItem {
   label: string;
 }
 
+/** One line of the day's agenda, set by the owner for the team. */
+export interface AgendaItem {
+  id: string;
+  /** "YYYY-MM-DD" */
+  day: string;
+  text: string;
+  done: boolean;
+}
+
 /** A product launch to cover (phone, laptop, AI model) and whether a content plan was made. */
 export interface Launch {
   id: string;

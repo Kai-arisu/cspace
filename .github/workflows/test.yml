@@ -33,7 +33,7 @@ jobs:
       - name: Run test suites
         run: |
           fail=0
-          for t in audit3 audit4 audit5 audit6 audit7 search kit share scope team wbframe rail motion look calsync invitemail push t19 t20 notify onboard isobell offline profile creator social mid survey agenda aiconnect units radar clips desktop; do
+          for t in audit3 audit4 audit5 audit6 audit7 search kit share scope team wbframe rail motion look calsync invitemail push t19 t20 notify onboard isobell offline profile creator social mid survey agenda aiconnect units radar clips ceoagenda desktop; do
             echo "== $t"
             if node tests/$t.js >/tmp/$t.log 2>&1; then echo "ok"; else
               echo "::warning::$t failed once, retrying"; tail -15 /tmp/$t.log
