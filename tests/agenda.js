@@ -1,0 +1,27 @@
+// team daily agenda: today's work per person, updating as people finish it
+const {chromium}=require('playwright');const http=require('http');const fs=require('fs');const path=require('path');
+const fake=require('./fakesb.js')();const site=path.join(process.cwd(),'public');
+const srv=http.createServer((req,res)=>{let u=req.url.split('?')[0];if(u==='/'||u.startsWith('/u/'))u='/index.html';const f=path.join(site,u);if(!fs.existsSync(f)){res.writeHead(404);return res.end('nf')}const e=path.extname(f);res.writeHead(200,{'content-type':e==='.html'?'text/html':e==='.js'?'application/javascript':'application/octet-stream'});res.end(fs.readFileSync(f))});
+let fail=0;const ok=(c,m)=>{console.log((c?'PASS ':'FAIL ')+m);if(!c)fail++};
+const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+(async()=>{await new Promise(r=>srv.listen(0,r));const b=await chromium.launch();const errs=[];
+const ctx=await b.newContext({viewport:{width:1280,height:900}});await ctx.route('https://ohkecamneutxggqwhend.supabase.co/**',fake.handle);
+await ctx.addInitScript('window.__agendaPoll=1500');const p=await ctx.newPage();p.on('pageerror',e=>errs.push(e.message));
+await p.goto('http://localhost:'+srv.address().port+'/?signup');await p.waitForTimeout(400);
+await p.fill('#agemail','ag@x.co');await p.fill('#agpass','supersecret1');await p.click('#aggo');await p.waitForTimeout(2500);
+const uid=await p.evaluate(()=>window.__UID);const td=ymd(new Date());const yd=ymd(new Date(Date.now()-864e5));
+fake.st.tables.team_members.push({id:'m1',owner_id:uid,name:'Mia Editor',role_title:'Video editor',status:'active',kind:'salary',amount:30000},{id:'m2',owner_id:uid,name:'Raj Designer',role_title:'',status:'active',kind:'salary',amount:1});
+fake.st.tables.team_work.push({id:'w1',owner_id:uid,member_id:'m1',title:'Cut episode 12',due:td,status:'todo'},{id:'w2',owner_id:uid,member_id:'m1',title:'Colour grade',due:yd,status:'todo'},{id:'w3',owner_id:uid,member_id:'m1',title:'Export reel',due:td,status:'done',done_at:new Date().toISOString()});
+await p.reload();await p.waitForTimeout(3000);
+ok(await p.locator('.tg .tg-p').count()===2,'every active member has a card on Today');
+const mia=p.locator('.tg-p').first();
+ok((await mia.textContent()).includes('1 of 3')&&(await mia.textContent()).includes('Cut episode 12'),'Mia shows 1 of 3 done');
+ok(await mia.locator('li.late').count()===1,'yesterday\'s open work is flagged late');
+ok((await p.locator('.tg-p').nth(1).textContent()).includes('Nothing due today'),'a free person says so');
+fake.st.tables.team_work.find(w=>w.id==='w1').status='done';fake.st.tables.team_work.find(w=>w.id==='w1').done_at=new Date().toISOString();
+await p.waitForTimeout(3500);
+ok((await p.locator('.tg-p').first().textContent()).includes('2 of 3'),'the card updates when work is finished');
+await p.click('#nav .si-row[data-id="team"]');await p.waitForTimeout(800);
+ok(await p.locator('.tg .tg-p').count()===2,'the Team page shows the same agenda');
+ok(!errs.length,'no page errors '+errs.join('|'));
+console.log(fail?'FAILURES '+fail:'ALL PASSED');await b.close();srv.close();process.exit(fail?1:0)})();

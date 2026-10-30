@@ -4,7 +4,7 @@
  * so it can use these directly. Each declaration here matches a definition in
  * src/app/; if one is renamed there, the type check fails here.
  */
-import type { Idea, Note, State, Task, Post } from "./types";
+import type { Idea, Note, State, Task, Post, TeamMember, TeamWork } from "./types";
 
 declare global {
   /** The whole saved state of the current workspace. */
@@ -13,7 +13,9 @@ declare global {
   var readOnly: boolean;
 
   /** The team screen's loaded data. */
-  var T: { members: unknown[] };
+  var T: { loaded: boolean; loading: boolean; members: TeamMember[]; work: TeamWork[] };
+  /** Loads the team, its work and pay again. */
+  function tmLoad(): Promise<void>;
   interface Window {
     __WS?: unknown;
   }

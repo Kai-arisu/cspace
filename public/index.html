@@ -2655,6 +2655,27 @@ img{max-width:100%;height:auto}
 .sv-q h3{margin:0 0 8px;font:600 15px var(--f-display,inherit)}
 .sv-o{display:flex;flex-wrap:wrap;gap:8px}
 .sv-go{margin-top:18px;display:flex;justify-content:flex-end}
+/* team daily agenda */
+.tg{margin-bottom:18px}
+.tg-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}
+.tg-live{display:inline-flex;align-items:center;gap:6px;font:600 12px var(--f-body,inherit);padding:4px 10px;border:1.5px solid var(--ink);border-radius:999px}
+.tg-live i{width:8px;height:8px;border-radius:50%;background:var(--yel);border:1.5px solid var(--ink);animation:tgp 2s ease-in-out infinite}
+@keyframes tgp{50%{transform:scale(.55)}}
+@media (prefers-reduced-motion:reduce){.tg-live i{animation:none}}
+.tg-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.tg-p{border:1.5px solid var(--ink);border-radius:16px;padding:12px 14px;background:var(--card)}
+.tg-p header{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px}
+.tg-n{margin-left:auto;font:600 12.5px var(--f-body,inherit)}
+.tg-bar{height:6px;border-radius:99px;background:var(--line);margin:10px 0;overflow:hidden}
+.tg-bar i{display:block;height:100%;background:var(--yel);border-radius:99px;transition:width .5s}
+.tg-p ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.tg-p li{display:flex;align-items:center;gap:8px;font-size:14px}
+.tg-p li.done span:nth-child(2){text-decoration:line-through;color:var(--muted)}
+.tg-p li em{margin-left:auto;font-style:normal;font-size:11.5px;font-weight:700;color:#b3261e}
+.ag-tick{flex:none;width:18px;height:18px;border:1.5px solid var(--ink);border-radius:50%;display:grid;place-items:center}
+.ag-tick svg{width:11px;height:11px}
+.tg-p li.done .ag-tick{background:var(--yel)}
+.tg-free{margin:8px 0 0;font-size:13px}
 
 /* ===================================================================
    Public creator page and media kit: a one-person front page.
@@ -3393,7 +3414,7 @@ html.landing body{overflow-y:visible!important}
       <div class="lp-i"><span>Team and pay<small>Invite to one space or all</small></span><b>Free</b></div></div>
     <div class="lp-g lp-soon"><h3>Coming next</h3>
       <div class="lp-i"><span>Bring your own AI<small>Connect Claude, ChatGPT or Gemini</small></span><b>Soon</b></div>
-      <div class="lp-i"><span>Team daily agenda<small>The day's plan, filling up live</small></span><b>Soon</b></div>
+      <div class="lp-i"><span>Team daily agenda<small>The day's plan, filling up live</small></span><b>New</b></div>
       <div class="lp-i"><span>Discord and Telegram<small>Updates and ticks from chat</small></span><b>Soon</b></div></div>
     <p class="lp-sheet-f">Works in your browser and on your phone.<br>Add it to your home screen like an app.</p>
   </div>
@@ -4092,6 +4113,7 @@ var TS = (() => {
     NTPL: () => NTPL,
     addIdea: () => addIdea,
     addIdeaText: () => addIdeaText,
+    agendaHTML: () => agendaHTML,
     ideaAct: () => ideaAct,
     ideaTitle: () => ideaTitle,
     nFromTpl: () => nFromTpl,
@@ -4595,6 +4617,46 @@ var TS = (() => {
     }
     return false;
   }
+
+  // src/ts/screens/agenda.ts
+  var POLL_MS = window.__agendaPoll || 3e4;
+  var timer;
+  function today() {
+    return ymd(/* @__PURE__ */ new Date());
+  }
+  function dayWork(m) {
+    const td = today();
+    const mine2 = T.work.filter((w) => w.member_id === m.id);
+    const open = mine2.filter((w) => w.status !== "done" && w.due && w.due <= td);
+    const done = mine2.filter((w) => w.status === "done" && !!w.done_at && w.done_at.slice(0, 10) === td);
+    open.sort((a, b) => a.due < b.due ? -1 : a.due > b.due ? 1 : 0);
+    return { open, done };
+  }
+  function person(m) {
+    const { open, done } = dayWork(m);
+    const total = open.length + done.length;
+    const td = today();
+    const pct = total ? Math.round(done.length / total * 100) : 0;
+    const line = (w, isDone) => `<li class="${isDone ? "done" : w.due < td ? "late" : ""}"><span class="ag-tick" aria-hidden="true">${isDone ? I("check") : ""}</span><span>${esc(w.title)}</span>${!isDone && w.due < td ? `<em>late</em>` : ""}</li>`;
+    return `<article class="tg-p"><header><b>${esc(m.name)}</b><span class="muted">${esc(m.role_title || "")}</span><span class="tg-n">${total ? `${done.length} of ${total}` : "free"}</span></header>` + (total ? `<div class="tg-bar" role="img" aria-label="${pct}% of today's work done"><i style="width:${pct}%"></i></div><ul>` + open.map((w) => line(w, false)).join("") + done.map((w) => line(w, true)).join("") + `</ul>` : `<p class="muted tg-free">Nothing due today.</p>`) + `</article>`;
+  }
+  function agendaHTML() {
+    if (readOnly || window.__WS || !T.loaded) return "";
+    const act = T.members.filter((m) => m.status === "active");
+    if (!act.length) return "";
+    const all = act.map(dayWork);
+    const done = all.reduce((n, d) => n + d.done.length, 0);
+    const total = all.reduce((n, d) => n + d.open.length + d.done.length, 0);
+    startPolling();
+    return `<section class="panel tg"><div class="tg-h"><div><h2 style="margin:0">Team today</h2><span class="muted">${total ? `${done} of ${total} pieces of work done` : "Nothing due today"}</span></div><span class="tg-live" title="Refreshes every 30 seconds"><i></i>Live</span></div><div class="tg-g">${act.map(person).join("")}</div></section>`;
+  }
+  function startPolling() {
+    if (timer !== void 0) return;
+    timer = window.setInterval(() => {
+      if (document.hidden || S.view !== "home" && S.view !== "team") return;
+      if (!T.loading) void tmLoad();
+    }, POLL_MS);
+  }
   return __toCommonJS(index_exports);
 })();
 /* ---------- TypeScript screens ---------- */
@@ -4604,6 +4666,7 @@ var vIdeas=TS.vIdeas, addIdea=TS.addIdea, addIdeaText=TS.addIdeaText, ideaAct=TS
 var NTPL=TS.NTPL, vNotes=TS.vNotes, noteListHTML=TS.noteListHTML, noteEditorHTML=TS.noteEditorHTML, nRender=TS.nRender, nOutline=TS.nOutline,
     nToolbar=TS.nToolbar, nInsert=TS.nInsert, nToTasks=TS.nToTasks, nFromTpl=TS.nFromTpl, newNote=TS.newNote, noteAct=TS.noteAct, noteInput=TS.noteInput;
 var surveyHTML=TS.surveyHTML, surveySteps=TS.surveySteps, surveyAct=TS.surveyAct, surveyDone=TS.surveyDone;
+var agendaHTML=TS.agendaHTML;
 /* ---------- persistence ---------- */
 function setStatus(t){var e=$("status");if(e)e.textContent=t}
 function touch(){
@@ -5330,7 +5393,7 @@ function vHome(){
     (dueT?pl(dueT,"thing")+" due today.":(open.length?"Nothing urgent. "+pl(open.length,"task")+" in progress.":"You're all clear.")));
   var h='<header class="td-head"><p class="td-date">'+esc(new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long"}))+' · '+esc(spaceName())+'</p><h1>'+greet+(nm?", "+esc(nm):"")+'</h1><p class="td-fact">'+esc(fact)+'</p></header>';
   if(!readOnly)h+='<div class="td-cap"><input class="in" id="qcin" placeholder="Capture anything… an idea, a task, a note" maxlength="240" aria-label="Quick capture"><button type="button" class="btn" data-act="qcap" data-id="idea">'+I("bulb")+'Idea</button><button type="button" class="btn" data-act="qcap" data-id="task">'+I("check")+'Task</button><button type="button" class="btn" data-act="qcap" data-id="note">'+I("notes")+'Note</button></div>';
-  var obh=(typeof surveyHTML==="function"?surveyHTML():"")+(typeof obHTML==="function"?obHTML():""),fresh=typeof obFresh==="function"&&obFresh();
+  var obh=(typeof surveyHTML==="function"?surveyHTML():"")+(typeof agendaHTML==="function"?agendaHTML():"")+(typeof obHTML==="function"?obHTML():""),fresh=typeof obFresh==="function"&&obFresh();
   if(obh&&fresh)return h+obh+(typeof todayAud==="function"?todayAud():"");
   function stat(n,l,cap,v,c){return '<button class="td-stat'+(c?" "+c:"")+'" data-act="view" data-id="'+v+'"><span class="tl">'+l+'</span><b>'+n+'</b><span class="tc">'+cap+'</span></button>'}
   var nextP=posts.slice().sort(function(a,b){return a.date<b.date?-1:1})[0];
@@ -8204,7 +8267,7 @@ async function tmLoad(){
     if(!T.members.length&&T.my.length&&!T.tabSet){T.tab="mywork"}
     T.msg="";
   }catch(e){T.msg="Couldn't load your team. "+((e&&e.message)||"")}
-  T.loaded=true;T.loading=false;tkSync();if(S.view==="team")render();
+  T.loaded=true;T.loading=false;tkSync();if(S.view==="team"||S.view==="home")render();
 }
 function tmProg(id){
   var w=T.work.filter(function(x){return x.member_id===id}),done=w.filter(function(x){return x.status==="done"}).length,td=ymd(new Date());
@@ -8231,6 +8294,7 @@ function tmHTML(){
   act.forEach(function(m){var g=tmProg(m.id);openW+=g.open;overW+=g.over});
   T.pay.forEach(function(x){if(x.status==="due")due+=Number(x.amount);else if(x.paid_on&&x.paid_on.slice(0,7)===mon)paidM+=Number(x.amount)});
   if(T.members.length)h+='<div class="stats tm-stats"><div class="stat"><b>'+act.length+'</b><span>Active members</span></div><div class="stat"><b>'+openW+'</b><span>Open work'+(overW?' · '+overW+' late':'')+'</span></div><div class="stat"><b>'+money(due)+'</b><span>To pay</span></div><div class="stat"><b>'+money(paidM)+'</b><span>Paid this month</span></div></div>';
+  h+=agendaHTML();
   if(T.form)h+=tmFormHTML();
   if(!T.members.length&&!T.form)h+=emptyCard("users","No team yet","Add someone who works with you, like an editor or a designer. Give them work, track progress and keep a record of what you've paid. You choose whether they can sign in.",'<button class="btn pri sm" data-act="tm_add">Add your first member</button>');
   h+='<div class="tm-list">'+T.members.map(tmCardHTML).join("")+'</div>';

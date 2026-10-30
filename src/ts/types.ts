@@ -51,6 +51,24 @@ export interface Space {
   name: string;
 }
 
+/** A person on the owner's team (a row of team_members). */
+export interface TeamMember {
+  id: string;
+  name: string;
+  role_title?: string | null;
+  status: string;
+}
+
+/** A piece of work given to a team member (a row of team_work). */
+export interface TeamWork {
+  id: string;
+  member_id: string;
+  title: string;
+  due: string;
+  status: string;
+  done_at?: string | null;
+}
+
 /** What a new person said about themselves in the welcome survey. */
 export interface Survey {
   kind: string;

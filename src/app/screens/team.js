@@ -16,7 +16,7 @@ async function tmLoad(){
     if(!T.members.length&&T.my.length&&!T.tabSet){T.tab="mywork"}
     T.msg="";
   }catch(e){T.msg="Couldn't load your team. "+((e&&e.message)||"")}
-  T.loaded=true;T.loading=false;tkSync();if(S.view==="team")render();
+  T.loaded=true;T.loading=false;tkSync();if(S.view==="team"||S.view==="home")render();
 }
 function tmProg(id){
   var w=T.work.filter(function(x){return x.member_id===id}),done=w.filter(function(x){return x.status==="done"}).length,td=ymd(new Date());
@@ -43,6 +43,7 @@ function tmHTML(){
   act.forEach(function(m){var g=tmProg(m.id);openW+=g.open;overW+=g.over});
   T.pay.forEach(function(x){if(x.status==="due")due+=Number(x.amount);else if(x.paid_on&&x.paid_on.slice(0,7)===mon)paidM+=Number(x.amount)});
   if(T.members.length)h+='<div class="stats tm-stats"><div class="stat"><b>'+act.length+'</b><span>Active members</span></div><div class="stat"><b>'+openW+'</b><span>Open work'+(overW?' · '+overW+' late':'')+'</span></div><div class="stat"><b>'+money(due)+'</b><span>To pay</span></div><div class="stat"><b>'+money(paidM)+'</b><span>Paid this month</span></div></div>';
+  h+=agendaHTML();
   if(T.form)h+=tmFormHTML();
   if(!T.members.length&&!T.form)h+=emptyCard("users","No team yet","Add someone who works with you, like an editor or a designer. Give them work, track progress and keep a record of what you've paid. You choose whether they can sign in.",'<button class="btn pri sm" data-act="tm_add">Add your first member</button>');
   h+='<div class="tm-list">'+T.members.map(tmCardHTML).join("")+'</div>';
