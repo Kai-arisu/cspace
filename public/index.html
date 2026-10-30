@@ -2649,6 +2649,12 @@ img{max-width:100%;height:auto}
 .top .search{order:2}
 .top .topr{order:3}
 }
+/* welcome survey */
+.sv{margin-bottom:18px}
+.sv-q{margin-top:16px}
+.sv-q h3{margin:0 0 8px;font:600 15px var(--f-display,inherit)}
+.sv-o{display:flex;flex-wrap:wrap;gap:8px}
+.sv-go{margin-top:18px;display:flex;justify-content:flex-end}
 
 /* ===================================================================
    Public creator page and media kit: a one-person front page.
@@ -4099,6 +4105,10 @@ var TS = (() => {
     noteEditorHTML: () => noteEditorHTML,
     noteInput: () => noteInput,
     noteListHTML: () => noteListHTML,
+    surveyAct: () => surveyAct,
+    surveyDone: () => surveyDone,
+    surveyHTML: () => surveyHTML,
+    surveySteps: () => surveySteps,
     vIdeas: () => vIdeas,
     vNotes: () => vNotes
   });
@@ -4497,6 +4507,94 @@ var TS = (() => {
     }
     return false;
   }
+
+  // src/ts/screens/survey.ts
+  var QUESTIONS = [
+    {
+      key: "kind",
+      title: "What do you make?",
+      options: [
+        ["video", "Videos"],
+        ["social", "Reels and posts"],
+        ["tech", "Tech or code content"],
+        ["business", "A business or brand"]
+      ]
+    },
+    {
+      key: "size",
+      title: "Who works on it?",
+      options: [
+        ["solo", "Just me"],
+        ["small", "2 to 5 people"],
+        ["large", "6 or more"]
+      ]
+    },
+    {
+      key: "goal",
+      title: "What matters most right now?",
+      options: [
+        ["grow", "Grow my audience"],
+        ["plan", "Plan content on time"],
+        ["money", "Track what I earn"],
+        ["team", "Run my team"]
+      ]
+    }
+  ];
+  var draft = {};
+  function surveyDone() {
+    return !!(S.cfg && S.cfg.survey);
+  }
+  function surveyHTML() {
+    if (readOnly || window.__WS || S.cfg && (S.cfg.obDone || S.cfg.survey)) return "";
+    const ready = QUESTIONS.every((q) => draft[q.key]);
+    const rows = QUESTIONS.map(
+      (q) => `<div class="sv-q" role="group" aria-label="${esc(q.title)}"><h3>${esc(q.title)}</h3><div class="sv-o">` + q.options.map(
+        ([v, label]) => `<button class="chip" data-act="sv_pick" data-id="${q.key}:${v}" aria-pressed="${draft[q.key] === v}">${esc(label)}</button>`
+      ).join("") + `</div></div>`
+    ).join("");
+    return `<section class="panel sv"><div class="ob-h"><div><h2 style="margin:0">Make it yours</h2><span class="muted">Three taps and your checklist fits what you do</span></div><div class="ob-acts"><button class="btn sm" data-act="sv_skip">Skip</button></div></div>` + rows + `<div class="sv-go"><button class="btn pri" data-act="sv_save"${ready ? "" : " disabled"}>Done</button></div></section>`;
+  }
+  function surveySteps() {
+    const sv = S.cfg && S.cfg.survey;
+    if (!sv) return [];
+    const out = [];
+    const btn = (view, label) => `<button class="btn sm" data-act="view" data-id="${view}">${label}</button>`;
+    if (sv.goal === "money")
+      out.push({ k: "sv-money", done: S.income.length > 0, t: "Log your first income", d: "Add what a brand or platform paid you, and see the month add up.", a: btn("bank", "Open Money") });
+    if (sv.goal === "team" || sv.size !== "solo")
+      out.push({ k: "sv-team", done: T.members.length > 0, t: "Add a teammate", d: "Give each person their own work and see what is done today.", a: btn("team", "Open Team") });
+    if (sv.kind === "tech")
+      out.push({ k: "sv-tech", done: S.notes.length > 0, t: "Write a script note", d: "Notes handle code blocks and checklists, so scripts and outlines live in one place.", a: btn("notes", "Open Notes") });
+    if (sv.goal === "grow")
+      out.push({ k: "sv-grow", done: S.posts.length > 0, t: "Plan your next post", d: "Pick a date on the calendar so growth work has a deadline.", a: btn("cal", "Open Calendar") });
+    return out;
+  }
+  function surveyAct(a, _b, id) {
+    switch (a) {
+      case "sv_pick": {
+        const [key, value] = id.split(":");
+        if (QUESTIONS.some((q) => q.key === key)) draft[key] = value;
+        render();
+        return true;
+      }
+      case "sv_save": {
+        if (!QUESTIONS.every((q) => draft[q.key])) return true;
+        S.cfg.survey = { kind: draft.kind, size: draft.size, goal: draft.goal, ts: Date.now() };
+        draft = {};
+        touch();
+        render();
+        toast("Saved. Your checklist now fits what you do.");
+        return true;
+      }
+      case "sv_skip":
+        S.cfg.survey = { kind: "", size: "", goal: "", ts: Date.now() };
+        draft = {};
+        touch();
+        render();
+        return true;
+    }
+    return false;
+  }
   return __toCommonJS(index_exports);
 })();
 /* ---------- TypeScript screens ---------- */
@@ -4505,6 +4603,7 @@ var TS = (() => {
 var vIdeas=TS.vIdeas, addIdea=TS.addIdea, addIdeaText=TS.addIdeaText, ideaAct=TS.ideaAct, ideaTitle=TS.ideaTitle;
 var NTPL=TS.NTPL, vNotes=TS.vNotes, noteListHTML=TS.noteListHTML, noteEditorHTML=TS.noteEditorHTML, nRender=TS.nRender, nOutline=TS.nOutline,
     nToolbar=TS.nToolbar, nInsert=TS.nInsert, nToTasks=TS.nToTasks, nFromTpl=TS.nFromTpl, newNote=TS.newNote, noteAct=TS.noteAct, noteInput=TS.noteInput;
+var surveyHTML=TS.surveyHTML, surveySteps=TS.surveySteps, surveyAct=TS.surveyAct, surveyDone=TS.surveyDone;
 /* ---------- persistence ---------- */
 function setStatus(t){var e=$("status");if(e)e.textContent=t}
 function touch(){
@@ -5231,7 +5330,7 @@ function vHome(){
     (dueT?pl(dueT,"thing")+" due today.":(open.length?"Nothing urgent. "+pl(open.length,"task")+" in progress.":"You're all clear.")));
   var h='<header class="td-head"><p class="td-date">'+esc(new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long"}))+' · '+esc(spaceName())+'</p><h1>'+greet+(nm?", "+esc(nm):"")+'</h1><p class="td-fact">'+esc(fact)+'</p></header>';
   if(!readOnly)h+='<div class="td-cap"><input class="in" id="qcin" placeholder="Capture anything… an idea, a task, a note" maxlength="240" aria-label="Quick capture"><button type="button" class="btn" data-act="qcap" data-id="idea">'+I("bulb")+'Idea</button><button type="button" class="btn" data-act="qcap" data-id="task">'+I("check")+'Task</button><button type="button" class="btn" data-act="qcap" data-id="note">'+I("notes")+'Note</button></div>';
-  var obh=typeof obHTML==="function"?obHTML():"",fresh=typeof obFresh==="function"&&obFresh();
+  var obh=(typeof surveyHTML==="function"?surveyHTML():"")+(typeof obHTML==="function"?obHTML():""),fresh=typeof obFresh==="function"&&obFresh();
   if(obh&&fresh)return h+obh+(typeof todayAud==="function"?todayAud():"");
   function stat(n,l,cap,v,c){return '<button class="td-stat'+(c?" "+c:"")+'" data-act="view" data-id="'+v+'"><span class="tl">'+l+'</span><b>'+n+'</b><span class="tc">'+cap+'</span></button>'}
   var nextP=posts.slice().sort(function(a,b){return a.date<b.date?-1:1})[0];
@@ -6428,7 +6527,7 @@ function act0(a,b){
   if(readOnly&&!/^(ed|ve)_/.test(a)&&["space","view","opennote","nback","nmode","ifilter","mform","mcancel","copycolor","qtoggle","theme","gores","spacecancel","wbtool","wbcolor","wbundo","wbredo","wbdel","wbclear","wbzoom","wbfill","profile","profclose","undoall","datadlg","d_export","rerr_retry","rerr_home","bell","shortcuts","pmode","pacc","pbg","wbhi","wbfilter","wbtl","wbstart","vizrange","vizscope","mlayout","mcopy","sharehelp","dlgclose","comment","cmonth","cday","biztab","kitdl","kitcopy","vdl","clipf","aihelper","aistop","aicopy","pfilter","pmonth","pday","ptoday","pgroup","nsec","palopen","palrun","ftoggle","ftmode","ftreset"].indexOf(a)<0)return;
   if(profAct(a,b)||dataAct(a,b)||rerrAct(a,b)||webAct(a,b))return;
   if(v10act(a,b))return;
-  if(ideaAct(a,b,id)||noteAct(a,b,id))return;
+  if(ideaAct(a,b,id)||noteAct(a,b,id)||surveyAct(a,b,id))return;
   switch(a){
     case "view":go(id);break;
     case "space":S.cur=id;touch();render();break;
@@ -8342,7 +8441,7 @@ function obSteps(){
     {k:"chan",done:ch,t:"Connect your channel",d:"Paste your YouTube link to track subscribers and set a goal.",a:'<button class="btn sm" data-act="view" data-id="aud">Connect</button>'},
     {k:"page",done:pg,t:"Publish your creator page",d:"One link with your handles and live numbers, for your bio.",a:'<button class="btn sm" data-act="view" data-id="cp">Set up page</button>'},
     {k:"push",done:al,t:"Turn on phone alerts",d:"A morning summary of what's due, and a ping when you hit a goal.",a:'<button class="btn sm" data-act="view" data-id="cp">Turn on</button>'}
-  ];
+  ].concat(typeof surveySteps==="function"?surveySteps():[]);
 }
 function obHTML(){
   if(readOnly||window.__WS||(S.cfg&&S.cfg.obDone))return "";

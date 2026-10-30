@@ -251,3 +251,9 @@ img{max-width:100%;height:auto}
 .top .search{order:2}
 .top .topr{order:3}
 }
+/* welcome survey */
+.sv{margin-bottom:18px}
+.sv-q{margin-top:16px}
+.sv-q h3{margin:0 0 8px;font:600 15px var(--f-display,inherit)}
+.sv-o{display:flex;flex-wrap:wrap;gap:8px}
+.sv-go{margin-top:18px;display:flex;justify-content:flex-end}

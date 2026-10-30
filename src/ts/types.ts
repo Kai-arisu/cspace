@@ -51,6 +51,14 @@ export interface Space {
   name: string;
 }
 
+/** What a new person said about themselves in the welcome survey. */
+export interface Survey {
+  kind: string;
+  size: string;
+  goal: string;
+  ts: number;
+}
+
 export interface State {
   view: string;
   cur: string;
@@ -59,5 +67,7 @@ export interface State {
   notes: Note[];
   tasks: Task[];
   posts: Post[];
+  income: unknown[];
+  cfg: { obDone?: boolean; survey?: Survey; [key: string]: unknown };
   [key: string]: unknown;
 }

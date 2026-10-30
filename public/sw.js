@@ -1,4 +1,4 @@
-const C='cs-shell-88c162889b';
+const C='cs-shell-977d5be2a5';
 const SHELL=['/','/supabase.js','/591.supabase.js','/jost.woff2','/young.woff2','/is.woff2','/manifest.webmanifest','/icon-192.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(SHELL.map(u=>new Request(u,{cache:'reload'})))).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});

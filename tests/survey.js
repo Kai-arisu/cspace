@@ -1,0 +1,22 @@
+// welcome survey: three taps, then the checklist grows steps that fit
+const {chromium}=require('playwright');const http=require('http');const fs=require('fs');const path=require('path');
+const fake=require('./fakesb.js')();const site=path.join(process.cwd(),'public');
+const srv=http.createServer((req,res)=>{let u=req.url.split('?')[0];if(u==='/'||u.startsWith('/u/'))u='/index.html';const f=path.join(site,u);if(!fs.existsSync(f)){res.writeHead(404);return res.end('nf')}const e=path.extname(f);res.writeHead(200,{'content-type':e==='.html'?'text/html':e==='.js'?'application/javascript':'application/octet-stream'});res.end(fs.readFileSync(f))});
+let fail=0;const ok=(c,m)=>{console.log((c?'PASS ':'FAIL ')+m);if(!c)fail++};
+(async()=>{await new Promise(r=>srv.listen(0,r));const b=await chromium.launch();const errs=[];
+const ctx=await b.newContext({viewport:{width:1280,height:800}});await ctx.route('https://ohkecamneutxggqwhend.supabase.co/**',fake.handle);
+const p=await ctx.newPage();p.on('pageerror',e=>errs.push(e.message));
+await p.goto('http://localhost:'+srv.address().port+'/?signup');await p.waitForTimeout(400);
+await p.fill('#agemail','sv@x.co');await p.fill('#agpass','supersecret1');await p.click('#aggo');await p.waitForTimeout(2500);
+ok(await p.locator('.sv').count()===1,'new account sees the survey');
+ok(await p.locator('.sv [data-act="sv_save"]').isDisabled(),'Done waits for all three answers');
+await p.click('[data-act="sv_pick"][data-id="kind:tech"]');await p.click('[data-act="sv_pick"][data-id="size:small"]');await p.click('[data-act="sv_pick"][data-id="goal:money"]');
+ok(await p.locator('.sv [data-act="sv_save"]').isEnabled(),'Done unlocks after three answers');
+await p.click('[data-act="sv_save"]');await p.waitForTimeout(500);
+ok(await p.locator('.sv').count()===0,'survey goes away once saved');
+const t=await p.textContent('.ob');
+ok(/Log your first income/.test(t)&&/Add a teammate/.test(t)&&/Write a script note/.test(t),'checklist gains steps for the answers');
+await p.reload();await p.waitForTimeout(2500);
+ok(await p.locator('.sv').count()===0,'it stays gone after a reload');
+ok(!errs.length,'no page errors '+errs.join('|'));
+console.log(fail?'FAILURES '+fail:'ALL PASSED');await b.close();srv.close();process.exit(fail?1:0)})();

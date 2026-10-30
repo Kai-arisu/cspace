@@ -253,7 +253,7 @@ function obSteps(){
     {k:"chan",done:ch,t:"Connect your channel",d:"Paste your YouTube link to track subscribers and set a goal.",a:'<button class="btn sm" data-act="view" data-id="aud">Connect</button>'},
     {k:"page",done:pg,t:"Publish your creator page",d:"One link with your handles and live numbers, for your bio.",a:'<button class="btn sm" data-act="view" data-id="cp">Set up page</button>'},
     {k:"push",done:al,t:"Turn on phone alerts",d:"A morning summary of what's due, and a ping when you hit a goal.",a:'<button class="btn sm" data-act="view" data-id="cp">Turn on</button>'}
-  ];
+  ].concat(typeof surveySteps==="function"?surveySteps():[]);
 }
 function obHTML(){
   if(readOnly||window.__WS||(S.cfg&&S.cfg.obDone))return "";

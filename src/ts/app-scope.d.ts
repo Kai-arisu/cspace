@@ -12,6 +12,12 @@ declare global {
   /** True when the signed-in person can only view this workspace. */
   var readOnly: boolean;
 
+  /** The team screen's loaded data. */
+  var T: { members: unknown[] };
+  interface Window {
+    __WS?: unknown;
+  }
+
   // screen state that lives in the shared scope
   var selNote: string | null;
   var noteOpen: boolean;
