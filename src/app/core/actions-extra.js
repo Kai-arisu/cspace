@@ -41,12 +41,6 @@ function v10act(a,b){
     case "bdel":{var kk=b.dataset.k;arm(b,function(){S[kk]=S[kk].filter(function(x){return x.id!==id});touch();render()});return true}
     case "kitdl":saveFile("media-kit.html",new Blob([kitHTML()],{type:"text/html"}));return true;
     case "kitcopy":copy(kitText());return true;
-    case "clipadd":clipAdd();return true;
-    case "clipf":clipTag=id;render();return true;
-    case "clipstar":{var c1=findIn(S.clips,id);if(c1){c1.star=!c1.star;touch();render()}return true}
-    case "clipdel":{arm(b,function(){S.clips=S.clips.filter(function(x){return x.id!==id});touch();render()});return true}
-    case "clipmood":{var c2=findIn(S.clips,id);if(c2){S.mood.push({id:uid(),sp:S.cur,kind:"link",sec:"links",value:c2.url,label:c2.title||clipHost(c2.url)});touch();toast("Added to the moodboard")}return true}
-    case "clipidea":{var c3=findIn(S.clips,id);if(c3){aiSaveIdea((c3.title||clipHost(c3.url))+(c3.note?": "+c3.note:"")+" "+(c3.tags||[]).map(function(t){return "#"+t}).join(" "));touch();toast("Saved as an idea")}return true}
     case "aihelper":aiH=id;aiRes=null;aiErr="";render();return true;
     case "airun":aiRun();return true;
     case "aistop":if(aiCtl)aiCtl.abort();return true;
@@ -65,7 +59,7 @@ document.addEventListener("input",function(e){
   if(d.bz&&!readOnly&&t.tagName!=="SELECT"){var z=d.bz.split("|"),o=findIn(S[z[0]],z[1]);if(o){o[z[2]]=(z[2]==="amount")?(+t.value||0):t.value;touch()}}
   if(d.kit&&!readOnly){var k=kit(),f=d.kit,mm;if(mm=f.match(/^([sr])(\d)([kv])$/)){var arr=mm[1]==="s"?k.stats:k.rates;arr[+mm[2]][mm[3]==="k"?0:1]=t.value}else k[f]=t.value;touch();var kp=$("kitprev");if(kp)kp.innerHTML=kitCard(k)}
   if(d.ai){if(d.ai==="topic")aiTopic=t.value}
-  if(d.clipq){clipQ=t.value;var cl=$("cliplist");if(cl)cl.innerHTML=clipListHTML()}
+  clipInput(t);
 });
 document.addEventListener("change",function(e){
   var t=e.target,d=t.dataset||{};

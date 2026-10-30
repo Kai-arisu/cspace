@@ -4,7 +4,7 @@
  * so it can use these directly. Each declaration here matches a definition in
  * src/app/; if one is renamed there, the type check fails here.
  */
-import type { Idea, Note, State, Task, Post, Unit, Launch, TeamMember, TeamWork } from "./types";
+import type { Idea, Note, State, Task, Post, Clip, Unit, Launch, TeamMember, TeamWork } from "./types";
 
 declare global {
   /** The whole saved state of the current workspace. */
@@ -54,7 +54,13 @@ declare global {
   function mine(kind: "tasks"): Task[];
   function mine(kind: "posts"): Post[];
   function mine(kind: "units"): Unit[];
+  function mine(kind: "clips"): Clip[];
   function mine(kind: "launches"): Launch[];
+
+  /** The Files section shown under Clips. */
+  function vFiles(): string;
+  /** Saves a line of text as an idea. */
+  function aiSaveIdea(text: string): void;
 
   /** The title block at the top of a screen. */
   function hero(view: string, title: string, sub: string | null, actions: string): string;

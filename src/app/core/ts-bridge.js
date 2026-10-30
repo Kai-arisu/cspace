@@ -9,3 +9,4 @@ var agendaHTML=TS.agendaHTML;
 var aiConnectHTML=TS.aiConnectHTML, aiImport=TS.aiImport, aiAct=TS.aiAct;
 var unitsHTML=TS.unitsHTML, unitAct=TS.unitAct, unitsDueSoon=TS.unitsDueSoon;
 var radarHTML=TS.radarHTML, radarAct=TS.radarAct;
+var vClips=TS.vClips, clipListHTML=TS.clipListHTML, clipAdd=TS.clipAdd, clipAct=TS.clipAct, clipInput=TS.clipInput, clipHost=TS.clipHost, ytId=TS.ytId;

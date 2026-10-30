@@ -4140,6 +4140,11 @@ var TS = (() => {
     aiAct: () => aiAct,
     aiConnectHTML: () => aiConnectHTML,
     aiImport: () => aiImport,
+    clipAct: () => clipAct,
+    clipAdd: () => clipAdd,
+    clipHost: () => clipHost,
+    clipInput: () => clipInput,
+    clipListHTML: () => clipListHTML,
     ideaAct: () => ideaAct,
     ideaTitle: () => ideaTitle,
     nFromTpl: () => nFromTpl,
@@ -4162,8 +4167,10 @@ var TS = (() => {
     unitAct: () => unitAct,
     unitsDueSoon: () => unitsDueSoon,
     unitsHTML: () => unitsHTML,
+    vClips: () => vClips,
     vIdeas: () => vIdeas,
-    vNotes: () => vNotes
+    vNotes: () => vNotes,
+    ytId: () => ytId
   });
 
   // src/ts/screens/ideas.ts
@@ -4931,6 +4938,129 @@ var TS = (() => {
     }
     return false;
   }
+
+  // src/ts/screens/clips.ts
+  var clipTag = "all";
+  var clipQ = "";
+  function ytId(u) {
+    const m = String(u).match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{11})/);
+    return m ? m[1] : "";
+  }
+  function clipHost(u) {
+    try {
+      return new URL(u).hostname.replace(/^www\./, "");
+    } catch {
+      return u;
+    }
+  }
+  var dis3 = () => readOnly ? " disabled" : "";
+  function card2(c) {
+    const y = ytId(c.url);
+    const host = clipHost(c.url);
+    let hue = 0;
+    for (let i = 0; i < host.length; i++) hue = (hue * 31 + host.charCodeAt(i)) % 360;
+    const th = y ? `<img src="https://i.ytimg.com/vi/${y}/hqdefault.jpg" alt="" loading="lazy" onerror="this.remove()">` : "";
+    const tags = c.tags || [];
+    return `<article class="clip"><a class="cl-th${y ? "" : " noimg"}" href="${esc(c.url)}" target="_blank" rel="noopener noreferrer" style="background:linear-gradient(135deg,hsl(${hue} 60% 55%),hsl(${(hue + 50) % 360} 60% 40%))" aria-label="Open ${esc(c.title || host)}"><span>${esc(host.slice(0, 1).toUpperCase())}</span>${th}</a><div class="cl-b"><b>${esc(c.title || host)}</b><small class="muted">${esc(host)} · ${ago(c.ts)}</small>` + (c.note ? `<p>${esc(c.note)}</p>` : "") + (tags.length ? `<div class="cl-tags">${tags.map((t) => `<span class="mb-chip" style="font-size:11px;letter-spacing:.04em;text-transform:none">#${esc(t)}</span>`).join("")}</div>` : "") + `<div class="cl-a"><button class="ico" data-act="clipstar" data-id="${c.id}" aria-label="Star" aria-pressed="${!!c.star}"${dis3()}>${I("star")}</button><button class="btn sm" data-act="clipmood" data-id="${c.id}"${dis3()}>To moodboard</button><button class="btn sm" data-act="clipidea" data-id="${c.id}"${dis3()}>To ideas</button><button class="ico danger" data-act="clipdel" data-id="${c.id}" aria-label="Delete clip"${dis3()}>${I("x")}</button></div></div></article>`;
+  }
+  function clipListHTML() {
+    const q = clipQ.toLowerCase();
+    const all = mine("clips");
+    const list = all.slice().sort((a, b) => Number(b.star) - Number(a.star) || b.ts - a.ts).filter((c) => (clipTag === "all" || (c.tags || []).indexOf(clipTag) > -1) && (!q || (c.title + " " + c.note + " " + c.url).toLowerCase().indexOf(q) > -1));
+    if (!list.length)
+      return all.length ? `<div class="empty">No clips match.</div>` : emptyCard("link", "Build your reference library", "Paste a video, an article or any link you want to learn from. Add a note like #lighting to find it later, or send it to your moodboard.", "");
+    return `<div class="clips">${list.map(card2).join("")}</div>`;
+  }
+  function vClips() {
+    const all = mine("clips");
+    const tags = {};
+    all.forEach((c) => (c.tags || []).forEach((t) => tags[t] = 1));
+    let h = hero("clips", "Clips", "Save links and videos, and upload files. Add #tags to find links later.", "");
+    if (!readOnly)
+      h += `<div class="form clipform"><label style="flex:2 1 260px"><span class="vh">Link</span><input class="in" id="clurl" placeholder="Paste a link" maxlength="400"></label><label style="flex:1 1 160px"><span class="vh">Title</span><input class="in" id="cltitle" placeholder="Optional" maxlength="90"></label><label style="flex:2 1 220px"><span class="vh">Note and #tags</span><input class="in" id="clnote" placeholder="Why it is worth keeping #lighting" maxlength="240"></label><button class="btn pri" data-act="clipadd">Save</button></div>`;
+    h += `<div class="chips" role="group" aria-label="Filter clips"><button class="chip" data-act="clipf" data-id="all" aria-pressed="${clipTag === "all"}">All ${all.length}</button>` + Object.keys(tags).sort().map((t) => `<button class="chip" data-act="clipf" data-id="${esc(t)}" aria-pressed="${clipTag === t}">#${esc(t)}</button>`).join("") + `<input class="in" id="clipq" data-clipq="1" placeholder="Search clips" style="max-width:220px;margin-left:auto" value="${esc(clipQ)}" aria-label="Search clips"></div><div id="cliplist">${clipListHTML()}</div>`;
+    return h + vFiles();
+  }
+  function clipAdd() {
+    let u = ($("clurl").value || "").trim();
+    if (u && !/^https?:\/\//i.test(u)) u = "https://" + u;
+    try {
+      const p = new URL(u);
+      if (!/^https?:$/.test(p.protocol)) throw 0;
+    } catch {
+      toast("Paste a valid link");
+      return;
+    }
+    const note = ($("clnote").value || "").trim();
+    const tags = (note.match(/#[\w-]+/g) || []).map((t) => t.slice(1).toLowerCase());
+    const c = { id: uid(), sp: S.cur, url: u, title: ($("cltitle").value || "").trim(), note: note.replace(/\s*#[\w-]+/g, "").trim(), tags, star: false, ts: Date.now() };
+    S.clips.push(c);
+    touch();
+    render();
+    if (!c.title && ytId(u)) {
+      fetch("https://www.youtube.com/oembed?format=json&url=" + encodeURIComponent(u)).then((r) => r.json()).then((j) => {
+        if (j && j.title) {
+          c.title = String(j.title).slice(0, 90);
+          touch();
+          if (S.view === "clips") render();
+        }
+      }).catch(() => {
+      });
+    }
+  }
+  function clipAct(a, b, id) {
+    switch (a) {
+      case "clipadd":
+        clipAdd();
+        return true;
+      case "clipf":
+        clipTag = id;
+        render();
+        return true;
+      case "clipstar": {
+        const c = findIn(S.clips, id);
+        if (c) {
+          c.star = !c.star;
+          touch();
+          render();
+        }
+        return true;
+      }
+      case "clipdel":
+        arm(b, () => {
+          S.clips = S.clips.filter((x) => x.id !== id);
+          touch();
+          render();
+        });
+        return true;
+      case "clipmood": {
+        const c = findIn(S.clips, id);
+        if (c) {
+          S.mood.push({ id: uid(), sp: S.cur, kind: "link", sec: "links", value: c.url, label: c.title || clipHost(c.url) });
+          touch();
+          toast("Added to the moodboard");
+        }
+        return true;
+      }
+      case "clipidea": {
+        const c = findIn(S.clips, id);
+        if (c) {
+          aiSaveIdea((c.title || clipHost(c.url)) + (c.note ? ": " + c.note : "") + " " + (c.tags || []).map((t) => "#" + t).join(" "));
+          touch();
+          toast("Saved as an idea");
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+  function clipInput(t) {
+    if (!t.dataset || !t.dataset.clipq) return false;
+    clipQ = t.value;
+    const cl = $("cliplist");
+    if (cl) cl.innerHTML = clipListHTML();
+    return true;
+  }
   return __toCommonJS(index_exports);
 })();
 /* ---------- TypeScript screens ---------- */
@@ -4944,6 +5074,7 @@ var agendaHTML=TS.agendaHTML;
 var aiConnectHTML=TS.aiConnectHTML, aiImport=TS.aiImport, aiAct=TS.aiAct;
 var unitsHTML=TS.unitsHTML, unitAct=TS.unitAct, unitsDueSoon=TS.unitsDueSoon;
 var radarHTML=TS.radarHTML, radarAct=TS.radarAct;
+var vClips=TS.vClips, clipListHTML=TS.clipListHTML, clipAdd=TS.clipAdd, clipAct=TS.clipAct, clipInput=TS.clipInput, clipHost=TS.clipHost, ytId=TS.ytId;
 /* ---------- persistence ---------- */
 function setStatus(t){var e=$("status");if(e)e.textContent=t}
 function touch(){
@@ -6538,38 +6669,7 @@ function kitHTML(){
 }
 function kitText(){var k=kit(),L=[(k.name||spaceName()),[k.handle,k.niche].filter(Boolean).join(" · ")];if(k.bio)L.push("",k.bio);var st=k.stats.filter(function(s){return s[1]});if(st.length){L.push("","Audience");st.forEach(function(s){L.push("  "+s[0]+": "+s[1])})}var rt=k.rates.filter(function(s){return s[1]});if(rt.length){L.push("","Rates");rt.forEach(function(s){L.push("  "+s[0]+": "+s[1])})}if(k.email)L.push("","Contact: "+k.email);return L.join("\n")}
 
-/* ---------- clips ---------- */
-var clipTag="all", clipQ="";
-function ytId(u){var m=String(u).match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{11})/);return m?m[1]:""}
-function clipHost(u){try{return new URL(u).hostname.replace(/^www\./,"")}catch(e){return u}}
-function clipListHTML(){
-  var q=clipQ.toLowerCase(),list=mine("clips").slice().sort(function(a,b){return (b.star-a.star)||(b.ts-a.ts)}).filter(function(c){return (clipTag==="all"||(c.tags||[]).indexOf(clipTag)>-1)&&(!q||(c.title+" "+c.note+" "+c.url).toLowerCase().indexOf(q)>-1)});
-  if(!list.length)return mine("clips").length?'<div class="empty">No clips match.</div>':emptyCard("link","Build your reference library","Paste a video, an article or any link you want to learn from. Add a note like #lighting to find it later, or send it to your moodboard.","");
-  return '<div class="clips">'+list.map(function(c){
-    var y=ytId(c.url),host=clipHost(c.url),hue=0;for(var i=0;i<host.length;i++)hue=(hue*31+host.charCodeAt(i))%360;
-    var th=y?'<img src="https://i.ytimg.com/vi/'+y+'/hqdefault.jpg" alt="" loading="lazy" onerror="this.remove()">':"";
-    return '<article class="clip"><a class="cl-th'+(y?"":" noimg")+'" href="'+esc(c.url)+'" target="_blank" rel="noopener noreferrer" style="background:linear-gradient(135deg,hsl('+hue+' 60% 55%),hsl('+((hue+50)%360)+' 60% 40%))" aria-label="Open '+esc(c.title||host)+'"><span>'+esc(host.slice(0,1).toUpperCase())+'</span>'+th+'</a><div class="cl-b"><b>'+esc(c.title||host)+'</b><small class="muted">'+esc(host)+' · '+ago(c.ts)+'</small>'+(c.note?'<p>'+esc(c.note)+'</p>':"")+((c.tags||[]).length?'<div class="cl-tags">'+c.tags.map(function(t){return '<span class="mb-chip" style="font-size:11px;letter-spacing:.04em;text-transform:none">#'+esc(t)+'</span>'}).join("")+'</div>':"")+
-      '<div class="cl-a"><button class="ico" data-act="clipstar" data-id="'+c.id+'" aria-label="Star" aria-pressed="'+!!c.star+'"'+(readOnly?" disabled":"")+'>'+I("star")+'</button><button class="btn sm" data-act="clipmood" data-id="'+c.id+'"'+(readOnly?" disabled":"")+'>To moodboard</button><button class="btn sm" data-act="clipidea" data-id="'+c.id+'"'+(readOnly?" disabled":"")+'>To ideas</button><button class="ico danger" data-act="clipdel" data-id="'+c.id+'" aria-label="Delete clip"'+(readOnly?" disabled":"")+'>'+I("x")+'</button></div></div></article>';
-  }).join("")+'</div>';
-}
-function vClips(){
-  var all=mine("clips"),tags={};all.forEach(function(c){(c.tags||[]).forEach(function(t){tags[t]=1})});
-  var h=hero("clips","Clips","Save links and videos, and upload files. Add #tags to find links later.","");
-  if(!readOnly)h+='<div class="form clipform"><label style="flex:2 1 260px"><span class="vh">Link</span><input class="in" id="clurl" placeholder="Paste a link" maxlength="400"></label><label style="flex:1 1 160px"><span class="vh">Title</span><input class="in" id="cltitle" placeholder="Optional" maxlength="90"></label><label style="flex:2 1 220px"><span class="vh">Note and #tags</span><input class="in" id="clnote" placeholder="Why it is worth keeping #lighting" maxlength="240"></label><button class="btn pri" data-act="clipadd">Save</button></div>';
-  h+='<div class="chips" role="group" aria-label="Filter clips"><button class="chip" data-act="clipf" data-id="all" aria-pressed="'+(clipTag==="all")+'">All '+all.length+'</button>'+Object.keys(tags).sort().map(function(t){return '<button class="chip" data-act="clipf" data-id="'+esc(t)+'" aria-pressed="'+(clipTag===t)+'">#'+esc(t)+'</button>'}).join("")+'<input class="in" id="clipq" data-clipq="1" placeholder="Search clips" style="max-width:220px;margin-left:auto" value="'+esc(clipQ)+'" aria-label="Search clips"></div><div id="cliplist">'+clipListHTML()+'</div>';
-  h+=vFiles();
-  return h;
-}
-function clipAdd(){
-  var u=($("clurl").value||"").trim();if(u&&!/^https?:\/\//i.test(u))u="https://"+u;
-  try{var p=new URL(u);if(!/^https?:$/.test(p.protocol))throw 0}catch(e){return toast("Paste a valid link")}
-  var note=($("clnote").value||"").trim(),tags=(note.match(/#[\w-]+/g)||[]).map(function(t){return t.slice(1).toLowerCase()});
-  var c={id:uid(),sp:S.cur,url:u,title:($("cltitle").value||"").trim(),note:note.replace(/\s*#[\w-]+/g,"").trim(),tags:tags,star:false,ts:Date.now()};
-  S.clips.push(c);touch();render();
-  if(!c.title&&ytId(u)){
-    try{fetch("https://www.youtube.com/oembed?format=json&url="+encodeURIComponent(u)).then(function(r){return r.json()}).then(function(j){if(j&&j.title){c.title=String(j.title).slice(0,90);touch();if(S.view==="clips")render()}}).catch(function(){})}catch(e){}
-  }
-}
+/* Clips moved to src/ts/screens/clips.ts */
 /* ---------- AI helpers ---------- */
 var AIH=[
   {id:"ideas",name:"Idea suggestions",mode:"list",n:8,ph:"A theme or niche to focus on (optional)",ask:"Suggest {n} fresh, specific content ideas as one-line titles with a clear angle"},
@@ -6699,12 +6799,6 @@ function v10act(a,b){
     case "bdel":{var kk=b.dataset.k;arm(b,function(){S[kk]=S[kk].filter(function(x){return x.id!==id});touch();render()});return true}
     case "kitdl":saveFile("media-kit.html",new Blob([kitHTML()],{type:"text/html"}));return true;
     case "kitcopy":copy(kitText());return true;
-    case "clipadd":clipAdd();return true;
-    case "clipf":clipTag=id;render();return true;
-    case "clipstar":{var c1=findIn(S.clips,id);if(c1){c1.star=!c1.star;touch();render()}return true}
-    case "clipdel":{arm(b,function(){S.clips=S.clips.filter(function(x){return x.id!==id});touch();render()});return true}
-    case "clipmood":{var c2=findIn(S.clips,id);if(c2){S.mood.push({id:uid(),sp:S.cur,kind:"link",sec:"links",value:c2.url,label:c2.title||clipHost(c2.url)});touch();toast("Added to the moodboard")}return true}
-    case "clipidea":{var c3=findIn(S.clips,id);if(c3){aiSaveIdea((c3.title||clipHost(c3.url))+(c3.note?": "+c3.note:"")+" "+(c3.tags||[]).map(function(t){return "#"+t}).join(" "));touch();toast("Saved as an idea")}return true}
     case "aihelper":aiH=id;aiRes=null;aiErr="";render();return true;
     case "airun":aiRun();return true;
     case "aistop":if(aiCtl)aiCtl.abort();return true;
@@ -6723,7 +6817,7 @@ document.addEventListener("input",function(e){
   if(d.bz&&!readOnly&&t.tagName!=="SELECT"){var z=d.bz.split("|"),o=findIn(S[z[0]],z[1]);if(o){o[z[2]]=(z[2]==="amount")?(+t.value||0):t.value;touch()}}
   if(d.kit&&!readOnly){var k=kit(),f=d.kit,mm;if(mm=f.match(/^([sr])(\d)([kv])$/)){var arr=mm[1]==="s"?k.stats:k.rates;arr[+mm[2]][mm[3]==="k"?0:1]=t.value}else k[f]=t.value;touch();var kp=$("kitprev");if(kp)kp.innerHTML=kitCard(k)}
   if(d.ai){if(d.ai==="topic")aiTopic=t.value}
-  if(d.clipq){clipQ=t.value;var cl=$("cliplist");if(cl)cl.innerHTML=clipListHTML()}
+  clipInput(t);
 });
 document.addEventListener("change",function(e){
   var t=e.target,d=t.dataset||{};
@@ -6870,7 +6964,7 @@ function act0(a,b){
   if(readOnly&&!/^(ed|ve)_/.test(a)&&["space","view","opennote","nback","nmode","ifilter","mform","mcancel","copycolor","qtoggle","theme","gores","spacecancel","wbtool","wbcolor","wbundo","wbredo","wbdel","wbclear","wbzoom","wbfill","profile","profclose","undoall","datadlg","d_export","rerr_retry","rerr_home","bell","shortcuts","pmode","pacc","pbg","wbhi","wbfilter","wbtl","wbstart","vizrange","vizscope","mlayout","mcopy","sharehelp","dlgclose","comment","cmonth","cday","biztab","kitdl","kitcopy","vdl","clipf","aihelper","aistop","aicopy","pfilter","pmonth","pday","ptoday","pgroup","nsec","palopen","palrun","ftoggle","ftmode","ftreset"].indexOf(a)<0)return;
   if(profAct(a,b)||dataAct(a,b)||rerrAct(a,b)||webAct(a,b))return;
   if(v10act(a,b))return;
-  if(ideaAct(a,b,id)||noteAct(a,b,id)||surveyAct(a,b,id)||aiAct(a,b,id)||unitAct(a,b,id)||radarAct(a,b,id))return;
+  if(ideaAct(a,b,id)||noteAct(a,b,id)||surveyAct(a,b,id)||aiAct(a,b,id)||unitAct(a,b,id)||radarAct(a,b,id)||clipAct(a,b,id))return;
   switch(a){
     case "view":go(id);break;
     case "space":S.cur=id;touch();render();break;

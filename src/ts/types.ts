@@ -84,6 +84,28 @@ export interface Unit {
   ts: number;
 }
 
+/** A saved link in the Clips library. */
+export interface Clip {
+  id: string;
+  sp: string;
+  url: string;
+  title: string;
+  note: string;
+  tags: string[];
+  star: boolean;
+  ts: number;
+}
+
+/** An item on the moodboard. */
+export interface MoodItem {
+  id: string;
+  sp: string;
+  kind: string;
+  sec: string;
+  value: string;
+  label: string;
+}
+
 /** A product launch to cover (phone, laptop, AI model) and whether a content plan was made. */
 export interface Launch {
   id: string;
@@ -128,6 +150,8 @@ export interface State {
   tasks: Task[];
   posts: Post[];
   income: unknown[];
+  clips: Clip[];
+  mood: MoodItem[];
   units: Unit[];
   launches: Launch[];
   cfg: { obDone?: boolean; survey?: Survey; [key: string]: unknown };

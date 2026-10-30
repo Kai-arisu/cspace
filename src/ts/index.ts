@@ -11,3 +11,4 @@ export { agendaHTML } from "./screens/agenda";
 export { aiConnectHTML, aiImport, aiAct } from "./screens/ai-connect";
 export { unitsHTML, unitAct, unitsDueSoon } from "./screens/units";
 export { radarHTML, radarAct } from "./screens/radar";
+export { vClips, clipListHTML, clipAdd, clipAct, clipInput, clipHost, ytId } from "./screens/clips";
