@@ -1,0 +1,23 @@
+// launch radar: add a launch, one click plans posts and a prep task
+const {chromium}=require('playwright');const http=require('http');const fs=require('fs');const path=require('path');
+const fake=require('./fakesb.js')();const site=path.join(process.cwd(),'public');
+const srv=http.createServer((req,res)=>{let u=req.url.split('?')[0];if(u==='/'||u.startsWith('/u/'))u='/index.html';const f=path.join(site,u);if(!fs.existsSync(f)){res.writeHead(404);return res.end('nf')}const e=path.extname(f);res.writeHead(200,{'content-type':e==='.html'?'text/html':e==='.js'?'application/javascript':'application/octet-stream'});res.end(fs.readFileSync(f))});
+let fail=0;const ok=(c,m)=>{console.log((c?'PASS ':'FAIL ')+m);if(!c)fail++};
+const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+(async()=>{await new Promise(r=>srv.listen(0,r));const b=await chromium.launch();const errs=[];
+const ctx=await b.newContext({viewport:{width:1280,height:900}});await ctx.route('https://ohkecamneutxggqwhend.supabase.co/**',fake.handle);
+const p=await ctx.newPage();p.on('pageerror',e=>errs.push(e.message));
+await p.goto('http://localhost:'+srv.address().port+'/?signup');await p.waitForTimeout(400);
+await p.fill('#agemail','rd@x.co');await p.fill('#agpass','supersecret1');await p.click('#aggo');await p.waitForTimeout(2500);
+await p.evaluate(()=>document.querySelector('[data-act="view"][data-id="biz"]').click());await p.waitForTimeout(400);
+await p.click('[data-act="biztab"][data-id="radar"]');await p.waitForTimeout(300);
+ok(/No launches yet/.test(await p.textContent('#main')),'starts empty');
+await p.fill('#lr-name','Galaxy S27 Ultra');await p.selectOption('#lr-kind','phone');await p.fill('#lr-date',ymd(new Date(Date.now()+5*864e5)));
+await p.click('[data-act="launch_add"]');await p.waitForTimeout(300);
+ok(/Galaxy S27 Ultra/.test(await p.textContent('.un'))&&/In 5 days/.test(await p.textContent('.un')),'launch listed with a countdown');
+await p.click('[data-act="launch_plan"]');await p.waitForTimeout(400);
+ok(/Content planned/.test(await p.textContent('.un')),'it is marked planned');
+await p.evaluate(()=>document.querySelector('[data-act="view"][data-id="home"]').click());await p.waitForTimeout(600);
+ok((await p.textContent('#main')).includes('Galaxy S27 Ultra'),'the teaser shows in the Today next 7 days');
+ok(!errs.length,'no page errors '+errs.join('|'));
+console.log(fail?'FAILURES '+fail:'ALL PASSED');await b.close();srv.close();process.exit(fail?1:0)})();

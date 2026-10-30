@@ -10,3 +10,4 @@ export { surveyHTML, surveySteps, surveyAct, surveyDone } from "./screens/survey
 export { agendaHTML } from "./screens/agenda";
 export { aiConnectHTML, aiImport, aiAct } from "./screens/ai-connect";
 export { unitsHTML, unitAct, unitsDueSoon } from "./screens/units";
+export { radarHTML, radarAct } from "./screens/radar";

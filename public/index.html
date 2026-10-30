@@ -4073,7 +4073,7 @@ function defaults(){
   };
 }
 function sanitize(){
-  var arr=["notes","ideas","tasks","mood","files","posts","clips","deals","income","invoices","units"];
+  var arr=["notes","ideas","tasks","mood","files","posts","clips","deals","income","invoices","units","launches"];
   if(!Array.isArray(S.spaces))S.spaces=[];
   S.spaces=S.spaces.filter(function(x){return x&&typeof x==="object"});
   var sid={};S.spaces.forEach(function(x){if(typeof x.id!=="string"||!x.id||sid[x.id])x.id="s"+uid();sid[x.id]=1;if(typeof x.name!=="string"||!x.name)x.name="Untitled"});
@@ -4095,7 +4095,7 @@ function fix(){
   var d=defaults();
   if(!S||typeof S!=="object"||Array.isArray(S))S=d;
   sanitize();
-  ["spaces","notes","ideas","tasks","mood","files","posts","clips","deals","income","invoices","units"].forEach(function(k){if(!Array.isArray(S[k]))S[k]=[]});
+  ["spaces","notes","ideas","tasks","mood","files","posts","clips","deals","income","invoices","units","launches"].forEach(function(k){if(!Array.isArray(S[k]))S[k]=[]});
   if(!S.cfg||typeof S.cfg!=="object")S.cfg={};if(!S.kit||typeof S.kit!=="object")S.kit={};
   if(!S.palette||typeof S.palette!=="object")S.palette={};
   if(!S.focus||typeof S.focus!=="object")S.focus={};
@@ -4153,6 +4153,8 @@ var TS = (() => {
     noteEditorHTML: () => noteEditorHTML,
     noteInput: () => noteInput,
     noteListHTML: () => noteListHTML,
+    radarAct: () => radarAct,
+    radarHTML: () => radarHTML,
     surveyAct: () => surveyAct,
     surveyDone: () => surveyDone,
     surveyHTML: () => surveyHTML,
@@ -4861,6 +4863,74 @@ var TS = (() => {
     const soon = Date.now() + 3 * DAY;
     return mine("units").filter((u) => u.status === "with" && nextDue(u) <= soon);
   }
+
+  // src/ts/screens/radar.ts
+  var KINDS = [["phone", "Phone"], ["laptop", "Laptop"], ["ai", "AI model"], ["other", "Other"]];
+  var DAY2 = 864e5;
+  function addDays(date, n) {
+    return ymd(new Date(dparse(date).getTime() + n * DAY2));
+  }
+  function row2(l) {
+    var _a;
+    const days = Math.round((dparse(l.date).getTime() - dparse(ymd(/* @__PURE__ */ new Date())).getTime()) / DAY2);
+    const label = days === 0 ? "Launches today" : days > 0 ? `In ${days} day${days === 1 ? "" : "s"}` : `${-days} day${days === -1 ? "" : "s"} ago`;
+    const kind = ((_a = KINDS.find((k) => k[0] === l.kind)) == null ? void 0 : _a[1]) || "Other";
+    return `<li class="un${days < 0 ? " back" : ""}"><div><b>${esc(l.name)}</b><span class="muted">${esc(kind)} · ${esc(l.date)}</span><div class="un-bs"><span class="un-b${days >= 0 && days <= 7 ? " hot" : ""}">${esc(label)}</span>${l.planned ? `<span class="un-b">Content planned</span>` : ""}</div></div><div class="un-a">` + (readOnly ? "" : (l.planned ? "" : `<button class="btn sm" data-act="launch_plan" data-id="${esc(l.id)}">Plan content</button>`) + `<button class="ico" data-act="launch_del" data-id="${esc(l.id)}" aria-label="Delete launch" title="Delete">${I("trash")}</button>`) + `</div></li>`;
+  }
+  function radarHTML() {
+    const all = mine("launches").slice().sort((a, b) => a.date < b.date ? -1 : 1);
+    const today2 = ymd(/* @__PURE__ */ new Date());
+    const next = all.filter((l) => l.date >= today2);
+    const past = all.filter((l) => l.date < today2).reverse().slice(0, 5);
+    let h = `<section class="panel" style="margin-top:16px"><h2>Launch radar<span class="cnt">${next.length} coming</span></h2>`;
+    h += `<p class="muted">Add the launches you want to cover. “Plan content” adds a teaser, a launch-day video and a follow-up to your calendar, plus a prep task.</p>`;
+    if (!readOnly)
+      h += `<div class="form un-f"><label>Launch<input class="in" id="lr-name" maxlength="80" placeholder="Galaxy S27 Ultra"></label><label>Type<select class="wsel" id="lr-kind">${KINDS.map((k) => `<option value="${k[0]}">${k[1]}</option>`).join("")}</select></label><label>Date<input class="in" id="lr-date" type="date"></label><button class="btn pri" data-act="launch_add">Add launch</button></div>`;
+    h += next.length ? `<ul class="un-l">${next.map(row2).join("")}</ul>` : `<div class="empty">No launches yet. Add the next event you plan to cover.</div>`;
+    if (past.length) h += `<h3 class="un-h">Recent</h3><ul class="un-l">${past.map(row2).join("")}</ul>`;
+    return h + `</section>`;
+  }
+  function radarAct(a, b, id) {
+    var _a, _b, _c;
+    switch (a) {
+      case "launch_add": {
+        const name = (((_a = $("lr-name")) == null ? void 0 : _a.value) || "").trim();
+        const date = ((_b = $("lr-date")) == null ? void 0 : _b.value) || "";
+        const kind = ((_c = $("lr-kind")) == null ? void 0 : _c.value) || "other";
+        if (!name || !date) {
+          toast("Add a name and a date");
+          return true;
+        }
+        S.launches.push({ id: uid(), sp: S.cur, name, kind, date, planned: false, ts: Date.now() });
+        touch();
+        render();
+        return true;
+      }
+      case "launch_plan": {
+        const l = findIn(S.launches, id);
+        if (!l || l.planned) return true;
+        const t = Date.now();
+        const post = (title, date, status) => S.posts.push({ id: uid(), sp: S.cur, title, platform: "YouTube", date, status, ts: t });
+        post(`${l.name}: teaser`, addDays(l.date, -2), "idea");
+        post(`${l.name}: launch day video`, l.date, "idea");
+        post(`${l.name}: follow-up (what changed my mind)`, addDays(l.date, 7), "idea");
+        S.tasks.push({ id: uid(), sp: S.cur, title: `Prep for ${l.name}: script, b-roll, thumbnail`, col: "i", due: addDays(l.date, -3), ts: t });
+        l.planned = true;
+        touch();
+        render();
+        toast("Added 3 posts and a prep task");
+        return true;
+      }
+      case "launch_del":
+        arm(b, () => {
+          S.launches = S.launches.filter((l) => l.id !== id);
+          touch();
+          render();
+        });
+        return true;
+    }
+    return false;
+  }
   return __toCommonJS(index_exports);
 })();
 /* ---------- TypeScript screens ---------- */
@@ -4873,6 +4943,7 @@ var surveyHTML=TS.surveyHTML, surveySteps=TS.surveySteps, surveyAct=TS.surveyAct
 var agendaHTML=TS.agendaHTML;
 var aiConnectHTML=TS.aiConnectHTML, aiImport=TS.aiImport, aiAct=TS.aiAct;
 var unitsHTML=TS.unitsHTML, unitAct=TS.unitAct, unitsDueSoon=TS.unitsDueSoon;
+var radarHTML=TS.radarHTML, radarAct=TS.radarAct;
 /* ---------- persistence ---------- */
 function setStatus(t){var e=$("status");if(e)e.textContent=t}
 function touch(){
@@ -6412,12 +6483,13 @@ function kit(){
 }
 function vBiz(){
   var deals=mine("deals"),inc=mine("income"),invs=mine("invoices"),mo=ymd(new Date()).slice(0,7);
-  var acts='<div class="chips" style="margin:0" role="tablist" aria-label="Business sections">'+[["deals","Sponsors"],["income","Income"],["invoices","Invoices"],["units","Review units"],["kit","Media kit"]].map(function(t){return '<button class="chip" role="tab" data-act="biztab" data-id="'+t[0]+'" aria-pressed="'+(bizTab===t[0])+'">'+t[1]+'</button>'}).join("")+'</div>';
+  var acts='<div class="chips" style="margin:0" role="tablist" aria-label="Business sections">'+[["deals","Sponsors"],["income","Income"],["invoices","Invoices"],["units","Review units"],["radar","Launch radar"],["kit","Media kit"]].map(function(t){return '<button class="chip" role="tab" data-act="biztab" data-id="'+t[0]+'" aria-pressed="'+(bizTab===t[0])+'">'+t[1]+'</button>'}).join("")+'</div>';
   var h=hero("biz","Business","Sponsors, income, invoices and your media kit, in one place.",acts);
   var tiles=[["Income this month",money(sumBy(inc.filter(function(x){return x.date.slice(0,7)===mo}),"amount")),"--c-board","wallet"],["Income all time",money(sumBy(inc,"amount")),"--c-home","chart"],["Open pipeline",money(sumBy(deals.filter(function(d){return d.status!=="paid"}),"amount")),"--c-notes","flag"],["Unpaid invoices",money(sumBy(invs.filter(function(v){return !v.paid}),invTotal)),"--c-wb","notes"]];
   h+='<div class="biz-tiles">'+tiles.map(function(t){return '<div class="vz-tile" style="--c:var('+t[2]+')"><span class="vt-ic">'+I(t[3])+'</span><span class="vt-l">'+t[0]+'</span><b style="font-size:26px">'+t[1]+'</b></div>'}).join("")+'</div>';
   var cs='<label class="fix cursel">Currency<select class="wsel" data-cfg="cur"'+(readOnly?" disabled":"")+'>'+opts(["₹","$","€","£","¥"],cur())+'</select></label>';
   if(bizTab==="units")h+=unitsHTML();
+  if(bizTab==="radar")h+=radarHTML();
   if(bizTab==="deals"){
     h+='<section class="panel" style="margin-top:16px"><h2>Sponsorship deals'+cs+'</h2>';
     if(!readOnly)h+='<div class="form"><label>Brand<input class="in" id="dbrand" maxlength="60" placeholder="Brand name"></label><label>Amount<input class="in" id="damt" type="number" min="0" placeholder="0"></label><label>Stage<select class="in" id="dst">'+opts(DEALST.map(function(s){return [s[0],s[1]]}),"lead")+'</select></label><label>Deliver by<input class="in" id="ddue" type="date"></label><button class="btn pri" data-act="dadd">Add deal</button></div>';
@@ -6798,7 +6870,7 @@ function act0(a,b){
   if(readOnly&&!/^(ed|ve)_/.test(a)&&["space","view","opennote","nback","nmode","ifilter","mform","mcancel","copycolor","qtoggle","theme","gores","spacecancel","wbtool","wbcolor","wbundo","wbredo","wbdel","wbclear","wbzoom","wbfill","profile","profclose","undoall","datadlg","d_export","rerr_retry","rerr_home","bell","shortcuts","pmode","pacc","pbg","wbhi","wbfilter","wbtl","wbstart","vizrange","vizscope","mlayout","mcopy","sharehelp","dlgclose","comment","cmonth","cday","biztab","kitdl","kitcopy","vdl","clipf","aihelper","aistop","aicopy","pfilter","pmonth","pday","ptoday","pgroup","nsec","palopen","palrun","ftoggle","ftmode","ftreset"].indexOf(a)<0)return;
   if(profAct(a,b)||dataAct(a,b)||rerrAct(a,b)||webAct(a,b))return;
   if(v10act(a,b))return;
-  if(ideaAct(a,b,id)||noteAct(a,b,id)||surveyAct(a,b,id)||aiAct(a,b,id)||unitAct(a,b,id))return;
+  if(ideaAct(a,b,id)||noteAct(a,b,id)||surveyAct(a,b,id)||aiAct(a,b,id)||unitAct(a,b,id)||radarAct(a,b,id))return;
   switch(a){
     case "view":go(id);break;
     case "space":S.cur=id;touch();render();break;

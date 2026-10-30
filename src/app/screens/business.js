@@ -11,12 +11,13 @@ function kit(){
 }
 function vBiz(){
   var deals=mine("deals"),inc=mine("income"),invs=mine("invoices"),mo=ymd(new Date()).slice(0,7);
-  var acts='<div class="chips" style="margin:0" role="tablist" aria-label="Business sections">'+[["deals","Sponsors"],["income","Income"],["invoices","Invoices"],["units","Review units"],["kit","Media kit"]].map(function(t){return '<button class="chip" role="tab" data-act="biztab" data-id="'+t[0]+'" aria-pressed="'+(bizTab===t[0])+'">'+t[1]+'</button>'}).join("")+'</div>';
+  var acts='<div class="chips" style="margin:0" role="tablist" aria-label="Business sections">'+[["deals","Sponsors"],["income","Income"],["invoices","Invoices"],["units","Review units"],["radar","Launch radar"],["kit","Media kit"]].map(function(t){return '<button class="chip" role="tab" data-act="biztab" data-id="'+t[0]+'" aria-pressed="'+(bizTab===t[0])+'">'+t[1]+'</button>'}).join("")+'</div>';
   var h=hero("biz","Business","Sponsors, income, invoices and your media kit, in one place.",acts);
   var tiles=[["Income this month",money(sumBy(inc.filter(function(x){return x.date.slice(0,7)===mo}),"amount")),"--c-board","wallet"],["Income all time",money(sumBy(inc,"amount")),"--c-home","chart"],["Open pipeline",money(sumBy(deals.filter(function(d){return d.status!=="paid"}),"amount")),"--c-notes","flag"],["Unpaid invoices",money(sumBy(invs.filter(function(v){return !v.paid}),invTotal)),"--c-wb","notes"]];
   h+='<div class="biz-tiles">'+tiles.map(function(t){return '<div class="vz-tile" style="--c:var('+t[2]+')"><span class="vt-ic">'+I(t[3])+'</span><span class="vt-l">'+t[0]+'</span><b style="font-size:26px">'+t[1]+'</b></div>'}).join("")+'</div>';
   var cs='<label class="fix cursel">Currency<select class="wsel" data-cfg="cur"'+(readOnly?" disabled":"")+'>'+opts(["₹","$","€","£","¥"],cur())+'</select></label>';
   if(bizTab==="units")h+=unitsHTML();
+  if(bizTab==="radar")h+=radarHTML();
   if(bizTab==="deals"){
     h+='<section class="panel" style="margin-top:16px"><h2>Sponsorship deals'+cs+'</h2>';
     if(!readOnly)h+='<div class="form"><label>Brand<input class="in" id="dbrand" maxlength="60" placeholder="Brand name"></label><label>Amount<input class="in" id="damt" type="number" min="0" placeholder="0"></label><label>Stage<select class="in" id="dst">'+opts(DEALST.map(function(s){return [s[0],s[1]]}),"lead")+'</select></label><label>Deliver by<input class="in" id="ddue" type="date"></label><button class="btn pri" data-act="dadd">Add deal</button></div>';

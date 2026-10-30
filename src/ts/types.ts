@@ -84,6 +84,18 @@ export interface Unit {
   ts: number;
 }
 
+/** A product launch to cover (phone, laptop, AI model) and whether a content plan was made. */
+export interface Launch {
+  id: string;
+  sp: string;
+  name: string;
+  kind: "phone" | "laptop" | "ai" | "other";
+  /** "YYYY-MM-DD" */
+  date: string;
+  planned: boolean;
+  ts: number;
+}
+
 /** An access token for an outside assistant (the secret itself is never kept). */
 export interface AiToken {
   id: string;
@@ -117,6 +129,7 @@ export interface State {
   posts: Post[];
   income: unknown[];
   units: Unit[];
+  launches: Launch[];
   cfg: { obDone?: boolean; survey?: Survey; [key: string]: unknown };
   [key: string]: unknown;
 }
