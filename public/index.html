@@ -2676,6 +2676,17 @@ img{max-width:100%;height:auto}
 .ag-tick svg{width:11px;height:11px}
 .tg-p li.done .ag-tick{background:var(--yel)}
 .tg-free{margin:8px 0 0;font-size:13px}
+/* bring your own AI */
+.aic{margin-top:18px}
+.aic-h{all:unset;display:flex;flex-direction:column;gap:2px;cursor:pointer;width:100%}
+.aic-h:focus-visible{outline:2px solid var(--ink);outline-offset:4px;border-radius:8px}
+.aic-new{margin:12px 0;padding:12px;border:1.5px solid var(--ink);border-radius:14px;background:var(--yel)}
+.aic-new pre{margin:8px 0;padding:10px;background:#fff;border-radius:10px;overflow:auto;font-size:12px;white-space:pre-wrap;word-break:break-all}
+.aic-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.aic-row .in{flex:1;min-width:180px}
+.aic-l{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}
+.aic-l li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.aic-l small{display:block}
 
 /* ===================================================================
    Public creator page and media kit: a one-person front page.
@@ -4114,6 +4125,9 @@ var TS = (() => {
     addIdea: () => addIdea,
     addIdeaText: () => addIdeaText,
     agendaHTML: () => agendaHTML,
+    aiAct: () => aiAct,
+    aiConnectHTML: () => aiConnectHTML,
+    aiImport: () => aiImport,
     ideaAct: () => ideaAct,
     ideaTitle: () => ideaTitle,
     nFromTpl: () => nFromTpl,
@@ -4657,6 +4671,104 @@ var TS = (() => {
       if (!T.loading) void tmLoad();
     }, POLL_MS);
   }
+
+  // src/ts/screens/ai-connect.ts
+  var MCP_URL = "https://ohkecamneutxggqwhend.supabase.co/functions/v1/mcp";
+  var ui = {
+    open: false,
+    loaded: false,
+    tokens: [],
+    fresh: "",
+    msg: ""
+  };
+  async function load() {
+    const r = await WSB.from("ai_tokens").select("id,name,created_at,last_used_at").order("created_at");
+    if (r.error) ui.msg = "Couldn't load your tokens.";
+    else ui.tokens = r.data || [];
+    ui.loaded = true;
+    render();
+  }
+  function snippet(token) {
+    return JSON.stringify({ mcpServers: { "creator-space": { type: "http", url: MCP_URL, headers: { Authorization: "Bearer " + token } } } }, null, 2);
+  }
+  function aiConnectHTML() {
+    if (readOnly || window.__WS) return "";
+    let h = `<section class="panel aic"><button class="aic-h" data-act="ai_toggle" aria-expanded="${ui.open}"><b>Connect your AI</b><span class="muted">Let Claude, ChatGPT or Gemini read your workspace and add to it</span></button>`;
+    if (ui.open) {
+      h += `<p class="muted">Make a token, then paste the setup below into any assistant that supports MCP. It can read your ideas, tasks and notes, and add new ones. You can revoke a token at any time.</p>`;
+      if (ui.fresh)
+        h += `<div class="aic-new"><b>Copy this now. It won't be shown again.</b><pre>${esc(snippet(ui.fresh))}</pre><div class="aic-row"><button class="btn sm" data-act="ai_copy">Copy setup</button><button class="btn sm" data-act="ai_done">I've saved it</button></div></div>`;
+      h += `<div class="aic-row"><input class="in" id="ainame" maxlength="60" placeholder="Name it, like “Claude on my laptop”" aria-label="Token name"><button class="btn pri" data-act="ai_make">Make token</button></div>`;
+      if (ui.msg) h += `<p class="ac-errmsg">${esc(ui.msg)}</p>`;
+      h += ui.tokens.length ? `<ul class="aic-l">` + ui.tokens.map(
+        (t) => `<li><span><b>${esc(t.name)}</b><small class="muted">${t.last_used_at ? "Used " + esc(ago(Date.parse(t.last_used_at))) : "Not used yet"}</small></span><button class="btn sm" data-act="ai_revoke" data-id="${esc(t.id)}">Revoke</button></li>`
+      ).join("") + `</ul>` : ui.loaded ? `<p class="muted">No tokens yet.</p>` : `<p class="muted">Loading…</p>`;
+    }
+    return h + `</section>`;
+  }
+  async function aiImport() {
+    if (readOnly || window.__WS) return;
+    const r = await WSB.from("ai_inbox").select("id,kind,payload").is("imported_at", null).order("created_at");
+    const rows = (r.error ? [] : r.data) || [];
+    if (!rows.length) return;
+    const now = Date.now();
+    for (const x of rows) {
+      const p = x.payload || {};
+      if (x.kind === "idea") {
+        const text = String(p.text || "").slice(0, 240);
+        if (!text) continue;
+        S.ideas.push({ id: uid(), sp: S.cur, text, tags: (text.match(/#[\w-]+/g) || []).map((t) => t.slice(1).toLowerCase()), star: false, task: false, ts: now });
+      } else if (x.kind === "task") {
+        const title = String(p.title || "").slice(0, 200);
+        if (title) S.tasks.push({ id: uid(), sp: S.cur, title, col: "i", due: /^\d{4}-\d{2}-\d{2}$/.test(String(p.due || "")) ? String(p.due) : "", ts: now });
+      } else if (x.kind === "note") {
+        const title = String(p.title || "").slice(0, 200);
+        if (title) S.notes.push({ id: uid(), sp: S.cur, title, body: String(p.body || "").slice(0, 2e4), pin: false, ts: now });
+      }
+    }
+    await WSB.from("ai_inbox").update({ imported_at: new Date(now).toISOString() }).in(
+      "id",
+      rows.map((x) => x.id)
+    );
+    touch();
+    render();
+    toast(rows.length === 1 ? "Your assistant added 1 item" : `Your assistant added ${rows.length} items`);
+  }
+  function aiAct(a, _b, id) {
+    switch (a) {
+      case "ai_toggle": {
+        ui.open = !ui.open;
+        if (ui.open && !ui.loaded) void load();
+        else render();
+        return true;
+      }
+      case "ai_make": {
+        const el = $("ainame");
+        void WSB.rpc("create_ai_token", { p_name: el ? el.value : "" }).then((r) => {
+          if (r.error) ui.msg = r.error.message;
+          else {
+            ui.fresh = String(r.data);
+            ui.msg = "";
+          }
+          void load();
+        });
+        return true;
+      }
+      case "ai_copy":
+        void navigator.clipboard.writeText(snippet(ui.fresh)).then(() => toast("Copied"));
+        return true;
+      case "ai_done":
+        ui.fresh = "";
+        render();
+        return true;
+      case "ai_revoke":
+        arm(_b, () => {
+          void WSB.from("ai_tokens").delete().eq("id", id).then(() => load());
+        });
+        return true;
+    }
+    return false;
+  }
   return __toCommonJS(index_exports);
 })();
 /* ---------- TypeScript screens ---------- */
@@ -4667,6 +4779,7 @@ var NTPL=TS.NTPL, vNotes=TS.vNotes, noteListHTML=TS.noteListHTML, noteEditorHTML
     nToolbar=TS.nToolbar, nInsert=TS.nInsert, nToTasks=TS.nToTasks, nFromTpl=TS.nFromTpl, newNote=TS.newNote, noteAct=TS.noteAct, noteInput=TS.noteInput;
 var surveyHTML=TS.surveyHTML, surveySteps=TS.surveySteps, surveyAct=TS.surveyAct, surveyDone=TS.surveyDone;
 var agendaHTML=TS.agendaHTML;
+var aiConnectHTML=TS.aiConnectHTML, aiImport=TS.aiImport, aiAct=TS.aiAct;
 /* ---------- persistence ---------- */
 function setStatus(t){var e=$("status");if(e)e.textContent=t}
 function touch(){
@@ -5426,6 +5539,7 @@ function vHome(){
   var cnt={};STAGES.forEach(function(s){cnt[s.id]=t.filter(function(x){return x.col===s.id}).length});
   h+='<div class="td-grid"><section class="panel s12"><h2>Pipeline <span class="cnt">'+t.length+'</span><button class="lnk" data-act="view" data-id="board">Open board</button></h2><div class="td-pipe">'+STAGES.map(function(s){return '<button data-act="view" data-id="board"><span>'+esc(s.name||s.label||s.id)+'</span><b>'+cnt[s.id]+'</b></button>'}).join("")+'</div></section></div>';
   if(typeof todayAud==="function")h+=todayAud(1);
+  h+=typeof aiConnectHTML==="function"?aiConnectHTML():"";
   if(!readOnly)h+='<div class="td-foot"><span class="muted">Space settings</span><button class="btn sm" data-act="renamespace">Rename</button><button class="btn sm" data-act="delspace"'+(S.spaces.length<2?" disabled":"")+'>Delete</button></div>';
   return h;
 }
@@ -6590,7 +6704,7 @@ function act0(a,b){
   if(readOnly&&!/^(ed|ve)_/.test(a)&&["space","view","opennote","nback","nmode","ifilter","mform","mcancel","copycolor","qtoggle","theme","gores","spacecancel","wbtool","wbcolor","wbundo","wbredo","wbdel","wbclear","wbzoom","wbfill","profile","profclose","undoall","datadlg","d_export","rerr_retry","rerr_home","bell","shortcuts","pmode","pacc","pbg","wbhi","wbfilter","wbtl","wbstart","vizrange","vizscope","mlayout","mcopy","sharehelp","dlgclose","comment","cmonth","cday","biztab","kitdl","kitcopy","vdl","clipf","aihelper","aistop","aicopy","pfilter","pmonth","pday","ptoday","pgroup","nsec","palopen","palrun","ftoggle","ftmode","ftreset"].indexOf(a)<0)return;
   if(profAct(a,b)||dataAct(a,b)||rerrAct(a,b)||webAct(a,b))return;
   if(v10act(a,b))return;
-  if(ideaAct(a,b,id)||noteAct(a,b,id)||surveyAct(a,b,id))return;
+  if(ideaAct(a,b,id)||noteAct(a,b,id)||surveyAct(a,b,id)||aiAct(a,b,id))return;
   switch(a){
     case "view":go(id);break;
     case "space":S.cur=id;touch();render();break;
@@ -8457,6 +8571,7 @@ document.addEventListener("change",function(e){
 (function(){var tries=0;function go(){if(window.__WS){return}if(!window.__UID||!WSB){if(++tries<40)setTimeout(go,500);return}
   try{if(!W.loaded&&!W.loading)audLoad(true)}catch(e){}
   try{isoLoad()}catch(e){}
+  try{aiImport()}catch(e){}
   try{Promise.all([W.pLoaded?0:cpLoad(),PUSH.ready?0:pushRefresh()]).then(function(){if(S.view==="home"&&!(document.activeElement&&document.activeElement.id==="qcin"))render()})}catch(e){}
   if(T.loaded||T.loading)return;tmLoad().then(function(){try{paintBell();if(S.view==="home"&&!(document.activeElement&&document.activeElement.id==="qcin"))render()}catch(e){}})}
   setTimeout(go,1200)})();

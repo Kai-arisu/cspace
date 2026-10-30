@@ -8,3 +8,4 @@ export { vIdeas, addIdea, addIdeaText, ideaAct, ideaTitle } from "./screens/idea
 export { NTPL, vNotes, noteListHTML, noteEditorHTML, nRender, nOutline, nToolbar, nInsert, nToTasks, nFromTpl, newNote, noteAct, noteInput } from "./screens/notes";
 export { surveyHTML, surveySteps, surveyAct, surveyDone } from "./screens/survey";
 export { agendaHTML } from "./screens/agenda";
+export { aiConnectHTML, aiImport, aiAct } from "./screens/ai-connect";

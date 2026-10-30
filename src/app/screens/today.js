@@ -127,6 +127,7 @@ function vHome(){
   var cnt={};STAGES.forEach(function(s){cnt[s.id]=t.filter(function(x){return x.col===s.id}).length});
   h+='<div class="td-grid"><section class="panel s12"><h2>Pipeline <span class="cnt">'+t.length+'</span><button class="lnk" data-act="view" data-id="board">Open board</button></h2><div class="td-pipe">'+STAGES.map(function(s){return '<button data-act="view" data-id="board"><span>'+esc(s.name||s.label||s.id)+'</span><b>'+cnt[s.id]+'</b></button>'}).join("")+'</div></section></div>';
   if(typeof todayAud==="function")h+=todayAud(1);
+  h+=typeof aiConnectHTML==="function"?aiConnectHTML():"";
   if(!readOnly)h+='<div class="td-foot"><span class="muted">Space settings</span><button class="btn sm" data-act="renamespace">Rename</button><button class="btn sm" data-act="delspace"'+(S.spaces.length<2?" disabled":"")+'>Delete</button></div>';
   return h;
 }

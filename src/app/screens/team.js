@@ -206,6 +206,7 @@ document.addEventListener("change",function(e){
 (function(){var tries=0;function go(){if(window.__WS){return}if(!window.__UID||!WSB){if(++tries<40)setTimeout(go,500);return}
   try{if(!W.loaded&&!W.loading)audLoad(true)}catch(e){}
   try{isoLoad()}catch(e){}
+  try{aiImport()}catch(e){}
   try{Promise.all([W.pLoaded?0:cpLoad(),PUSH.ready?0:pushRefresh()]).then(function(){if(S.view==="home"&&!(document.activeElement&&document.activeElement.id==="qcin"))render()})}catch(e){}
   if(T.loaded||T.loading)return;tmLoad().then(function(){try{paintBell();if(S.view==="home"&&!(document.activeElement&&document.activeElement.id==="qcin"))render()}catch(e){}})}
   setTimeout(go,1200)})();

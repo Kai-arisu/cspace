@@ -69,6 +69,21 @@ export interface TeamWork {
   done_at?: string | null;
 }
 
+/** An access token for an outside assistant (the secret itself is never kept). */
+export interface AiToken {
+  id: string;
+  name: string;
+  created_at: string;
+  last_used_at: string | null;
+}
+
+/** Something an assistant added that the app has yet to import. */
+export interface AiInboxRow {
+  id: string;
+  kind: "idea" | "task" | "note";
+  payload: Record<string, unknown>;
+}
+
 /** What a new person said about themselves in the welcome survey. */
 export interface Survey {
   kind: string;

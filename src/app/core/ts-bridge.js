@@ -6,3 +6,4 @@ var NTPL=TS.NTPL, vNotes=TS.vNotes, noteListHTML=TS.noteListHTML, noteEditorHTML
     nToolbar=TS.nToolbar, nInsert=TS.nInsert, nToTasks=TS.nToTasks, nFromTpl=TS.nFromTpl, newNote=TS.newNote, noteAct=TS.noteAct, noteInput=TS.noteInput;
 var surveyHTML=TS.surveyHTML, surveySteps=TS.surveySteps, surveyAct=TS.surveyAct, surveyDone=TS.surveyDone;
 var agendaHTML=TS.agendaHTML;
+var aiConnectHTML=TS.aiConnectHTML, aiImport=TS.aiImport, aiAct=TS.aiAct;

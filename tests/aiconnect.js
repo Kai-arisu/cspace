@@ -1,0 +1,32 @@
+// bring your own AI: make and revoke tokens, import what an assistant added
+const {chromium}=require('playwright');const http=require('http');const fs=require('fs');const path=require('path');
+const fake=require('./fakesb.js')();const site=path.join(process.cwd(),'public');
+const srv=http.createServer((req,res)=>{let u=req.url.split('?')[0];if(u==='/'||u.startsWith('/u/'))u='/index.html';const f=path.join(site,u);if(!fs.existsSync(f)){res.writeHead(404);return res.end('nf')}const e=path.extname(f);res.writeHead(200,{'content-type':e==='.html'?'text/html':e==='.js'?'application/javascript':'application/octet-stream'});res.end(fs.readFileSync(f))});
+let fail=0;const ok=(c,m)=>{console.log((c?'PASS ':'FAIL ')+m);if(!c)fail++};
+(async()=>{await new Promise(r=>srv.listen(0,r));const b=await chromium.launch();const errs=[];
+const ctx=await b.newContext({viewport:{width:1280,height:900}});await ctx.route('https://ohkecamneutxggqwhend.supabase.co/**',fake.handle);
+const p=await ctx.newPage();p.on('pageerror',e=>errs.push(e.message));
+await p.goto('http://localhost:'+srv.address().port+'/?signup');await p.waitForTimeout(400);
+await p.fill('#agemail','ai@x.co');await p.fill('#agpass','supersecret1');await p.click('#aggo');await p.waitForTimeout(2500);
+const uid=await p.evaluate(()=>window.__UID);
+// an assistant added things while the app was closed
+fake.st.tables.ai_inbox.push({id:'i1',user_id:uid,kind:'idea',payload:{text:'Sunrise timelapse #vlog'},imported_at:null,created_at:new Date().toISOString()},{id:'i2',user_id:uid,kind:'task',payload:{title:'Book the studio',due:'2026-11-05'},imported_at:null,created_at:new Date().toISOString()},{id:'i3',user_id:uid,kind:'note',payload:{title:'Hook ideas',body:'- one\n- two'},imported_at:null,created_at:new Date().toISOString()});
+await p.reload();await p.waitForTimeout(3500);
+await p.click('#nav .si-row[data-id="ideas"]');await p.waitForTimeout(500);
+ok((await p.textContent('.id-wall')).includes('Sunrise timelapse'),'an idea from the assistant appears');
+ok(fake.st.tables.ai_inbox.every(r=>r.imported_at),'imported rows are marked');
+await p.click('#nav .si-row[data-id="board"]');await p.waitForTimeout(500);
+ok((await p.textContent('#main')).includes('Book the studio'),'a task from the assistant lands on the board');
+await p.click('#nav .si-row[data-id="notes"]');await p.waitForTimeout(500);
+ok((await p.textContent('#main')).includes('Hook ideas'),'a note from the assistant appears in Notes');
+await p.click('#nav .si-row[data-id="home"]');await p.waitForTimeout(500);
+await p.click('[data-act="ai_toggle"]');await p.waitForTimeout(600);
+await p.fill('#ainame','Claude laptop');await p.click('[data-act="ai_make"]');await p.waitForTimeout(800);
+ok(/csk_[0-9a-f]{48}/.test(await p.textContent('.aic-new pre')),'a new token is shown once in a setup snippet');
+ok((await p.textContent('.aic-l')).includes('Claude laptop'),'it is listed by name');
+await p.click('[data-act="ai_done"]');await p.waitForTimeout(300);
+ok(await p.locator('.aic-new').count()===0,'the secret is gone after "I\'ve saved it"');
+await p.click('[data-act="ai_revoke"]');await p.click('[data-act="ai_revoke"]');await p.waitForTimeout(800);
+ok(fake.st.tables.ai_tokens.length===0,'revoking deletes the token');
+ok(!errs.length,'no page errors '+errs.join('|'));
+console.log(fail?'FAILURES '+fail:'ALL PASSED');await b.close();srv.close();process.exit(fail?1:0)})();

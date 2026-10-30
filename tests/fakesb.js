@@ -3,8 +3,8 @@ const crypto=require('crypto');
 function b64(o){return Buffer.from(JSON.stringify(o)).toString('base64url')}
 function jwt(user){return b64({alg:'HS256',typ:'JWT'})+'.'+b64({sub:user.id,email:user.email,role:'authenticated',aud:'authenticated',exp:Math.floor(Date.now()/1000)+3600})+'.sig'}
 module.exports=function(){
-  const st={users:[],tables:{docs:[],leases:[],profiles:[],shares:[],connections:[],snapshots:[],videos:[],cal_tokens:[],push_subs:[],team_members:[],team_work:[],team_pay:[]},files:{},ytConfigured:true,calls:[],snapId:1,socReady:{},socLinks:[]};
-  const OWNER=['docs','leases','connections','snapshots','videos','cal_tokens','push_subs'];
+  const st={users:[],tables:{docs:[],leases:[],profiles:[],shares:[],connections:[],snapshots:[],videos:[],cal_tokens:[],push_subs:[],ai_tokens:[],ai_inbox:[],team_members:[],team_work:[],team_pay:[]},files:{},ytConfigured:true,calls:[],snapId:1,socReady:{},socLinks:[]};
+  const OWNER=['docs','leases','connections','snapshots','videos','cal_tokens','push_subs','ai_tokens','ai_inbox'];
   function session(u){const t=jwt(u);return {access_token:t,token_type:'bearer',expires_in:3600,expires_at:Math.floor(Date.now()/1000)+3600,refresh_token:'r_'+u.id,user:{id:u.id,aud:'authenticated',role:'authenticated',email:u.email,app_metadata:{},user_metadata:{},created_at:new Date().toISOString()}}}
   function uidOf(req){const a=req.headers()['authorization']||'';const m=a.match(/Bearer ([^ ]+)/);if(!m)return null;try{return JSON.parse(Buffer.from(m[1].split('.')[1],'base64url').toString()).sub||null}catch(e){return null}}
   function emailOf(uid){const u=st.users.find(u=>u.id===uid);return u?u.email.toLowerCase():null}
@@ -43,6 +43,7 @@ module.exports=function(){
     if(p==='/auth/v1/user'){const u=st.users.find(u=>u.id===uid);return u?J(200,session(u).user):J(401,{msg:'no'})}
     if(p==='/auth/v1/logout')return route.fulfill({status:204,headers:{'access-control-allow-origin':'*'}});
     if(p==='/auth/v1/recover')return J(200,{});
+    if(p.startsWith('/rest/v1/rpc/create_ai_token')){if(!uid)return J(401,{message:'sign in first'});const t='csk_'+Buffer.from(crypto.randomUUID().replace(/-/g,'')+crypto.randomUUID().replace(/-/g,'')).toString('hex').slice(0,48);st.tables.ai_tokens.push({id:crypto.randomUUID(),user_id:uid,name:body.p_name||'My assistant',token_hash:'h_'+t,created_at:new Date().toISOString(),last_used_at:null});return J(200,t)}
     if(p.startsWith('/rest/v1/rpc/acquire_lease')){return J(200,true)}
     if(p.startsWith('/rest/v1/rpc/my_social_links')){return J(200,st.socLinks.filter(l=>l.user_id===uid).map(l=>({connection_id:l.connection_id,provider:l.provider,expires_at:null,refresh_expires_at:null,scopes:'',updated_at:new Date().toISOString()})))}
     if(p.startsWith('/rest/v1/rpc/my_team')){const em=emailOf(uid);if(!em)return J(200,[]);
