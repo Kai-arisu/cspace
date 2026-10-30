@@ -95,7 +95,7 @@ function vHome(){
   var h='<header class="td-head"><p class="td-date">'+esc(new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long"}))+' · '+esc(spaceName())+'</p><h1>'+greet+(nm?", "+esc(nm):"")+'</h1><p class="td-fact">'+esc(fact)+'</p></header>';
   if(!readOnly)h+='<div class="td-cap"><input class="in" id="qcin" placeholder="Capture anything… an idea, a task, a note" maxlength="240" aria-label="Quick capture"><button type="button" class="btn" data-act="qcap" data-id="idea">'+I("bulb")+'Idea</button><button type="button" class="btn" data-act="qcap" data-id="task">'+I("check")+'Task</button><button type="button" class="btn" data-act="qcap" data-id="note">'+I("notes")+'Note</button></div>';
   var obh=(typeof surveyHTML==="function"?surveyHTML():"")+(typeof agendaHTML==="function"?agendaHTML():"")+(typeof obHTML==="function"?obHTML():""),fresh=typeof obFresh==="function"&&obFresh();
-  if(obh&&fresh)return h+obh+(typeof todayAud==="function"?todayAud():"");
+  if(obh&&fresh)return h+obh+(typeof surveyFootHTML==="function"?surveyFootHTML():"")+(typeof todayAud==="function"?todayAud():"");
   function stat(n,l,cap,v,c){return '<button class="td-stat'+(c?" "+c:"")+'" data-act="view" data-id="'+v+'"><span class="tl">'+l+'</span><b>'+n+'</b><span class="tc">'+cap+'</span></button>'}
   var nextP=posts.slice().sort(function(a,b){return a.date<b.date?-1:1})[0];
   h+='<div class="td-grid td-stats">'+
@@ -128,6 +128,7 @@ function vHome(){
   h+='<div class="td-grid"><section class="panel s12"><h2>Pipeline <span class="cnt">'+t.length+'</span><button class="lnk" data-act="view" data-id="board">Open board</button></h2><div class="td-pipe">'+STAGES.map(function(s){return '<button data-act="view" data-id="board"><span>'+esc(s.name||s.label||s.id)+'</span><b>'+cnt[s.id]+'</b></button>'}).join("")+'</div></section></div>';
   if(typeof todayAud==="function")h+=todayAud(1);
   h+=typeof aiConnectHTML==="function"?aiConnectHTML():"";
+  h+=typeof surveyFootHTML==="function"?surveyFootHTML():"";
   if(!readOnly)h+='<div class="td-foot"><span class="muted">Space settings</span><button class="btn sm" data-act="renamespace">Rename</button><button class="btn sm" data-act="delspace"'+(S.spaces.length<2?" disabled":"")+'>Delete</button></div>';
   return h;
 }

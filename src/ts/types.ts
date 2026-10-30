@@ -135,9 +135,10 @@ export interface AiInboxRow {
 
 /** What a new person said about themselves in the welcome survey. */
 export interface Survey {
-  kind: string;
-  size: string;
-  goal: string;
+  /** creator, business, team or college; "" when skipped */
+  role: string;
+  /** the sub-type under that role, such as tech or education; "" when skipped */
+  sub: string;
   ts: number;
 }
 

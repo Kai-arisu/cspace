@@ -1,70 +1,47 @@
-/** Welcome survey: three taps on Today for a new person, then the checklist fits them. */
-import type { Survey } from "../types";
+/** Welcome survey: a role, then a sub-type. Two taps, and the app fits the person. */
+type Opt = [value: string, label: string];
 
-interface Question {
-  key: keyof Omit<Survey, "ts">;
-  title: string;
-  options: [value: string, label: string][];
-}
-
-const QUESTIONS: Question[] = [
-  {
-    key: "kind",
-    title: "What do you make?",
-    options: [
-      ["video", "Videos"],
-      ["social", "Reels and posts"],
-      ["tech", "Tech or code content"],
-      ["business", "A business or brand"],
-    ],
-  },
-  {
-    key: "size",
-    title: "Who works on it?",
-    options: [
-      ["solo", "Just me"],
-      ["small", "2 to 5 people"],
-      ["large", "6 or more"],
-    ],
-  },
-  {
-    key: "goal",
-    title: "What matters most right now?",
-    options: [
-      ["grow", "Grow my audience"],
-      ["plan", "Plan content on time"],
-      ["money", "Track what I earn"],
-      ["team", "Run my team"],
-    ],
-  },
+const ROLES: Opt[] = [
+  ["creator", "I'm a creator"],
+  ["business", "I run a business"],
+  ["team", "I lead a team"],
+  ["college", "It's a college project"],
 ];
 
-/** Answers picked so far, before the person presses Done. */
-let draft: Partial<Record<Question["key"], string>> = {};
+const SUBS: Record<string, Opt[]> = {
+  creator: [["video", "Videos"], ["social", "Reels and posts"], ["education", "Education"], ["tech", "Tech or gadgets"]],
+  business: [["finance", "Finance or consulting"], ["shop", "A shop or brand"], ["agency", "An agency"], ["other", "Something else"]],
+  team: [["production", "Reels or video production"], ["startup", "A startup"], ["agency", "An agency"], ["other", "Something else"]],
+  college: [["event", "A club or event"], ["class", "A class project"], ["research", "Research"], ["other", "Something else"]],
+};
+
+/** Answer picked so far, before the second tap saves it. */
+let pickedRole = "";
+
+export const roleLabel = (role: string): string => ROLES.find((r) => r[0] === role)?.[1] || "";
+export const subLabel = (role: string, sub: string): string => (SUBS[role] || []).find((s) => s[0] === sub)?.[1] || "";
 
 export function surveyDone(): boolean {
   return !!(S.cfg && S.cfg.survey);
 }
 
+/** Whether a feature that belongs to one sub-type should be on show. Everything shows until a sub-type is chosen. */
+export function surveyShows(sub: string): boolean {
+  const sv = S.cfg && S.cfg.survey;
+  return !sv || !sv.sub || sv.sub === sub;
+}
+
 export function surveyHTML(): string {
   if (readOnly || window.__WS || (S.cfg && (S.cfg.obDone || S.cfg.survey))) return "";
-  const ready = QUESTIONS.every((q) => draft[q.key]);
-  const rows = QUESTIONS.map(
-    (q) =>
-      `<div class="sv-q" role="group" aria-label="${esc(q.title)}"><h3>${esc(q.title)}</h3><div class="sv-o">` +
-      q.options
-        .map(
-          ([v, label]) =>
-            `<button class="chip" data-act="sv_pick" data-id="${q.key}:${v}" aria-pressed="${draft[q.key] === v}">${esc(label)}</button>`,
-        )
-        .join("") +
-      `</div></div>`,
-  ).join("");
+  const chip = (act: string, id: string, label: string, on: boolean) =>
+    `<button class="chip" data-act="${act}" data-id="${esc(id)}" aria-pressed="${on}">${esc(label)}</button>`;
+  const q1 = `<div class="sv-q" role="group" aria-label="What best describes you"><h3>What best describes you?</h3><div class="sv-o">${ROLES.map((r) => chip("sv_role", r[0], r[1], pickedRole === r[0])).join("")}</div></div>`;
+  const q2 = pickedRole
+    ? `<div class="sv-q" role="group" aria-label="What kind"><h3>What kind?</h3><div class="sv-o">${SUBS[pickedRole].map((s) => chip("sv_sub", s[0], s[1], false)).join("")}</div></div>`
+    : "";
   return (
-    `<section class="panel sv"><div class="ob-h"><div><h2 style="margin:0">Make it yours</h2><span class="muted">Three taps and your checklist fits what you do</span></div>` +
-    `<div class="ob-acts"><button class="btn sm" data-act="sv_skip">Skip</button></div></div>` +
-    rows +
-    `<div class="sv-go"><button class="btn pri" data-act="sv_save"${ready ? "" : " disabled"}>Done</button></div></section>`
+    `<section class="panel sv"><div class="ob-h"><div><h2 style="margin:0">Make it yours</h2><span class="muted">Two taps and the app fits what you do. You can change this any time.</span></div>` +
+    `<div class="ob-acts"><button class="btn sm" data-act="sv_skip">Skip</button></div></div>${q1}${q2}</section>`
   );
 }
 
@@ -74,40 +51,61 @@ export function surveySteps(): { k: string; done: boolean; t: string; d: string;
   if (!sv) return [];
   const out: { k: string; done: boolean; t: string; d: string; a: string }[] = [];
   const btn = (view: string, label: string) => `<button class="btn sm" data-act="view" data-id="${view}">${label}</button>`;
-  if (sv.goal === "money")
-    out.push({ k: "sv-money", done: S.income.length > 0, t: "Log your first income", d: "Add what a brand or platform paid you, and see the month add up.", a: btn("bank", "Open Money") });
-  if (sv.goal === "team" || sv.size !== "solo")
+  if (sv.sub === "tech") {
+    out.push({ k: "sv-unit", done: S.units.length > 0, t: "Log your first review unit", d: "Track a loaner device: who has it, when the embargo lifts and when it goes back.", a: `<button class="btn sm" data-act="sv_goto" data-id="units">Open Review units</button>` });
+    out.push({ k: "sv-radar", done: S.launches.length > 0, t: "Add an upcoming launch", d: "Put a phone, laptop or AI launch on the radar and turn it into a content plan.", a: `<button class="btn sm" data-act="sv_goto" data-id="radar">Open Launch radar</button>` });
+  }
+  if (sv.role === "business" || sv.sub === "finance")
+    out.push({ k: "sv-money", done: S.income.length > 0, t: "Log your first income", d: "Add what a client or brand paid you, and see the month add up.", a: btn("biz", "Open Business") });
+  if (sv.role === "business" || sv.role === "team")
     out.push({ k: "sv-team", done: T.members.length > 0, t: "Add a teammate", d: "Give each person their own work and see what is done today.", a: btn("team", "Open Team") });
-  if (sv.kind === "tech")
-    out.push({ k: "sv-tech", done: S.notes.length > 0, t: "Write a script note", d: "Notes handle code blocks and checklists, so scripts and outlines live in one place.", a: btn("notes", "Open Notes") });
-  if (sv.goal === "grow")
-    out.push({ k: "sv-grow", done: S.posts.length > 0, t: "Plan your next post", d: "Pick a date on the calendar so growth work has a deadline.", a: btn("cal", "Open Calendar") });
+  if (sv.role === "college")
+    out.push({ k: "sv-plan", done: S.tasks.some((t) => t.due), t: "Put a deadline on a task", d: "Dated tasks show on the calendar and in the bell when they are due.", a: btn("cal", "Open Calendar") });
+  if (sv.sub === "education")
+    out.push({ k: "sv-script", done: S.notes.length > 0, t: "Draft a lesson script", d: "Notes keep outlines and checklists together.", a: btn("notes", "Open Notes") });
   return out;
 }
 
 export function surveyAct(a: string, _b: HTMLElement, id: string): boolean {
   switch (a) {
-    case "sv_pick": {
-      const [key, value] = id.split(":");
-      if (QUESTIONS.some((q) => q.key === key)) draft[key as Question["key"]] = value;
+    case "sv_role":
+      pickedRole = id;
       render();
       return true;
-    }
-    case "sv_save": {
-      if (!QUESTIONS.every((q) => draft[q.key])) return true;
-      S.cfg.survey = { kind: draft.kind!, size: draft.size!, goal: draft.goal!, ts: Date.now() };
-      draft = {};
+    case "sv_sub": {
+      const role = pickedRole;
+      if (!role) return true;
+      S.cfg.survey = { role, sub: id, ts: Date.now() };
+      pickedRole = "";
       touch();
       render();
-      toast("Saved. Your checklist now fits what you do.");
+      toast("Saved. You can change this from Today.");
       return true;
     }
     case "sv_skip":
-      S.cfg.survey = { kind: "", size: "", goal: "", ts: Date.now() };
-      draft = {};
+      S.cfg.survey = { role: "", sub: "", ts: Date.now() };
+      pickedRole = "";
       touch();
       render();
       return true;
+    case "sv_reset":
+      delete S.cfg.survey;
+      pickedRole = "";
+      if (S.cfg.obDone) delete S.cfg.obDone;
+      touch();
+      render();
+      return true;
+    case "sv_goto":
+      bizTab = id;
+      go("biz");
+      return true;
   }
   return false;
+}
+
+/** A line at the bottom of Today that shows the answer and lets the person change it. */
+export function surveyFootHTML(): string {
+  const sv = S.cfg && S.cfg.survey;
+  if (readOnly || window.__WS || !sv || !sv.role) return "";
+  return `<div class="sv-foot muted">Set up for: <b>${esc(roleLabel(sv.role))}${sv.sub ? " · " + esc(subLabel(sv.role, sv.sub)) : ""}</b> <button class="lnk" data-act="sv_reset">Change</button></div>`;
 }

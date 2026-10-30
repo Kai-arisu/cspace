@@ -51,8 +51,28 @@ async function readList(uid: string, key: string): Promise<Record<string, unknow
   }
 }
 
+/** The person's welcome-survey answers (their role and kind of work), if they gave any. */
+async function readProfile(uid: string): Promise<Record<string, unknown>> {
+  const sb = admin();
+  const meta = await sb.from("docs").select("data").eq("user_id", uid).eq("path", "store/meta").maybeSingle();
+  const k = (meta.data?.data as { keys?: Record<string, { n: number }> } | undefined)?.keys?.cfg;
+  if (!k) return {};
+  let s = "";
+  for (let i = 0; i < k.n; i++) {
+    const r = await sb.from("docs").select("data").eq("user_id", uid).eq("path", `store/k_cfg_${i}`).maybeSingle();
+    s += (r.data?.data as { s?: string } | undefined)?.s || "";
+  }
+  try {
+    const sv = (JSON.parse(s) as { survey?: { role?: string; sub?: string } }).survey;
+    return sv && sv.role ? { role: sv.role, kind_of_work: sv.sub || "" } : {};
+  } catch {
+    return {};
+  }
+}
+
 const clip = (v: unknown, n: number) => String(v ?? "").slice(0, n);
 const TOOLS = [
+  { name: "get_profile", description: "Who the person is: their role (creator, business, team or college) and kind of work. Call this first so your help fits them.", inputSchema: { type: "object", properties: {} } },
   { name: "list_ideas", description: "The person's saved ideas, newest first.", inputSchema: { type: "object", properties: { limit: { type: "number" } } } },
   { name: "list_tasks", description: "Tasks on their board. col is i (idea), m (making), r (review) or s (shipped).", inputSchema: { type: "object", properties: { limit: { type: "number" } } } },
   { name: "list_notes", description: "Titles and bodies of their notes.", inputSchema: { type: "object", properties: { limit: { type: "number" } } } },
@@ -64,6 +84,7 @@ const TOOLS = [
 
 async function call(name: string, a: Record<string, unknown>, uid: string, tokenId: string): Promise<string> {
   const lim = Math.max(1, Math.min(100, Number(a.limit) || 30));
+  if (name === "get_profile") return JSON.stringify(await readProfile(uid));
   if (name === "list_ideas") return JSON.stringify((await readList(uid, "ideas")).sort((x, y) => Number(y.ts) - Number(x.ts)).slice(0, lim).map((i) => ({ text: i.text, tags: i.tags, starred: !!i.star })));
   if (name === "list_tasks") return JSON.stringify((await readList(uid, "tasks")).slice(0, lim).map((t) => ({ title: t.title, col: t.col, due: t.due || null })));
   if (name === "list_notes") return JSON.stringify((await readList(uid, "notes")).slice(0, lim).map((n) => ({ title: n.title, body: clip(n.body, 4000) })));

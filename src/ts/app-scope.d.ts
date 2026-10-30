@@ -21,6 +21,7 @@ declare global {
   }
 
   // screen state that lives in the shared scope
+  var bizTab: string;
   var selNote: string | null;
   var noteOpen: boolean;
   var noteMode: "write" | "read";

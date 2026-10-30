@@ -2699,6 +2699,7 @@ img{max-width:100%;height:auto}
 .un-b.late{background:#b3261e;border-color:#b3261e;color:#fff}
 .un-a{display:flex;gap:8px;align-items:center;flex:none}
 .un-h{margin:18px 0 0;font-size:14px}
+.sv-foot{margin:14px 0;font-size:13px}
 
 /* ===================================================================
    Public creator page and media kit: a one-person front page.
@@ -4162,7 +4163,9 @@ var TS = (() => {
     radarHTML: () => radarHTML,
     surveyAct: () => surveyAct,
     surveyDone: () => surveyDone,
+    surveyFootHTML: () => surveyFootHTML,
     surveyHTML: () => surveyHTML,
+    surveyShows: () => surveyShows,
     surveySteps: () => surveySteps,
     unitAct: () => unitAct,
     unitsDueSoon: () => unitsDueSoon,
@@ -4569,91 +4572,100 @@ var TS = (() => {
   }
 
   // src/ts/screens/survey.ts
-  var QUESTIONS = [
-    {
-      key: "kind",
-      title: "What do you make?",
-      options: [
-        ["video", "Videos"],
-        ["social", "Reels and posts"],
-        ["tech", "Tech or code content"],
-        ["business", "A business or brand"]
-      ]
-    },
-    {
-      key: "size",
-      title: "Who works on it?",
-      options: [
-        ["solo", "Just me"],
-        ["small", "2 to 5 people"],
-        ["large", "6 or more"]
-      ]
-    },
-    {
-      key: "goal",
-      title: "What matters most right now?",
-      options: [
-        ["grow", "Grow my audience"],
-        ["plan", "Plan content on time"],
-        ["money", "Track what I earn"],
-        ["team", "Run my team"]
-      ]
-    }
+  var ROLES = [
+    ["creator", "I'm a creator"],
+    ["business", "I run a business"],
+    ["team", "I lead a team"],
+    ["college", "It's a college project"]
   ];
-  var draft = {};
+  var SUBS = {
+    creator: [["video", "Videos"], ["social", "Reels and posts"], ["education", "Education"], ["tech", "Tech or gadgets"]],
+    business: [["finance", "Finance or consulting"], ["shop", "A shop or brand"], ["agency", "An agency"], ["other", "Something else"]],
+    team: [["production", "Reels or video production"], ["startup", "A startup"], ["agency", "An agency"], ["other", "Something else"]],
+    college: [["event", "A club or event"], ["class", "A class project"], ["research", "Research"], ["other", "Something else"]]
+  };
+  var pickedRole = "";
+  var roleLabel = (role) => {
+    var _a;
+    return ((_a = ROLES.find((r) => r[0] === role)) == null ? void 0 : _a[1]) || "";
+  };
+  var subLabel = (role, sub) => {
+    var _a;
+    return ((_a = (SUBS[role] || []).find((s) => s[0] === sub)) == null ? void 0 : _a[1]) || "";
+  };
   function surveyDone() {
     return !!(S.cfg && S.cfg.survey);
   }
+  function surveyShows(sub) {
+    const sv = S.cfg && S.cfg.survey;
+    return !sv || !sv.sub || sv.sub === sub;
+  }
   function surveyHTML() {
     if (readOnly || window.__WS || S.cfg && (S.cfg.obDone || S.cfg.survey)) return "";
-    const ready = QUESTIONS.every((q) => draft[q.key]);
-    const rows = QUESTIONS.map(
-      (q) => `<div class="sv-q" role="group" aria-label="${esc(q.title)}"><h3>${esc(q.title)}</h3><div class="sv-o">` + q.options.map(
-        ([v, label]) => `<button class="chip" data-act="sv_pick" data-id="${q.key}:${v}" aria-pressed="${draft[q.key] === v}">${esc(label)}</button>`
-      ).join("") + `</div></div>`
-    ).join("");
-    return `<section class="panel sv"><div class="ob-h"><div><h2 style="margin:0">Make it yours</h2><span class="muted">Three taps and your checklist fits what you do</span></div><div class="ob-acts"><button class="btn sm" data-act="sv_skip">Skip</button></div></div>` + rows + `<div class="sv-go"><button class="btn pri" data-act="sv_save"${ready ? "" : " disabled"}>Done</button></div></section>`;
+    const chip = (act, id, label, on) => `<button class="chip" data-act="${act}" data-id="${esc(id)}" aria-pressed="${on}">${esc(label)}</button>`;
+    const q1 = `<div class="sv-q" role="group" aria-label="What best describes you"><h3>What best describes you?</h3><div class="sv-o">${ROLES.map((r) => chip("sv_role", r[0], r[1], pickedRole === r[0])).join("")}</div></div>`;
+    const q2 = pickedRole ? `<div class="sv-q" role="group" aria-label="What kind"><h3>What kind?</h3><div class="sv-o">${SUBS[pickedRole].map((s) => chip("sv_sub", s[0], s[1], false)).join("")}</div></div>` : "";
+    return `<section class="panel sv"><div class="ob-h"><div><h2 style="margin:0">Make it yours</h2><span class="muted">Two taps and the app fits what you do. You can change this any time.</span></div><div class="ob-acts"><button class="btn sm" data-act="sv_skip">Skip</button></div></div>${q1}${q2}</section>`;
   }
   function surveySteps() {
     const sv = S.cfg && S.cfg.survey;
     if (!sv) return [];
     const out = [];
     const btn = (view, label) => `<button class="btn sm" data-act="view" data-id="${view}">${label}</button>`;
-    if (sv.goal === "money")
-      out.push({ k: "sv-money", done: S.income.length > 0, t: "Log your first income", d: "Add what a brand or platform paid you, and see the month add up.", a: btn("bank", "Open Money") });
-    if (sv.goal === "team" || sv.size !== "solo")
+    if (sv.sub === "tech") {
+      out.push({ k: "sv-unit", done: S.units.length > 0, t: "Log your first review unit", d: "Track a loaner device: who has it, when the embargo lifts and when it goes back.", a: `<button class="btn sm" data-act="sv_goto" data-id="units">Open Review units</button>` });
+      out.push({ k: "sv-radar", done: S.launches.length > 0, t: "Add an upcoming launch", d: "Put a phone, laptop or AI launch on the radar and turn it into a content plan.", a: `<button class="btn sm" data-act="sv_goto" data-id="radar">Open Launch radar</button>` });
+    }
+    if (sv.role === "business" || sv.sub === "finance")
+      out.push({ k: "sv-money", done: S.income.length > 0, t: "Log your first income", d: "Add what a client or brand paid you, and see the month add up.", a: btn("biz", "Open Business") });
+    if (sv.role === "business" || sv.role === "team")
       out.push({ k: "sv-team", done: T.members.length > 0, t: "Add a teammate", d: "Give each person their own work and see what is done today.", a: btn("team", "Open Team") });
-    if (sv.kind === "tech")
-      out.push({ k: "sv-tech", done: S.notes.length > 0, t: "Write a script note", d: "Notes handle code blocks and checklists, so scripts and outlines live in one place.", a: btn("notes", "Open Notes") });
-    if (sv.goal === "grow")
-      out.push({ k: "sv-grow", done: S.posts.length > 0, t: "Plan your next post", d: "Pick a date on the calendar so growth work has a deadline.", a: btn("cal", "Open Calendar") });
+    if (sv.role === "college")
+      out.push({ k: "sv-plan", done: S.tasks.some((t) => t.due), t: "Put a deadline on a task", d: "Dated tasks show on the calendar and in the bell when they are due.", a: btn("cal", "Open Calendar") });
+    if (sv.sub === "education")
+      out.push({ k: "sv-script", done: S.notes.length > 0, t: "Draft a lesson script", d: "Notes keep outlines and checklists together.", a: btn("notes", "Open Notes") });
     return out;
   }
   function surveyAct(a, _b, id) {
     switch (a) {
-      case "sv_pick": {
-        const [key, value] = id.split(":");
-        if (QUESTIONS.some((q) => q.key === key)) draft[key] = value;
+      case "sv_role":
+        pickedRole = id;
         render();
         return true;
-      }
-      case "sv_save": {
-        if (!QUESTIONS.every((q) => draft[q.key])) return true;
-        S.cfg.survey = { kind: draft.kind, size: draft.size, goal: draft.goal, ts: Date.now() };
-        draft = {};
+      case "sv_sub": {
+        const role = pickedRole;
+        if (!role) return true;
+        S.cfg.survey = { role, sub: id, ts: Date.now() };
+        pickedRole = "";
         touch();
         render();
-        toast("Saved. Your checklist now fits what you do.");
+        toast("Saved. You can change this from Today.");
         return true;
       }
       case "sv_skip":
-        S.cfg.survey = { kind: "", size: "", goal: "", ts: Date.now() };
-        draft = {};
+        S.cfg.survey = { role: "", sub: "", ts: Date.now() };
+        pickedRole = "";
         touch();
         render();
         return true;
+      case "sv_reset":
+        delete S.cfg.survey;
+        pickedRole = "";
+        if (S.cfg.obDone) delete S.cfg.obDone;
+        touch();
+        render();
+        return true;
+      case "sv_goto":
+        bizTab = id;
+        go("biz");
+        return true;
     }
     return false;
+  }
+  function surveyFootHTML() {
+    const sv = S.cfg && S.cfg.survey;
+    if (readOnly || window.__WS || !sv || !sv.role) return "";
+    return `<div class="sv-foot muted">Set up for: <b>${esc(roleLabel(sv.role))}${sv.sub ? " · " + esc(subLabel(sv.role, sv.sub)) : ""}</b> <button class="lnk" data-act="sv_reset">Change</button></div>`;
   }
 
   // src/ts/screens/agenda.ts
@@ -5069,7 +5081,7 @@ var TS = (() => {
 var vIdeas=TS.vIdeas, addIdea=TS.addIdea, addIdeaText=TS.addIdeaText, ideaAct=TS.ideaAct, ideaTitle=TS.ideaTitle;
 var NTPL=TS.NTPL, vNotes=TS.vNotes, noteListHTML=TS.noteListHTML, noteEditorHTML=TS.noteEditorHTML, nRender=TS.nRender, nOutline=TS.nOutline,
     nToolbar=TS.nToolbar, nInsert=TS.nInsert, nToTasks=TS.nToTasks, nFromTpl=TS.nFromTpl, newNote=TS.newNote, noteAct=TS.noteAct, noteInput=TS.noteInput;
-var surveyHTML=TS.surveyHTML, surveySteps=TS.surveySteps, surveyAct=TS.surveyAct, surveyDone=TS.surveyDone;
+var surveyHTML=TS.surveyHTML, surveySteps=TS.surveySteps, surveyAct=TS.surveyAct, surveyDone=TS.surveyDone, surveyShows=TS.surveyShows, surveyFootHTML=TS.surveyFootHTML;
 var agendaHTML=TS.agendaHTML;
 var aiConnectHTML=TS.aiConnectHTML, aiImport=TS.aiImport, aiAct=TS.aiAct;
 var unitsHTML=TS.unitsHTML, unitAct=TS.unitAct, unitsDueSoon=TS.unitsDueSoon;
@@ -5802,7 +5814,7 @@ function vHome(){
   var h='<header class="td-head"><p class="td-date">'+esc(new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long"}))+' · '+esc(spaceName())+'</p><h1>'+greet+(nm?", "+esc(nm):"")+'</h1><p class="td-fact">'+esc(fact)+'</p></header>';
   if(!readOnly)h+='<div class="td-cap"><input class="in" id="qcin" placeholder="Capture anything… an idea, a task, a note" maxlength="240" aria-label="Quick capture"><button type="button" class="btn" data-act="qcap" data-id="idea">'+I("bulb")+'Idea</button><button type="button" class="btn" data-act="qcap" data-id="task">'+I("check")+'Task</button><button type="button" class="btn" data-act="qcap" data-id="note">'+I("notes")+'Note</button></div>';
   var obh=(typeof surveyHTML==="function"?surveyHTML():"")+(typeof agendaHTML==="function"?agendaHTML():"")+(typeof obHTML==="function"?obHTML():""),fresh=typeof obFresh==="function"&&obFresh();
-  if(obh&&fresh)return h+obh+(typeof todayAud==="function"?todayAud():"");
+  if(obh&&fresh)return h+obh+(typeof surveyFootHTML==="function"?surveyFootHTML():"")+(typeof todayAud==="function"?todayAud():"");
   function stat(n,l,cap,v,c){return '<button class="td-stat'+(c?" "+c:"")+'" data-act="view" data-id="'+v+'"><span class="tl">'+l+'</span><b>'+n+'</b><span class="tc">'+cap+'</span></button>'}
   var nextP=posts.slice().sort(function(a,b){return a.date<b.date?-1:1})[0];
   h+='<div class="td-grid td-stats">'+
@@ -5835,6 +5847,7 @@ function vHome(){
   h+='<div class="td-grid"><section class="panel s12"><h2>Pipeline <span class="cnt">'+t.length+'</span><button class="lnk" data-act="view" data-id="board">Open board</button></h2><div class="td-pipe">'+STAGES.map(function(s){return '<button data-act="view" data-id="board"><span>'+esc(s.name||s.label||s.id)+'</span><b>'+cnt[s.id]+'</b></button>'}).join("")+'</div></section></div>';
   if(typeof todayAud==="function")h+=todayAud(1);
   h+=typeof aiConnectHTML==="function"?aiConnectHTML():"";
+  h+=typeof surveyFootHTML==="function"?surveyFootHTML():"";
   if(!readOnly)h+='<div class="td-foot"><span class="muted">Space settings</span><button class="btn sm" data-act="renamespace">Rename</button><button class="btn sm" data-act="delspace"'+(S.spaces.length<2?" disabled":"")+'>Delete</button></div>';
   return h;
 }
@@ -6614,7 +6627,7 @@ function kit(){
 }
 function vBiz(){
   var deals=mine("deals"),inc=mine("income"),invs=mine("invoices"),mo=ymd(new Date()).slice(0,7);
-  var acts='<div class="chips" style="margin:0" role="tablist" aria-label="Business sections">'+[["deals","Sponsors"],["income","Income"],["invoices","Invoices"],["units","Review units"],["radar","Launch radar"],["kit","Media kit"]].map(function(t){return '<button class="chip" role="tab" data-act="biztab" data-id="'+t[0]+'" aria-pressed="'+(bizTab===t[0])+'">'+t[1]+'</button>'}).join("")+'</div>';
+  var acts='<div class="chips" style="margin:0" role="tablist" aria-label="Business sections">'+[["deals","Sponsors"],["income","Income"],["invoices","Invoices"],].concat(surveyShows("tech")||mine("units").length||mine("launches").length||bizTab==="units"||bizTab==="radar"?[["units","Review units"],["radar","Launch radar"]]:[]).concat([["kit","Media kit"]]).map(function(t){return '<button class="chip" role="tab" data-act="biztab" data-id="'+t[0]+'" aria-pressed="'+(bizTab===t[0])+'">'+t[1]+'</button>'}).join("")+'</div>';
   var h=hero("biz","Business","Sponsors, income, invoices and your media kit, in one place.",acts);
   var tiles=[["Income this month",money(sumBy(inc.filter(function(x){return x.date.slice(0,7)===mo}),"amount")),"--c-board","wallet"],["Income all time",money(sumBy(inc,"amount")),"--c-home","chart"],["Open pipeline",money(sumBy(deals.filter(function(d){return d.status!=="paid"}),"amount")),"--c-notes","flag"],["Unpaid invoices",money(sumBy(invs.filter(function(v){return !v.paid}),invTotal)),"--c-wb","notes"]];
   h+='<div class="biz-tiles">'+tiles.map(function(t){return '<div class="vz-tile" style="--c:var('+t[2]+')"><span class="vt-ic">'+I(t[3])+'</span><span class="vt-l">'+t[0]+'</span><b style="font-size:26px">'+t[1]+'</b></div>'}).join("")+'</div>';
